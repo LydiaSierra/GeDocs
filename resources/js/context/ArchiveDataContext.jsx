@@ -82,6 +82,7 @@ export function ArchiveDataProvider({ children }) {
                 folders,
                 setFolders,
                 files,
+                setFiles,
                 parentId,
                 stack,
                 loading,
@@ -90,6 +91,7 @@ export function ArchiveDataProvider({ children }) {
                 navigateToFolder,
                 navigateBack,
                 handleSearch,
+
             }}
         >
             {children}

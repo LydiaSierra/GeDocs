@@ -1,40 +1,59 @@
 import Navbar from "@/components/Navbar/Navbar";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { Squares2X2Icon } from "@heroicons/react/24/outline";
+import {Squares2X2Icon, PlusIcon} from "@heroicons/react/24/outline";
 import ArchiveExplorer from "@/components/ArchiveExplorer/ArchiveExplorer";
-import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
-import { BreadCrumb } from "@/components/ArchiveExplorer/BreadCrumb";
-import { ModalDetails } from "@/components/ArchiveExplorer/ModalDetails";
-import { useContext, useState } from "react";
-import { ArchiveDataContext } from "@/context/ArchiveDataContext";
-import { ArchiveUIContext } from "@/context/ArchiveUIContext";
+import {InputSearch} from "@/components/ArchiveExplorer/InputSearch";
+import {BreadCrumb} from "@/components/ArchiveExplorer/BreadCrumb";
+import {ModalDetails} from "@/components/ArchiveExplorer/ModalDetails";
+import {useContext, useState} from "react";
+import {ArchiveDataContext} from "@/context/ArchiveDataContext";
+import {ArchiveUIContext} from "@/context/ArchiveUIContext";
+import {router, usePage} from "@inertiajs/react";
+import {Inertia} from "@inertiajs/inertia";
 
 export default function Explorer() {
     // 📦 Contextos
-    const { handleSearch, searchTerm } = useContext(ArchiveDataContext);
-    const { gridView, toggleGridView, showModal } = useContext(ArchiveUIContext);
+    const {handleSearch, searchTerm} = useContext(ArchiveDataContext);
+    const {gridView, toggleGridView, showModal} = useContext(ArchiveUIContext);
 
     // 📍 Estado local solo para controlar el input de búsqueda
-    const [inputSearchTerm, setInputSearchTerm] = useState( searchTerm || "");
+    const [inputSearchTerm, setInputSearchTerm] = useState(searchTerm || "");
 
     // 🔍 Al presionar Enter o botón, se dispara la búsqueda
     const handleSearchSubmit = () => {
         handleSearch(inputSearchTerm.trim());
     };
 
-    return (
-        <div className="bg-senaGray dark:bg-gray-800 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300">
-            <Navbar />
-            <div className="flex">
-                <Sidebar />
+    const {parent_id} = usePage().props;
 
-                <div className="flex flex-col h-[calc(100vh-80px-2.5rem)] w-full
-                        bg-white dark:bg-gray-800
-                        m-2 lg:m-5 rounded-lg p-5 gap-3 overflow-y-auto
-                        transition-colors duration-300 shadow-md dark:shadow-none">
+    const uploadFile = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file); // el nombre debe coincidir con el del backend
+            formData.append('folder_id', parent_id);
+
+            router.post("/upload", formData, {
+                onStart: () => console.log("Subiendo archivo... ⏳"),
+                onSuccess: () => console.log("Archivo subido correctamente ✅"),
+                onError: (errors) => console.error("Error al subir:", errors),
+            });
+        }
+    }
+
+    return (
+        <div
+            className="bg-senaGray dark:bg-gray-800 min-h-screen text-gray-900 dark:text-gray-100 transition-colors duration-300 relative">
+            <Navbar/>
+            <div className="flex">
+                <Sidebar/>
+
+                <div
+                    className="flex flex-col h-[calc(100vh-80px-2.5rem)] w-full bg-white dark:bg-gray-800 lg:m-5 rounded-lg p-2 lg:p-5 gap-3 overflow-y-auto transition-colors duration-300 lg:shadow-md dark:shadow-none">
 
                     {/* 🔍 Barra de búsqueda + modo cuadrícula */}
-                    <div className="flex gap-3 items-center">
+                    <div className="flex gap-3 items-center justify-center lg:justify-start">
                         <InputSearch
                             inputSearchTerm={inputSearchTerm}
                             setInputSearchTerm={setInputSearchTerm}
@@ -59,14 +78,25 @@ export default function Explorer() {
                     </div>
 
                     {/* 🧭 Navegación */}
-                    <BreadCrumb />
+                    <BreadCrumb/>
 
                     {/* 📁 Explorador principal */}
-                    <ArchiveExplorer />
+                    <ArchiveExplorer/>
 
                     {/* 🪟 Modal de detalles */}
-                    {showModal && <ModalDetails />}
+                    {showModal && <ModalDetails/>}
                 </div>
+            </div>
+
+
+            <div className={'absolute p-4 rounded-full bg-green-800 text-white bottom-3 right-3 cursor-pointer'}>
+
+                {/*    ICONO DE AGREGAR*/}
+                <label htmlFor="addFile">
+                    <PlusIcon className={'w-5 h-5 text-white'}/>
+                </label>
+                <input onChange={uploadFile} type="file" id={'addFile'} hidden
+                       accept={'.pdf, application/pdf, .docs, .xmls'}/>
             </div>
         </div>
     );

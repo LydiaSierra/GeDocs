@@ -1,8 +1,9 @@
-import { DocumentTextIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import {DocumentTextIcon, UserCircleIcon} from "@heroicons/react/24/solid";
 
 export default function InboxMailCard() {
     return (
-        <div className="w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer">
+        <div
+            className="w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer">
 
             <div id="selector" className="h-20 w-1 rounded-xl bg-senaWashedBlue shrink-0"></div>
 
@@ -46,7 +47,7 @@ export default function InboxMailCard() {
                     </h3>
                     <p
                         id="mail-card-description"
-                        className="text-gray-600 text-sm overflow-hidden text-ellipsis line-clamp-2"
+                        className="text-gray-600 text-sm overflow-hidden text-ellipsis line-clamp-1"
                     >
                         Instructor de la ficha 9122221043 lleva 4 semanas sin
                         asistir a clases
@@ -62,12 +63,12 @@ export default function InboxMailCard() {
                         id="mail-card-sender"
                         className="flex items-center gap-1 min-w-0"
                     >
-                        <UserCircleIcon className="w-5 shrink-0" />
+                        <UserCircleIcon className="w-5 shrink-0"/>
                         <div className="truncate text-sm max-w-[120px] sm:max-w-[200px]">
                             Antonio Antoniez
                         </div>
                     </div>
-                    <DocumentTextIcon className="w-5 shrink-0" />
+                    <DocumentTextIcon className="w-5 shrink-0"/>
                 </div>
             </div>
         </div>

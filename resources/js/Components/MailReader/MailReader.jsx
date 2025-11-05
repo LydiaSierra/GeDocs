@@ -2,7 +2,7 @@ import SenderInformationCard from "@/components/SenderInformationCard/SenderInfo
 
 export default function MailReader() {
     return (
-        <div className="h-full w-full md:w-2/3 shadow-xl rounded-lg p-6 overflow-y-auto hidden md:block">
+        <div className="h-full w-full shadow-xl rounded-lg p-6 overflow-y-auto hidden lg:block bg-white">
 
             <div id="tag-container" className="flex flex-wrap gap-2">
                 <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white">
