@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
+use App\DocumentType;
 use Illuminate\Database\Eloquent\Model;
-use App\TypeEnum;
+
 
 class PQR extends Model
 {
@@ -15,12 +16,35 @@ class PQR extends Model
         'address',
         'email',
         'phone',
-        'asunto',
-        'descripcion'
+        'affair',
+        'description',
+        'response_time',
+        'state',
+        'user_id',
+        'responsible_id',
+        'dependency_id'
     ];
 
-    //Enum -> select document type
+
     protected $casts = [
-        'document_type' => TypeEnum::class,
+        'document_type' => DocumentType::class,
+        'state' => 'string',
+        'response_time' => 'date',
     ];
+
+    //Relaciones
+     public function creator()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function responsible()
+    {
+        return $this->belongsTo(User::class, 'responsible_id');
+    }
+
+    public function dependency()
+    {
+        return $this->belongsTo(Dependence::class);
+    }
 }
