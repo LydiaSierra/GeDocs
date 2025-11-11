@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\JsonResponse;
+use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -27,9 +29,37 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|JsonResponse
     {
         $request->authenticate();
+
+         /** @var \Illuminate\Http\Request $request */
+
+        //Detectar si es peticion API
+        if ($request->expectsJson() || $request->is('api/*')) {
+             $user = User::where('email', $request->input('email'))->first();
+
+             // Validar que el usuario existe
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Usuario no encontrado'
+                ], 404);
+            }
+
+            // Crear token de Sanctum
+            $token = $user->createToken('api-token')->plainTextToken;
+
+            return response()->json([
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role_id' => $user->role_id
+                ],
+                'token' => $token,
+                'message' => 'Login exitoso'
+            ], 200);
+        }
 
         $request->session()->regenerate();
 
