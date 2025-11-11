@@ -29,6 +29,7 @@ class User extends Authenticatable
         'type_document',
         'last_name',
         'phone',
+        'ficha',
         'role_id',
         'dependency_id',
     ];

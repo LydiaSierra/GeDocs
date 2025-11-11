@@ -37,6 +37,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Prueba',
             'type_document' => DocumentType::CEDULA,
             'phone' => '1234567890',
+            'ficha' => '1234567',
             'password' => bcrypt('password'),
             'role_id' => $roleUsuario->id,
         ]);
@@ -48,6 +49,7 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Sistemas',
             'type_document' => DocumentType::CEDULA,
             'phone' => '0987654321',
+            'ficha' => '1234567',
             'password' => bcrypt('password'),
             'role_id' => $roleEncargado->id,
             'dependency_id' => $depSistemas->id,
@@ -60,11 +62,12 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Admin',
             'type_document' => DocumentType::CEDULA,
             'phone' => '5555555555',
+            'ficha' => '1234567',
             'password' => bcrypt('password'),
             'role_id' => $roleSuperadmin->id,
         ]);
 
-        // 4. Crear PQR de ejemplo
+        //Ejemplo de creación de pqrs
         PQR::firstOrCreate([
             'document' => '12345678',
             'email' => 'usuario@test.com'
