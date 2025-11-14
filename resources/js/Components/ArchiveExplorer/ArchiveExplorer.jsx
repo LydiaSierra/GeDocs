@@ -7,13 +7,13 @@ import {
     ArrowPathIcon,
     ArrowDownTrayIcon,
     EllipsisVerticalIcon,
-    InformationCircleIcon,
+    InformationCircleIcon, ArrowLeftIcon,
 } from "@heroicons/react/24/solid";
-import {FolderRow} from "./FolderRow.jsx";
-import {ArchiveDataContext} from "@/context/ArchiveDataContext";
-import {ArchiveUIContext} from "@/context/ArchiveUIContext";
+import {ArchiveDataContext} from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
+import {ArchiveUIContext} from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
 import {usePage} from "@inertiajs/react";
-import FolderGrid from "@/Components/ArchiveExplorer/FolderGrid.jsx";
+import Folder from "@/Components/ArchiveExplorer/Folder.jsx";
+import {RightClickContext} from "@/context/ArchiveExplorer/RightClickContext.jsx";
 
 
 // Main ArchiveExplorer component
@@ -22,25 +22,16 @@ export default function ArchiveExplorer() {
     const {
         files,
         folders,
-        setFolders,
-        setFiles,
-        parentId,
-        navigateToFolder,
         loading,
+        goBack,
+        historyStack
     } = useContext(ArchiveDataContext);
 
     const {
         gridView,
         formatSize,
-        handleModalDetails,
     } = useContext(ArchiveUIContext);
 
-    const { folders: initialFolders, files: initialFiles, parent_id } = usePage().props;
-
-    useEffect(() => {
-        setFolders(initialFolders);
-        setFiles(initialFiles);
-    }, [initialFolders, initialFiles, parent_id]);
 
 // Show loading state
     if (loading) {
@@ -54,22 +45,18 @@ export default function ArchiveExplorer() {
         );
     }
 
-    // Function to handle entering a folder
-
-    const enterFolder = (folder) => {
-        if (!folder || folder.type !== "carpeta") return;
-        navigateToFolder(folder.id, folder.name);
-    };
-    console.log(folders)
-    // Render the component based on the selected view (grid or table)
-
     return (
         <>
+            {historyStack.length > 0 &&
+                <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max"} onClick={goBack}>
+                    <ArrowLeftIcon className={"w-5 h-5 text-white"}/>
+                </div>
+            }
             {gridView ? (
                 // Grid view
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
                     {(folders || []).map((folder) => (
-                        <FolderGrid key={folder.id} folder={folder} enterFolder={enterFolder}/>
+                        <Folder key={folder.id} folder={folder}/>
                     ))}
 
                 </div>
@@ -85,7 +72,8 @@ export default function ArchiveExplorer() {
                             <th>
                                 <FolderIcon className="size-10 opacity-0"/>
                             </th>
-                            <th>Sección</th>
+                            <th>Código Sección</th>
+                            <th>Clasificación</th>
                             <th>Nombre</th>
                             <th>Última Modificación</th>
                             <th>Tamaño</th>
@@ -97,15 +85,16 @@ export default function ArchiveExplorer() {
                         <tbody>
 
                         {(folders || []).map((folder) => (
-                            <FolderRow key={folder.id} folder={folder} enterFolder={enterFolder}/>
+                            <Folder key={folder.id} folder={folder}/>
                         ))}
 
                         {/* Files view */}
                         {(files || []).map((file) => (
                             <tr
                                 key={file.id}
-                                onDoubleClick={()=> window.open(`http://127.0.0.1:8000/storage/${file.file_path}`)}
+                                onDoubleClick={() => window.open(`http://127.0.0.1:8000/storage/${file.file_path}`)}
                                 className="odd:bg-gray-100 hover:bg-[#A7F1FB] even:bg-gray-200 text-black cursor-pointer"
+                                onContextMenu={(e) => showContextMenu(e, "file")}
                             >
                                 <td className="rounded-l-lg p-2">
                                     <input type="checkbox" className="checkbox"/>
@@ -137,7 +126,7 @@ export default function ArchiveExplorer() {
                     {/*Table view Responsive*/}
                     <div className={'flex flex-col lg:hidden'}>
                         {(folders || []).map((folder) => (
-                            <FolderGrid key={folder.id} folder={folder} enterFolder={enterFolder}/>
+                            <Folder key={folder.id} folder={folder}/>
 
                         ))}
 
@@ -145,7 +134,7 @@ export default function ArchiveExplorer() {
                             <tr
                                 key={file.id}
                                 className="odd:bg-gray-100 hover:bg-[#A7F1FB] even:bg-gray-200 text-black cursor-pointer"
-                                onDoubleClick={()=> window.open(`http://127.0.0.1:8000/storage/${file.file_path}`)}
+                                onDoubleClick={() => window.open(`http://127.0.0.1:8000/storage/${file.file_path}`)}
                             >
                                 <td className="rounded-l-lg p-2">
                                     <input type="checkbox" className="checkbox"/>

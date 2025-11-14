@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('name');
             $table->integer('parent_id')->nullable();
             $table->enum('type', ['folder', 'file']);
-            $table->string('document_code')->nullable();
+            $table->string('folder_code')->nullable();
             $table->string('path')->nullable();
+            $table->string("departament");
             $table->timestamps();
         });
     }

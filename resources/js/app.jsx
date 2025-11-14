@@ -4,8 +4,9 @@ import './bootstrap';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
-import { ArchiveDataProvider } from './context/ArchiveDataContext';
-import { ArchiveUIProvider } from './context/ArchiveUIContext';
+import { ArchiveDataProvider } from './context/ArchiveExplorer/ArchiveDataContext';
+import { ArchiveUIProvider } from './context/ArchiveExplorer/ArchiveUIContext';
+import { RightClickProvider } from './context/ArchiveExplorer/RightClickContext';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -19,11 +20,13 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
         root.render(
-            <ArchiveDataProvider>
-                <ArchiveUIProvider>
-                    <App {...props} />
-                </ArchiveUIProvider>
-            </ArchiveDataProvider>
+            <ArchiveUIProvider>
+                <ArchiveDataProvider>
+                    <RightClickProvider>
+                        <App {...props} />
+                    </RightClickProvider>
+                </ArchiveDataProvider>
+            </ArchiveUIProvider>
         );
     },
     progress: {

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('password');
 //            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
 //            $table->foreignId('dependence_id')->constrained('dependencies')->onDelete('cascade');
-//            $table->rememberToken();
+              $table->rememberToken();
             $table->timestamps();
         });
 

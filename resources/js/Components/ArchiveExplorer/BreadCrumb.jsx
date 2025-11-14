@@ -1,5 +1,5 @@
 
-import { ArchiveDataContext } from "@/context/ArchiveDataContext";
+import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import React, { useContext } from "react";
 import {router} from "@inertiajs/react";

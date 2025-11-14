@@ -1,3 +1,4 @@
+
 import { createContext, useEffect, useState, useCallback } from "react";
 
 export const ArchiveUIContext = createContext();
@@ -8,6 +9,13 @@ export function ArchiveUIProvider({ children }) {
   const [gridView, setGridView] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [inputNameFolder, setinputNameFolder] = useState("Caperta sin titulo");
+
+  const [onContextMenu, setOnContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0
+  });
 
   // Load the grid view prefeence from the local store ge on initial rendering
 
@@ -23,7 +31,7 @@ export function ArchiveUIProvider({ children }) {
       return newValue;
     });
   }, []);
- // Format file sizes into human-readable strings
+  // Format file sizes into human-readable strings
   const formatSize = useCallback((size) => {
     if (!size) return "0 KB";
     const units = ["B", "KB", "MB", "GB", "TB"];
@@ -37,7 +45,23 @@ export function ArchiveUIProvider({ children }) {
   };
 
 
- // Provide the context values to the children components
+  const handleModalFolder = (idModal) => {
+    const modal = document.getElementById(idModal);
+    if (modal) {
+      if (modal.open) {
+        modal.close();
+        setinputNameFolder("Caperta sin titulo");
+      } else {
+        modal.showModal();
+      }
+    }
+  };
+
+
+
+
+
+  // Provide the context values to the children components
   return (
     <ArchiveUIContext.Provider
       value={{
@@ -47,6 +71,11 @@ export function ArchiveUIProvider({ children }) {
         toggleGridView,
         handleModalDetails,
         formatSize,
+        onContextMenu,
+        setOnContextMenu,
+        handleModalFolder,
+        inputNameFolder,
+        setinputNameFolder,
       }}
     >
       {children}
