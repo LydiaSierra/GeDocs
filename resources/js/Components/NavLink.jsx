@@ -1,11 +1,11 @@
-import { Link } from '@inertiajs/react';
+import {Link} from '@inertiajs/react';
 
 export default function NavLink({
-    active = false,
-    className = '',
-    children,
-    ...props
-}) {
+                                    active = false,
+                                    className = '',
+                                    children,
+                                    ...props
+                                }) {
     return (
         <Link
             {...props}
@@ -16,7 +16,7 @@ export default function NavLink({
                 className
             }
         >
-            <div className={`${active ? 'text-green-800' : 'text-white'}`}>
+            <div className={`${active ? 'text-primary' : 'text-white'}`}>
                 {children}
             </div>
         </Link>

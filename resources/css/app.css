@@ -10,14 +10,43 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
+@plugin "daisyui/theme" {
+    name: "GeDocs";
+    default: false;
+    prefersdark: false;
+    color-scheme: "light";
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(93% 0 0);
+    --color-base-300: oklch(86% 0 0);
+    --color-base-content: oklch(35.519% 0.032 262.988);
+    --color-primary: #3F9964;
+    --color-primary-content: oklch(33.387% 0.04 162.24);
+    --color-secondary: #3CACBB;
+    --color-secondary-content: oklch(100% 0 0);
+    --color-accent: #50E5F9;
+    --color-accent-content: oklch(0% 0 0);
+    --color-neutral: #010515;
+    --color-neutral-content: oklch(98.462% 0.001 247.838);
+    --color-info: oklch(72.06% 0.191 231.6);
+    --color-info-content: oklch(0% 0 0);
+    --color-success: #69BE3F;
+    --color-success-content: oklch(0% 0 0);
+    --color-warning: #FBC311;
+    --color-warning-content: oklch(0% 0 0);
+    --color-error: #FEAC94;
+    --color-error-content: oklch(0% 0 0);
+    --radius-selector: 1rem;
+    --radius-field: 0.5rem;
+    --radius-box: 1rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+}
+
+
 @layer base {
   *,
   ::after,
