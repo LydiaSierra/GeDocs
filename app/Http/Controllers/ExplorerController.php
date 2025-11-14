@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\File;
 use App\Models\Folder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,16 +13,23 @@ class ExplorerController extends Controller
     {
         $parent_id = $request->get('parent_id', null);
         $search = $request->get('search', null);
-        $query = Folder::query();
+
+        $foldersQuery = Folder::query();
 
         if ($search) {
-            $query->where('name', 'like', "%{$search}%");
+            $foldersQuery->where('name', 'like', "%{$search}%");
         } else {
-            $query->where('parent_id', $parent_id);
+            $foldersQuery->where('parent_id', $parent_id);
         }
 
-        $folders = $query->get();
+        $folders = $foldersQuery->get();
 
-        return Inertia::render('Explorer', ['folders' => $folders, 'parent_id' => $parent_id]);
+        $files = File::query()->where('folder_id', $parent_id)->get();
+
+        return Inertia::render('Explorer', [
+            'folders' => $folders,
+            'files' => $files,
+            'parent_id' => $parent_id,
+        ]);
     }
 }

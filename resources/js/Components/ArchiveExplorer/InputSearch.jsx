@@ -6,7 +6,7 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
 
 
     return (
-        <div id="inbox-search" className="flex gap-3">
+        <div id="inbox-search" className="flex gap-3 flex-1 lg:flex-none">
             {/* Search field */}
             <div className="flex items-center bg-gray-100 px-2 rounded-md flex-grow max-w-sm">
                 <input

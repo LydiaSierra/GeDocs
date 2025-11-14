@@ -7,7 +7,7 @@ import InboxMailCard from "@/components/InboxMailCard/InboxMailCard";
 
 export default function InboxSidebar() {
     return (
-        <div className="w-full md:w-1/3 bg-white flex flex-col p-3 rounded-lg h-[calc(90vh-70px)] md:h-auto ml-1 justify-between items-center  ">
+        <div className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-[calc(90vh-70px)] md:h-auto md:ml-1 justify-between items-center md:p-3 ">
 
             <div className="w-full flex flex-col">
                 <h2 className="font-bold text-2xl mb-2 text-center">
@@ -34,7 +34,7 @@ export default function InboxSidebar() {
                     id="inbox-categories"
                     className="flex my-2 w-full justify-between items-center"
                 >
-                    <form className="flex gap-2 w-full overflow-x-auto no-scrollbar">
+                    <form className="flex gap-2 w-full overflow-x-auto p-1">
                         <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Preguntas" />
                         <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Quejas" />
                         <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Reclamos" />
@@ -45,7 +45,7 @@ export default function InboxSidebar() {
                     </button>
                 </div>
 
-                <h3 id="inbox-date" className="text-start w-full px-2 mt-4 font-bold">
+                <h3 id="inbox-date" className="text-start w-full px-2 my-4 font-bold">
                     Agosto, 2025
                 </h3>
             </div>

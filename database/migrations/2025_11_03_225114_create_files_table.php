@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('file_path');
             $table->string('type');
             $table->bigInteger('size');
+            $table->foreignId("folder_id")->nullable()->constrained("folders");
             $table->timestamps();
         });
     }

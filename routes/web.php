@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\FileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -18,6 +19,8 @@ Route::get('archive' , function () {
     return Inertia::render('Archive');
 })->name('archive');
 
+
+Route::post('/upload', [FileController::class, 'store'])->name('files.store');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
