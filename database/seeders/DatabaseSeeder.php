@@ -5,6 +5,9 @@ namespace Database\Seeders;
 use App\Models\Folder;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\PQR;
+use App\DocumentType;
+use App\Models\Dependence;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,54 +20,69 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+       // 1. Crear roles correctos
+        $roleUsuario = Role::firstOrCreate(['name' => 'usuario']);
+        $roleEncargado = Role::firstOrCreate(['name' => 'encargado']);
+        $roleSuperadmin = Role::firstOrCreate(['name' => 'superadmin']);
 
-//        User::factory()->create([
-//            'name' => 'Julio Alexis',
-//            'email' => 'julioalexishoyoscolorado@gamil.com',
-//            'type_document' => '1097007444',
-//
-//
-//        ]);
+        // 2. Crear dependencias
+        $depSistemas = Dependence::firstOrCreate(['name' => 'Sistemas e Informática']);
+        $depRRHH = Dependence::firstOrCreate(['name' => 'Recursos Humanos']);
 
-        Role::create([
-            'name' => 'admin'
-        ]);
-        Role::create([
-            'name' => 'user'
-        ]);
-        Role::create([
-            'name' => 'dependent'
-        ]);
-
-        Folder::create([
-            'name' => 'Gerencia General',
-            'parent_id' => null,
-            'type' => 'folder',
-            'document_code' => 101,
+        // 3. Crear usuarios de prueba
+        $usuarioFinal = User::firstOrCreate([
+            'email' => 'usuario@test.com'
+        ], [
+            'name' => 'Usuario Final',
+            'last_name' => 'Prueba',
+            'type_document' => DocumentType::CEDULA,
+            'phone' => '1234567890',
+            'ficha' => '1234567',
+            'password' => bcrypt('password'),
+            'role_id' => $roleUsuario->id,
         ]);
 
-        Folder::create([
-            'name' => 'Oficina de control interno',
-            'parent_id' => null,
-            'type' => 'folder',
-            'document_code' => 102,
-        ]);
-        Folder::create([
-            'name' => 'Oficina Juridica',
-            'parent_id' => null,
-            'type' => 'folder',
-            'document_code' => 103,
-        ]);
-
-
-        Folder::create([
-            'name' => 'folder',
-            'parent_id' => 1,
-            'type' => 'folder',
-            'document_code' => 100,
+        $encargado = User::firstOrCreate([
+            'email' => 'encargado@test.com'
+        ], [
+            'name' => 'Encargado',
+            'last_name' => 'Sistemas',
+            'type_document' => DocumentType::CEDULA,
+            'phone' => '0987654321',
+            'ficha' => '1234567',
+            'password' => bcrypt('password'),
+            'role_id' => $roleEncargado->id,
+            'dependency_id' => $depSistemas->id,
         ]);
 
+        $superadmin = User::firstOrCreate([
+            'email' => 'admin@test.com'
+        ], [
+            'name' => 'Super',
+            'last_name' => 'Admin',
+            'type_document' => DocumentType::CEDULA,
+            'phone' => '5555555555',
+            'ficha' => '1234567',
+            'password' => bcrypt('password'),
+            'role_id' => $roleSuperadmin->id,
+        ]);
+
+        //Ejemplo de creación de pqrs
+        PQR::firstOrCreate([
+            'document' => '12345678',
+            'email' => 'usuario@test.com'
+        ], [
+            'document_type' => DocumentType::CEDULA,
+            'name' => 'Usuario Ejemplo',
+            'address' => 'Calle 123',
+            'phone' => '1234567890',
+            'affair' => 'Problema con el sistema',
+            'description' => 'No puedo acceder al sistema de gestión documental',
+            'state' => 'pendiente',
+            'user_id' => $usuarioFinal->id,
+        ]);
+
+        $this->command->info('Datos de prueba creados exitosamente');
 
     }
 }

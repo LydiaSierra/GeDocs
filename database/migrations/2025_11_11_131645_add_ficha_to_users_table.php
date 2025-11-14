@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('file__p_q_r_s', function (Blueprint $table) {
-            $table->foreignId('file_id')->constrained('files');
-            $table->foreignId('pqr_id')->constrained('p_q_r_s');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('ficha')->nullable();
         });
     }
 
@@ -23,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('file__p_q_r_s');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('ficha');
+        });
     }
 };
