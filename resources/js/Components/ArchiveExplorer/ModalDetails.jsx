@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { DocumentIcon, FolderIcon } from "@heroicons/react/24/outline";
-import { ArchiveUIContext } from "@/context/ArchiveUIContext";
+import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
 
 export const ModalDetails = () => {
 
