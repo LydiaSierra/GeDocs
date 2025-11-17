@@ -4,66 +4,56 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\TechnicalSheet;
+use App\Notifications\NewUserRegistered;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Http\JsonResponse;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
-    public function create(): Response
+    public function create()
     {
         return Inertia::render('Auth/Register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function store(Request $request): RedirectResponse|JsonResponse {
-        $request->validate([
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'type_document' => 'required|string|max:50',
+            'document_number' => 'required|string|max:50|unique:users,document_number',
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'role' => 'required|string|in:Aprendiz,Instructor',
+            'technical_sheet_id' => 'nullable|exists:technical_sheets,id',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Crear usuario
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => 1,
+            'type_document' => $validated['type_document'],
+            'document_number' => $validated['document_number'],
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+            'technical_sheet_id' => $validated['technical_sheet_id'] ?? null,
+            'status' => 'pendiente',
+            'password' => Hash::make($validated['password']),
         ]);
-
-        // Detectar si es petición API
-        if ($request->expectsJson() || $request->is('api/*')) {
-
-            $token = $user->createToken('api-token')->plainTextToken;
-
-            return response()->json([
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                ],
-                'token' => $token,
-                'message' => 'Usuario registrado exitosamente'
-            ], 201);
-        }
 
         event(new Registered($user));
 
-        Auth::login($user);
+        auth()->login($user);
 
-        return redirect(route('/', absolute: false));
+        if ($user->role === "Instructor") {
+            $admin = User::where('role', 'admin')->first();
+            if ($admin) {
+                $admin->notify(new NewUserRegistered($user));
+            }
+        }
+
+        return redirect("/");
     }
 }
-

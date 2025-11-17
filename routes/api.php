@@ -1,22 +1,19 @@
 <?php
 
-use App\Http\Controllers\Api\PQRController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FolderController;
+use App\Http\Controllers\NotificationController;
 
-//Ruta para obtener usuario autenticado
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Rutas de carpetas (si deben ser públicas, las dejas así)
+Route::get('folders/parent_id/{id}', [FolderController::class, 'getByParent']);
+Route::apiResource('folders', FolderController::class);
+Route::get('allFolders', [FolderController::class, 'getAllFolders']);
 
-//Rutas para authentication
-Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
-Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
-
-
-//Rutas para los PQRS (requieren authenticacion)
-//Group -> metodo para agrupar multiples rutas
-Route::middleware('auth:sanctum')->group(function (){
-    Route::apiResource('pqrs', PQRController::class);
-    // Route::get('pqrs', [PQRController::class, 'index']);
+// Rutas de notificaciones protegidas
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread', [NotificationController::class, 'unread']);
+    Route::get('/notifications/read', [NotificationController::class, 'read']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });

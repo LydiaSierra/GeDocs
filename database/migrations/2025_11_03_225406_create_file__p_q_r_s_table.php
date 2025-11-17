@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dependencies', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+        Schema::create('file__p_q_r_s', function (Blueprint $table) {
+            $table->foreignId('file_id')->constrained('files');
+            $table->foreignId('pqr_id')->constrained('p_q_r_s');
             $table->timestamps();
         });
     }
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dependences');
+        Schema::dropIfExists('file__p_q_r_s');
     }
 };

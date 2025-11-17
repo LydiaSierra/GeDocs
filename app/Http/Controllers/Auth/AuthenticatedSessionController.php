@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\JsonResponse;
-use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -29,41 +27,24 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse|JsonResponse
+    public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
 
-         /** @var \Illuminate\Http\Request $request */
+        $user = Auth::user();
 
-        //Detectar si es peticion API
-        if ($request->expectsJson() || $request->is('api/*')) {
-             $user = User::where('email', $request->input('email'))->first();
+        if ($user->status === "pendiente") {
+            Auth::logout();
 
-             // Validar que el usuario existe
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Usuario no encontrado'
-                ], 404);
-            }
-
-            // Crear token de Sanctum
-            $token = $user->createToken('api-token')->plainTextToken;
-
-            return response()->json([
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role_id' => $user->role_id
-                ],
-                'token' => $token,
-                'message' => 'Login exitoso'
-            ], 200);
+            return redirect()->route('login')->with('pending', [
+                'message' => 'Tu cuenta sigue en revisión. Un instructor/administrador debe habilitarla.',
+                'role' => $user->role,
+            ]);
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('inbox'));
+        return redirect('/');
     }
 
     /**
