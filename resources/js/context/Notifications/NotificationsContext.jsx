@@ -29,9 +29,9 @@ export function NotificationsProvider({children}) {
 
 
     const markAsRead = useCallback((id)=>{
-        setNotifications(prev => {
-            prev.map(n => n.id === id ? {...prev, read_at:new Date().toISOString()} : n);
-        })
+        setNotifications(prev => 
+            prev.map(n => n.id === id ? {...n, read_at:new Date().toISOString()} : n)
+        )
     }, [])
 
     useEffect(()=>{

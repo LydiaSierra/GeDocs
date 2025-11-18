@@ -1,6 +1,6 @@
 export default function ArchiveTable() {
     return (
-        <div className="w-full max-w-full overflow-x-hidden">
+        <div className="w-full max-w-full h-full">
             <div className="hidden md:block overflow-x-auto">
                 <table className="w-full table-auto border-separate border-spacing-y-2">
                     <thead className="sticky top-0">

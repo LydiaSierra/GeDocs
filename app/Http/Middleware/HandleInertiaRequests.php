@@ -34,6 +34,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            "notifications" => $request->user() ? $request->user()->notifications : null,
         ];
     }
 }

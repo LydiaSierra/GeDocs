@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Dependence extends Model
+class Dependency extends Model
 {
     //
 }

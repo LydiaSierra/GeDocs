@@ -9,6 +9,7 @@ export function ArchiveDataProvider({ children }) {
 
     // State to store the list of folders
     const [folders, setFolders] = useState([]);
+    const [allFolders, setAllFolders] = useState([]);
 
     // State to store the list of files
     const [files, setFiles] = useState([]);
@@ -36,9 +37,34 @@ export function ArchiveDataProvider({ children }) {
             const res = await api(endpoint);
 
             // If the response is successful, update folders and files
-            if (res.data.success) {
+            if (res.data.success === true) {
                 setFolders(res.data.folders || []);
                 setFiles(res.data.files || []);
+            }
+        } catch (e) {
+            console.log("Error loading folders: " + e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+    const fetchAllFolders = async (parentId) => {
+        try {
+            setLoading(true);
+
+            // Determine the API endpoint based on whether we are inside a folder or in the root
+            const endpoint = parentId
+                ? `/api/folders/parent_id/${parentId}`
+                : `/api/allFolders`;
+
+            // Make the API request
+            const res = await api(endpoint);
+
+            // If the response is successful, update folders and files
+            if (res.data.success === true) {
+                setAllFolders(res.data.folders || []);
             }
         } catch (e) {
             console.log("Error loading folders: " + e);
@@ -83,6 +109,10 @@ export function ArchiveDataProvider({ children }) {
         fetchFolders(parentId);
     }, [parentId]);
 
+    useEffect(() => {
+        fetchAllFolders();
+    }, []);
+
     // Provide all data and actions to any component that uses this context
     return (
         <ArchiveDataContext.Provider
@@ -98,7 +128,9 @@ export function ArchiveDataProvider({ children }) {
                 fetchFolders,
                 handleFolderNavegation,
                 goBack,
-                historyStack
+                historyStack,
+                allFolders,
+                setAllFolders,
             }}
         >
             {children}

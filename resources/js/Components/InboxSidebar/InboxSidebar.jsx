@@ -7,7 +7,7 @@ import InboxMailCard from "@/components/InboxMailCard/InboxMailCard";
 
 export default function InboxSidebar() {
     return (
-        <div className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-[calc(90vh-70px)] md:h-auto md:ml-1 justify-between items-center md:p-3 ">
+        <div className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-full md:ml-1 justify-between items-center md:p-3 ">
 
             <div className="w-full flex flex-col">
                 <h2 className="font-bold text-2xl mb-2 text-center">
