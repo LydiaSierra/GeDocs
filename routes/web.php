@@ -77,6 +77,12 @@ Route::prefix('api')->group(function () {
         ->name('api.notifications.markAsRead');
 
 
+    Route::get('/users', [App\Http\Controllers\UserController::class, "index"]);
+    Route::post('/users', [App\Http\Controllers\UserController::class, "store"]);
+
+
+
+
 });
 
 Route::post('/upload', [FileController::class, 'store'])

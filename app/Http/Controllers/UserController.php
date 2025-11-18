@@ -61,7 +61,7 @@ class UserController extends Controller
     public function show(string $id)
     {
         $user = User::with('roles')->find($id);
-        if (!$user) {
+        if(!$user){
             return response()->json(["success" => false, "message" => "Usuario no encontrado"], 404);
         }
         return response()->json(["success" => true, "data" => $user]);
