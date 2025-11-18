@@ -6,6 +6,7 @@ import api from "@/lib/axios.js";
 export default function Header() {
     const {props} = usePage();
     const user = props.auth.user;
+
     return (
         <header
             className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">

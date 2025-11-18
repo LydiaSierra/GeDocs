@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FolderController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -30,6 +31,11 @@ Route::middleware('auth')->group(function () {
     ])
     )->name('notifications.show');
 
+    Route::get('/explorer', [ExplorerController::class, 'index'])
+        ->name('explorer');
+
+    Route::get('/archive', fn() => Inertia::render('Archive'))
+        ->name('archive');
 
     // Vistas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])
@@ -42,17 +48,9 @@ Route::middleware('auth')->group(function () {
 
 
 
-Route::middleware(['auth', 'is.admin'])->group(function () {
-
-    Route::get('/explorer', [ExplorerController::class, 'index'])
-        ->name('explorer');
-
-    Route::get('/archive', fn() => Inertia::render('Archive'))
-        ->name('archive');
-});
 
 
-Route::prefix('api')->middleware('auth')->group(function () {
+Route::prefix('api')->group(function () {
 
     // Folders
     Route::get('/folders/parent_id/{id}', [FolderController::class, 'getByParent'])
@@ -77,6 +75,8 @@ Route::prefix('api')->middleware('auth')->group(function () {
         ->name('api.notifications.read');
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])
         ->name('api.notifications.markAsRead');
+
+
 });
 
 Route::post('/upload', [FileController::class, 'store'])
