@@ -117,4 +117,42 @@ class UserController extends Controller
             "message" => "Usuario eliminado correctamente"
         ]);
     }
+
+
+    public function userByFilter(string $type = null, string $value = null)
+    {
+        //validates if the request has the parameters
+
+        if (!$type || !$value) {
+            return response()->json([
+                "success" => true,
+                "data" => []
+            ]);
+        }
+
+        $allowed = ["name","email","document_number","technical_sheet"];
+
+        // validation for selected type
+        if (!in_array($type, $allowed)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Filtro no permitido"
+            ], 400);
+        }
+
+        // if there is a coincidence. return the user
+        $users = User::with('roles')
+            ->where($type, 'LIKE', "%{$value}%")
+            ->get();
+
+
+        return response()->json([
+            "success" => true,
+            "data" => $users
+
+
+        ]);
+
+
+    }
 }
