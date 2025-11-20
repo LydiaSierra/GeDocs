@@ -52,4 +52,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function sheetNumbers()
+    {
+        return $this->belongsToMany(Sheet_number::class, 'sheet_number_user', 'user_id', 'sheet_number_id');
+
+    }
 }

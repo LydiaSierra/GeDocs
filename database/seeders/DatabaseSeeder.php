@@ -22,16 +22,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
-
-
         $user = User::factory()->create([
             'type_document'      => 'CC',
-            'document_number'    => '1020304050',
+            'document_number'    => 1020304050,
             'name'               => 'Julio Alexis',
             'email'              => 'julioalexishoyoscolorado@gmail.com',
-            'technical_sheet' => null,
             'status'             => 'active',
         ]);
         $user->assignRole('admin');
+
+        $this->call([
+            SheetSeeder::class,
+        ]);
     }
 }
