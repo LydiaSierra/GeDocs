@@ -24,7 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
         'technical_sheet',
         'status',
     ];
@@ -50,5 +50,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    //Relacion con table role
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
+
+    //Relacion con table pqrs
+    public function createdPqrs(){
+        return $this->hasMany(PQR::class, 'user_id');
+    }
+
+    public function assignedPqrs(){
+        return $this-> hasMany(PQR::class, 'responsible_id');
     }
 }

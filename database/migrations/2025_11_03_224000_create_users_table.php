@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->string('type_document')->nullable();
-            $table->string('role')->nullable();
+            $table->foreignId('role_id')->constrained('roles')->onDelete('cascade');
             $table->string('document_number')->unique();
             $table->string("status")->default("pendiente");
             $table->string('technical_sheet')->nullable();

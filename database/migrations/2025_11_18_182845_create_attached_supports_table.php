@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('file__p_q_r_s', function (Blueprint $table) {
-            $table->foreignId('file_id')->constrained('files');
-            $table->foreignId('pqr_id')->constrained('p_q_r_s');
+        Schema::create('attached_supports', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('path');
+            $table->string('type');
+            $table->unsignedBigInteger('size');
+            $table->foreignId('pqr_id')->constrained('p_q_r_s')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('file__p_q_r_s');
+        Schema::dropIfExists('attached_supports');
     }
 };

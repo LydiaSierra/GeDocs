@@ -26,29 +26,53 @@ class DatabaseSeeder extends Seeder
             FoldersSeeder::class,
         ]);
 
-        Role::create([
-            'name' => 'admin'
-        ]);
-        Role::create([
-            'name' => 'instructor'
-        ]);
-        Role::create([
-            'name' => 'user'
-        ]);
-        Role::create([
-            'name' => 'dependent'
-        ]);
+        //Creacion de roles
+        $adminRole = Role::create(['name' => 'admin']);
+        $instructorRole = Role::create(['name' => 'instructor']);
+        $userRole = Role::create(['name' => 'user']);
+        $dependentRole = Role::create(['name' => 'dependent']);
+
+           // Crear dependencias
+        $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
+        $sistemas = Dependency::create(['name' => 'Sistemas']);
+        $academica = Dependency::create(['name' => 'Académica']);
+        $financiera = Dependency::create(['name' => 'Financiera']);
 
 
-
-        User::factory()->create([
+        //Usuario admin
+        User::create([
             'type_document'      => 'CC',
             'document_number'    => '1020304050',
             'name'               => 'Julio Alexis',
             'email'              => 'julioalexishoyoscolorado@gmail.com',
-            'role'               => 'admin',
+            'password' => bcrypt('password'),
+            'role_id'               => $adminRole->id,
             'technical_sheet' => null,
             'status'             => 'activo',
+        ]);
+
+         // Usuario dependiente (encargado)
+        User::create([
+            'type_document' => 'CC',
+            'document_number' => '1020304051',
+            'name' => 'Carlos Dependent',
+            'email' => 'dependent@test.com',
+            'password' => bcrypt('password'),
+            'role_id' => $dependentRole->id,
+            'technical_sheet' => null,
+            'status' => 'activo',
+        ]);
+
+         // Usuario normal
+        User::create([
+            'type_document' => 'CC',
+            'document_number' => '1020304052',
+            'name' => 'Maria User',
+            'email' => 'user@test.com',
+            'password' => bcrypt('password'),
+            'role_id' => $userRole->id,
+            'technical_sheet' => null,
+            'status' => 'activo',
         ]);
     }
 }
