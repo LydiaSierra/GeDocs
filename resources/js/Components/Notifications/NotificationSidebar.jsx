@@ -9,7 +9,8 @@ const NotificationSidebar = () => {
 
     return (
         <>
-            <aside className={"border-r w-[300px] h-full p-4 border-gray-500"}>
+            <aside className={"border-r w-[300px] h-full p-3 border-gray-500"}>
+                <h1 className={"font-bold text-xl"}> Notificaciones </h1>
 
                 {loading ?
                     <div className={"h-full flex justify-center items-center text-gray-400"}>
@@ -26,8 +27,55 @@ const NotificationSidebar = () => {
                                 })}
                             </>
                             :
-                            <div className={"h-full flex justify-center items-center text-gray-400"}>
-                                <h1>Sin notificaciones</h1>
+                            <div className={"h-full flex flex-col gap-1.5 justify-start items-center text-gray-400"}>
+                                
+                                {/* Ejemplo como profesor */}
+                                <div className={"w-full bg-[#6CF1F5] p-1 mt-1.5 rounded-xl"}>
+                                    <h1 className={"font-bold text-black"}> 
+                                        Nuevo Instructor
+                                    </h1>
+                                    
+                                    <h3 className={"text-gray-700 text-xm"}> 
+                                        Solicitud de acceso
+                                    </h3>
+                                    
+                                    <p className={"text-xs text-gray-500"}> 
+                                        Julio Alexis Hoyos desea solicitar un nuevo acceso con el rol de instructor en el sistema.
+                                    </p>
+                                </div>
+
+
+                                {/* Ejemplo de aprendiz */}
+                                <div className={"w-full bg-gray-200 p-1 mt-1.5 rounded-xl"}>
+                                    <h1 className={"font-bold text-black"}> 
+                                        Nuevo Aprendiz
+                                    </h1>
+                                    
+                                    <h3 className={"text-gray-700 text-xm"}> 
+                                        Solicitud de acceso
+                                    </h3>
+                                    
+                                    <p className={"text-xs text-gray-500"}> 
+                                        Johan Alexis Rendon desea solicitar un nuevo acceso con el rol de Aprendiz en el sistema.
+                                    </p>
+                                </div>
+
+                                {/* Ejemplo de notificación sin leer */}
+                                <div className={"w-full bg-white p-1 mt-1.5 rounded-xl"}>
+                                    <h1 className={"font-bold text-black"}> 
+                                        Nuevo Instructor
+                                    </h1>
+                                    
+                                    <h3 className={"text-gray-700 text-xm"}> 
+                                        Solicitud de acceso
+                                    </h3>
+                                    
+                                    <p className={"text-xs text-gray-500"}> 
+                                        Sebastian castellanos desea solicitar un nuevo acceso con el rol de Instructor en el sistema.
+                                    </p>
+                                </div>
+                                
+                                {/* <h1>Sin notificaciones</h1> */}
                             </div>
                         }
                     </>
