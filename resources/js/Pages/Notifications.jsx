@@ -1,12 +1,14 @@
+import NotificationsCard from "@/Components/Notifications/NotificationsCard";
 import NotificationsLayout from "@/Layouts/NotificationsLayout.jsx";
 import { usePage } from "@inertiajs/react";
+import NotificationsList from "@/Components/Notifications/NotificationsList";
 
 const Notifications = () => {
 
 
     return (
         <NotificationsLayout>
-            DETALLES DE NOTIFICACION
+            <NotificationsCard/>
         </NotificationsLayout>
     );
 }
