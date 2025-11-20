@@ -16,11 +16,6 @@ class UserController extends Controller
     {
         $query = User::with('roles');
 
-        // Filtro por número de documento
-        if ($request->has('document_number') && $request->document_number !== '') {
-            $query->where('document_number', 'LIKE', "%{$request->document_number}%");
-        }
-
 
         $users = $query->get();
         return response()->json(["success" => true, "data" => $users]);
@@ -61,7 +56,7 @@ class UserController extends Controller
     public function show(string $id)
     {
         $user = User::with('roles')->find($id);
-        if(!$user){
+        if (!$user) {
             return response()->json(["success" => false, "message" => "Usuario no encontrado"], 404);
         }
         return response()->json(["success" => true, "data" => $user]);
@@ -119,40 +114,37 @@ class UserController extends Controller
     }
 
 
-    public function userByFilter(string $type = null, string $value = null)
+    public function userByFilter(Request $request)
     {
-        //validates if the request has the parameters
+        // Allowed filters
+        $allowed = ["name", "email", "document_number", "technical_sheet"];
 
-        if (!$type || !$value) {
-            return response()->json([
-                "success" => true,
-                "data" => []
-            ]);
+        // Validate if the used filter is allowed
+        foreach ($request->query() as $key => $value) {
+            if (!in_array($key, $allowed)) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "Filtro '$key' no está permitido"
+                ], 400);
+            }
         }
 
-        $allowed = ["name","email","document_number","technical_sheet"];
+        $query = User::with('roles');
 
-        // validation for selected type
-        if (!in_array($type, $allowed)) {
-            return response()->json([
-                "success" => false,
-                "message" => "Filtro no permitido"
-            ], 400);
+        // loop through the array allowed to search for each selected filter
+
+        foreach ($allowed as $field) {
+            if ($request->filled($field)) {
+                $query->where($field, "LIKE", "%" . $request->$field . "%");
+            }
         }
 
-        // if there is a coincidence. return the user
-        $users = User::with('roles')
-            ->where($type, 'LIKE', "%{$value}%")
-            ->get();
-
+        $users = $query->get();
 
         return response()->json([
             "success" => true,
             "data" => $users
-
-
         ]);
-
-
     }
+
 }

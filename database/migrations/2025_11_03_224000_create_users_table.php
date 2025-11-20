@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
 
             $table->string('type_document')->nullable();
-            $table->string('role')->nullable();
             $table->string('document_number')->unique();
             $table->string("status")->default("pending");
             $table->string('technical_sheet')->nullable();

@@ -7,6 +7,8 @@ use App\Http\Controllers\NotificationController;
 
 
 //Generar token para utilizar en postman
+
+
 Route::post('/login', function (Request $request) {
     $request->validate([
         'email' => 'required|email',

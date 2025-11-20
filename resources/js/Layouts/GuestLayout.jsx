@@ -4,7 +4,6 @@ import ToastMessage from "@/Components/ToastMessage.jsx";
 
 export default function GuestLayout({children}) {
 
-    const {pending} = usePage().props;
 
     return (
         <div
@@ -25,7 +24,7 @@ export default function GuestLayout({children}) {
                 <img src="/images/imgLogin.png" alt=""/>
             </div>
 
-                <ToastMessage message={pending?.message}/>
+                <ToastMessage/>
         </div>
     );
 }

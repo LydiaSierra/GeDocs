@@ -79,7 +79,9 @@ Route::prefix('api')->group(function () {
 
     Route::get('/users', [App\Http\Controllers\UserController::class, "index"]);
     Route::post('/users', [App\Http\Controllers\UserController::class, "store"]);
-    Route::get('/users/filter/{type?}/{value?}', [App\Http\Controllers\UserController::class, 'userByFilter']);
+    Route::put("/users", [UserController::class, "update"]);
+    Route::delete("/users", [UserController::class, "destroy"]);
+    Route::get('/users/filter', [App\Http\Controllers\UserController::class, 'userByFilter']);
 
 
 

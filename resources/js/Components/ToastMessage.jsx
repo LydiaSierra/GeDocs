@@ -1,10 +1,13 @@
 import React, {useEffect, useState} from 'react';
+import {usePage} from "@inertiajs/react";
 
 const ToastMessage = ({message}) => {
     const [show, setShow] = useState(false);
+    const {pending} = usePage().props;
+
 
     useEffect(() => {
-        if (message) {
+        if (pending) {
             setShow(true);
 
             const timeout = setInterval(()=>{
@@ -13,7 +16,7 @@ const ToastMessage = ({message}) => {
 
             return ()=> clearInterval(timeout)
         }
-    }, [message]);
+    }, [pending]);
 
 
     if (!show) return null;
@@ -21,7 +24,7 @@ const ToastMessage = ({message}) => {
     return (
         <div className={`toast toast-center toast-top transition-all duration-500 ${ show ? 'opacity-100' : 'opacity-0 '}`}>
             <div className="alert  bg-red-500 text-white font-bold">
-                <span>{message}</span>
+                <span>{pending.message}</span>
             </div>
         </div>
     );
