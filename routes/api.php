@@ -41,6 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
+    //Ruta para responder pqrs
+    Route::post('pqrs/{id}/respond', [PQRController::class, 'respond']);
+
     // Logout
     Route::post('/logout', function (Request $request) {
         $request->user()->tokens()->delete();

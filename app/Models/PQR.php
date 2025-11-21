@@ -18,7 +18,10 @@ class PQR extends Model
         'state',
         'user_id',
         'responsible_id',
-        'dependency_id'
+        'dependency_id',
+        'response_message',
+        'response_date',
+        'response_status'
     ];
 
 
@@ -45,5 +48,20 @@ class PQR extends Model
 
     public function attachedSupports(){
         return $this->hasMany(AttachedSupport::class, 'pqr_id');
+    }
+
+    public function isResponded()
+    {
+        return $this->response_status === 'responded';
+    }
+
+    public function isPending()
+    {
+        return $this->response_status === 'pending';
+    }
+
+    public function isClosed()
+    {
+        return $this->response_status === 'closed';
     }
 }

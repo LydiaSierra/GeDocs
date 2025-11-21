@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse; //Importacion para repuestas ne json
 use App\Models\PQR;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PQRResponseMail;
 
 class PQRController extends Controller
 {
@@ -225,5 +228,69 @@ class PQRController extends Controller
     public function destroy(string $id)
     {
         return response()->json(['message' => 'No esta permitido eliminar el PQRS'],405);
+    }
+
+    public function respond(Request $request, string $id): JsonResponse // ✅ AGREGAR $id y tipo de retorno
+    {
+        try {
+            $user = $request->user();
+
+            if (!$user) {
+                return response()->json(['error' => 'No autenticado'], 401);
+            }
+
+            $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($id);
+
+            if (!$pqr) {
+                return response()->json(['error' => 'PQR no encontrada'], 404);
+            }
+
+            $roleName = $user->role?->name ?? null;
+
+            // Solo admins y dependents pueden responder
+            if (!in_array($roleName, ['admin', 'dependent'])) {
+                return response()->json(['error' => 'No autorizado para responder PQRs'], 403);
+            }
+
+            // Si es dependent, solo puede responder sus PQRs asignadas
+            if ($roleName === 'dependent' && $pqr->responsible_id !== $user->id) {
+                return response()->json(['error' => 'Solo puedes responder PQRs asignadas a ti'], 403);
+            }
+
+            // ✅ CAMBIAR: Verificar si ya fue respondida (sin método personalizado)
+            if ($pqr->response_status === 'responded' || $pqr->response_status === 'closed') {
+                return response()->json(['error' => 'Esta PQR ya fue respondida'], 422);
+            }
+
+            $validated = $request->validate([
+                'response_message' => 'required|string|min:10|max:2000',
+                'response_status' => 'sometimes|in:responded,closed'
+            ]);
+
+            // Actualizar PQR con respuesta
+            $pqr->update([
+                'response_message' => $validated['response_message'],
+                'response_date' => now(),
+                'response_status' => $validated['response_status'] ?? 'responded',
+                'state' => true // Marcar como procesada
+            ]);
+
+            try {
+                Mail::to($pqr->creator->email)->send(new \App\Mail\PQRResponseMail($pqr));
+            } catch (\Exception $e) {
+                // Log error pero no fallar la respuesta
+                Log::error('Error enviando email PQR: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
+                'message' => 'Respuesta enviada exitosamente y email notificado al usuario'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error interno: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
