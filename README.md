@@ -57,3 +57,157 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+<!--SPATIE PERMISSION-->
+This project uses Spatie Laravel Permission to manage user roles and permissions.
+
+Here you'll find a clear guide so that any developer on the team can correctly use, assign, and validate roles/permissions.
+
+
+# ROLES
+## Crear Rol
+``` 
+use Spatie\Permission\Models\Role;
+
+Role::create(['name' => 'administrador']);
+Role::create(['name' => 'instructor']);
+Role::create(['name' => 'aprendiz']);
+```
+## Asignar un rol
+```
+$user = User::find(1);
+$user->assignRole('Administrador');
+```
+## Asignar varios roles
+```
+$user->assignRole(['Admin', 'Instructor']);
+```
+## Remover un rol
+```
+$user->removeRole('Instructor');
+```
+## Reemplazar todos los roles
+```
+$user->syncRoles(['Instructor']);
+```
+## Obtener roles del usuario
+```
+$user->getRoleNames(); // devuelve una colección
+```
+## Verificar si el usuario tiene un rol
+```
+$user->hasRole('Admin'); // true o false
+```
+## Verificar si tiene cualquiera de varios roles
+```
+$user->hasAnyRole(['Admin', 'Instructor']);
+```
+## Verificar si tiene todos los roles
+```
+$user->hasAllRoles(['Admin', 'Instructor']);
+```
+## Asignar permiso
+```
+$user->givePermissionTo('crear usuarios');
+```
+## Verificar permiso
+```
+$user->can('crear usuarios');
+```
+# Middleware para proteger rutas:
+
+## Restringir por rol
+```
+Route::get('/admin', function () {
+    // ...
+})->middleware('role:Admin');
+```
+o
+```
+ Route::middleware('role:Admin')->group(function () {
+    // ... 
+});
+```
+## Permitir varios roles
+```
+->middleware('role:Admin|Instructor');
+```
+
+## Restringir por permiso
+```
+->middleware('permission:crear usuarios');
+```
+## Obtener rol del usuario autenticado
+```
+auth()->user()->getRoleNames();
+```
+
+# Crear una notificación
+```
+php artisan make:notification WelcomeNotification
+```
+
+# Ejemplo básico:
+```
+use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
+
+class WelcomeNotification extends Notification
+{
+    public function via($notifiable)
+    {
+        return ['mail', 'database']; // canales que deseas usar
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('Bienvenido')
+            ->line('Gracias por registrarte.');
+    }
+
+    public function toDatabase($notifiable)
+    {
+        return [
+            'message' => 'Tu cuenta fue creada con éxito.'
+        ];
+    }
+}
+```
+
+## Ver notificaciones de un usuario
+```
+$user->notifications;
+```
+
+## Solo las no leídas:
+```
+$user->unreadNotifications;
+```
+
+## Marcar una específica:
+```
+$notification->markAsRead();
+```
+
+## Marcar todas:
+```
+$user->unreadNotifications->markAsRead();
+```
+
+## Eliminar una notificación
+```
+$notification = auth()->user()->notifications()->find($id); // $id identifica la notificación (esto viene por ejemplo desde la URL).
+$notification->delete();
+```
+
+## Enviar notificaciones a varios usuarios
+```
+Notification::send(User::role('administrador')->get(), new SystemAlertNotification());
+```
+
+## Enviar a una colección:
+```
+Notification::send($usuarios, new AlertNotification());
+```

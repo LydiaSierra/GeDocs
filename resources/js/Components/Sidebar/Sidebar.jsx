@@ -10,8 +10,8 @@ export default function Sidebar() {
 
     const links = [
         { id: "inbox", href: "inbox", icon: InboxIcon },
-        { id: "archive", href: "archive", icon: ArchiveBoxIcon, adminOnly: true },
-        { id: "explorer", href: "explorer", icon: FolderIcon, adminOnly: true },
+        { id: "archive", href: "archive", icon: ArchiveBoxIcon},
+        { id: "explorer", href: "explorer", icon: FolderIcon },
     ];
 
     return (
@@ -19,9 +19,7 @@ export default function Sidebar() {
 
             <aside className="hidden md:flex h-screen px-2 bg-primary flex-col justify-between items-center pt-16 pb-4">
                 <div className="flex flex-col items-center gap-3">
-                    {links
-                        .filter(link => !link.adminOnly || user?.role === "admin" || user?.role === "Instructor")
-                        .map(link => (
+                    {links.map(link => (
                             <NavLink
                                 key={link.id}
                                 href={route(link.href)}
