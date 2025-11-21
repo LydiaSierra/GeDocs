@@ -9,8 +9,6 @@ use App\Http\Controllers\SheetController;
 
 
 Route::middleware('auth:sanctum')->group(function () {
-
-
     Route::get('/folders/parent_id/{id}', [FolderController::class, 'getByParent'])
         ->name('api.folders.byParent');
 
@@ -19,7 +17,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/allFolders', [FolderController::class, 'getAllFolders'])
         ->name('api.folders.all');
-
 
     Route::get('/notifications', [NotificationController::class, 'index'])
         ->name('api.notifications.index');
