@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('ficha')->nullable();
+        Schema::create('sheet_numbers', function (Blueprint $table) {
+            $table->id();
+            $table->integer("number")->unique();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('ficha');
-        });
+        Schema::dropIfExists('sheet_numbers');
     }
 };

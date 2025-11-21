@@ -17,18 +17,31 @@ class FolderController extends Controller
         return response()->json(["success" => true, "folders" => $folders], 200);
     }
 
-    public function getByParent($parent_id)
-{
-    $folders = Folder::where('parent_id', $parent_id)
-        ->with('files')
-        ->get();
-    $files = File::where('folder_id', $parent_id)->get();
+//    public function store(Request $request){
+//        $validate =
+//    }
 
-    return response()->json([
-        "success" => true,
-        "folders" => $folders,
-        "files" => $files
-    ], 200);
-}
+    public function getByParent($parent_id)
+    {
+        $folders = Folder::where('parent_id', $parent_id)
+            ->with('files')
+            ->get();
+        $files = File::where('folder_id', $parent_id)->get();
+
+        return response()->json([
+            "success" => true,
+            "folders" => $folders,
+            "files" => $files
+        ], 200);
+    }
+
+    public function getAllFolders()
+    {
+        $folders = Folder::all();
+        return response()->json(["success" => true, "folders" => $folders], 200);
+
+
+    }
+
 
 }

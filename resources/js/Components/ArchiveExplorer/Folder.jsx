@@ -1,20 +1,20 @@
-import {useContext} from "react";
-import {ArchiveUIContext} from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
-import {RightClickContext} from "@/context/ArchiveExplorer/RightClickContext.jsx";
-import {ArchiveDataContext} from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
-import {ArrowDownTrayIcon, EllipsisVerticalIcon, FolderIcon, InformationCircleIcon} from "@heroicons/react/24/solid";
+import { useContext } from "react";
+import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
+import { RightClickContext } from "@/context/ArchiveExplorer/RightClickContext.jsx";
+import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
+import { ArrowDownTrayIcon, EllipsisVerticalIcon, FolderIcon, InformationCircleIcon } from "@heroicons/react/24/solid";
 
 
-const Folder = ({folder})=>{
-    const {gridView, handleModalDetails} = useContext(ArchiveUIContext);
-    const {showContextMenu } = useContext(RightClickContext);
-    const {handleFolderNavegation} = useContext(ArchiveDataContext);
-    return(
+const Folder = ({ folder }) => {
+    const { gridView, handleModalDetails } = useContext(ArchiveUIContext);
+    const { showContextMenu } = useContext(RightClickContext);
+    const { handleFolderNavegation } = useContext(ArchiveDataContext);
+    return (
         <>
             {gridView ?
                 <div
                     key={folder.id}
-                    onContextMenu={(e)=> {showContextMenu(e, "folder")}}
+                    onContextMenu={(e) => { showContextMenu(e, "folder") }}
                     className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col text-center select-none items-center justify-between"
                 >
                     <div className={'flex lg:flex-col items-center gap-3'}>
@@ -52,38 +52,28 @@ const Folder = ({folder})=>{
                     </div>
                 </div>
                 :
-                <tr
-                    key={folder.id}
-                    className="odd:bg-gray-100 hover:bg-[#A7F1FB] even:bg-gray-200 text-black cursor-pointer"
-                    onContextMenu={(e) => showContextMenu(e, 'folder')}
-                    onDoubleClick={()=>handleFolderNavegation(folder.id)}
-                >
-                    <td className="rounded-l-lg p-2">
-                        <input
-                            type="checkbox"
-                            className="checkbox"
-                            onDoubleClick={(e) => e.stopPropagation()}
-                        />
-                    </td>
-                    <td>
-                        <FolderIcon className="size-10 text-gray-700 cursor-pointer" />
-                    </td>
-                    <td>{folder.folder_code ?? "--"}</td>
-                    <td>{folder.departament ?? "--"}</td>
-                    <td>{folder.name}</td>
-                    <td>{new Date(folder.updated_at).toLocaleDateString()}</td>
-                    <td>--</td>
-                    <td>{folder.type || "Carpeta"}</td>
-                    <td className="flex justify-center gap-3 rounded-r-lg">
-                        <div className="border-none bg-transparent rounded-full hover:bg-[#75D0D1]">
-                            <ArrowDownTrayIcon className="size-7 m-1 text-gray-700" />
+                <div className="flex flex-col">
+                    <div key={folder.id} className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100" onDoubleClick={() => {
+                        handleFolderNavegation(folder.id)
+                    }}>
+                        <div className="flex gap-2 items-center font-medium">
+                            <FolderIcon className="w-8 text-gray-800" />
+                            <p><span className="text-gray-600">{folder.folder_code}</span> - {folder.name}</p>
                         </div>
-                    </td>
-                </tr>
+
+                        <div className="flex gap-5 items-center">
+                            <p className="w-26">{folder.departament}</p>
+                            <p>{new Date(folder.created_at).toLocaleDateString()}</p>
+                            <button className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
+                                <EllipsisVerticalIcon className="w-6" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
             }
         </>
     )
 }
 
-export default  Folder;
+export default Folder;
 

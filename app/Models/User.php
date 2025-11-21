@@ -3,43 +3,38 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-
-use App\DocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
-    //Campos que se pueden asignar con el create o update
     protected $fillable = [
+        'type_document',
+        'document_number',
         'name',
         'email',
         'password',
-        'type_document',
-        'last_name',
-        'phone',
-        'ficha',
         'role_id',
-        'dependency_id',
+        'technical_sheet',
+        'status',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
-    //campos que no se mostraran en el json por seguridad
     protected $hidden = [
         'password',
         'remember_token',
@@ -50,37 +45,25 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-
-    //Convierten los tipos de datos
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'type_document' => DocumentType::class,
         ];
     }
 
-    //Relaciones
-     public function role()
+    public function sheetNumbers()
     {
-        //Un usuario pertenece a un rol
-        return $this->belongsTo(Role::class);
+        return $this->belongsToMany(Sheet_number::class, 'sheet_number_user', 'user_id', 'sheet_number_id');
     }
 
-    public function dependency()
-    {
-        return $this->belongsTo(Dependence::class);
-    }
-
-    public function createdPQRs()
-    {
-        //El usuario puede tener muchas pqrs creadas
+    //Relacion con table pqrs
+    public function createdPqrs(){
         return $this->hasMany(PQR::class, 'user_id');
     }
 
-    public function assignedPQRs()
-    {
-        return $this->hasMany(PQR::class, 'responsible_id');
+    public function assignedPqrs(){
+        return $this-> hasMany(PQR::class, 'responsible_id');
     }
 }

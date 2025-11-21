@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar/Navbar";
+import Navbar from "@/Components/Header/Navbar";
 
 export default function temporalForm() {
     return (

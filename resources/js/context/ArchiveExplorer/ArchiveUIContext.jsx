@@ -7,6 +7,7 @@ export function ArchiveUIProvider({ children }) {
 
   // States for the UI management like the grid view and modal details 
   const [gridView, setGridView] = useState(false);
+  const [showDropFolders, setShowDropFolders] = useState(false)
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [inputNameFolder, setinputNameFolder] = useState("Caperta sin titulo");
@@ -58,6 +59,14 @@ export function ArchiveUIProvider({ children }) {
   };
 
 
+  const toggleDropFolders = useCallback(() => {
+    setShowDropFolders((prev) => {
+      const newValue = !prev;
+      localStorage.setItem("ShowdropFolders", newValue);
+      return newValue;
+    })
+  })
+
 
 
 
@@ -76,6 +85,8 @@ export function ArchiveUIProvider({ children }) {
         handleModalFolder,
         inputNameFolder,
         setinputNameFolder,
+        toggleDropFolders, 
+        showDropFolders,
       }}
     >
       {children}

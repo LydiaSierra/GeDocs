@@ -1,18 +1,30 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import {Link, usePage} from '@inertiajs/react';
+import {useEffect, useState} from "react";
+import ToastMessage from "@/Components/ToastMessage.jsx";
 
-export default function GuestLayout({ children }) {
+export default function GuestLayout({children}) {
+
+
     return (
-        <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
-            <div>
-                <Link href="/">
-                    <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" />
-                </Link>
+        <div
+            className="min-h-screen grid grid-cols-1 md:grid-cols-2  items-center justify-items-center bg-gray-200 md:bg-white p-2 md:p-0 max-w-5xl m-auto">
+            <div className={"flex justify-center my-2 md:hidden"}>
+                <img src="/gedocs-logo.svg" alt=""/>
             </div>
 
-            <div className="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg">
+            <div
+                className={`bg-white w-full max-w-sm p-4 rounded-md shadow md:shadow-none  ${usePage().url === "/register" ? 'h-screen overflow-auto' : ''}`}>
+                <div className={" justify-center my-2 hidden md:flex"}>
+                    <img src="/gedocs-logo.svg" alt=""/>
+                </div>
                 {children}
+
             </div>
+            <div className={"hidden md:inline-block"}>
+                <img src="/images/imgLogin.png" alt=""/>
+            </div>
+
+                <ToastMessage/>
         </div>
     );
 }
