@@ -13,7 +13,7 @@ const NotificationsLayout = ({children}) => {
                 <div className='flex h-full pl-3 pb-3 pt-12 rounded-lg'>
                     <NotficationMenu/>
 
-                    <div className='pt-16 pb-2 w-full h-full flex'>
+                    <div className='pt-1.5 pb-2 w-full h-full flex'>
 
                         <NotificationSidebar/>
 

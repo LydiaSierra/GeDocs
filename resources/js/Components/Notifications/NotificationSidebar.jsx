@@ -9,8 +9,8 @@ const NotificationSidebar = () => {
 
     return (
         <>
-            <aside className={"border-r w-[300px] h-full p-3 border-gray-500"}>
-                <h1 className={"font-bold text-xl"}> Notificaciones </h1>
+            <aside className={" w-[300px] h-full p-3 border-gray-500"}>
+                <h1 className={"font-bold text-xl"}> Detalles de solicitud de </h1>
 
                 {loading ?
                     <div className={"h-full flex justify-center items-center text-gray-400"}>
