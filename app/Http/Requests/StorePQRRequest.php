@@ -26,32 +26,26 @@ class StorePQRRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'document_type' => ['required', Rule::enum(DocumentType::class)],
-            'document' => 'required|string|max:20',
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:500',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:15',
-            'affair' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
+            'affair' => 'required|string|max:255',
+            'response_time' => 'required|date|after:today',
+            'dependency_id' => 'required|exists:dependencies,id',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120'
         ];
     }
 
     //Mensajes para validaciones
     public function messages():array{
         return [
-            'document_type.required' => 'El tipo de documento es obligatorio',
-            'document_type.enum' => 'El tipo de documento no es válido.',
-            'document.required' => 'El número de documento es obligatorio.',
-            'document.max' => 'El número de documento no puede exceder 20 caracteres.',
-            'name.required' => 'El nombre es obligatorio.',
-            'name.max' => 'El nombre no puede exceder 255 caracteres.',
-            'email.required' => 'El email es obligatorio.',
-            'email.email' => 'El email debe tener un formato válido.',
-            'affair.required' => 'El asunto es obligatorio.',
-            'affair.max' => 'El asunto no puede exceder 255 caracteres.',
-            'description.required' => 'La descripción es obligatoria.',
-            'description.max' => 'La descripción no puede exceder 1000 caracteres.',
+            'description.required' => 'La descripción es obligatoria',
+            'affair.required' => 'El asunto es obligatorio',
+            'response_time.required' => 'El tiempo de respuesta es obligatorio',
+            'response_time.after' => 'El tiempo de respuesta debe ser posterior a hoy',
+            'dependency_id.required' => 'La dependencia es obligatoria',
+            'dependency_id.exists' => 'La dependencia seleccionada no existe',
+            'attachments.*.mimes' => 'Los archivos deben ser PDF, DOC, DOCX, JPG, JPEG o PNG',
+            'attachments.*.max' => 'Cada archivo no debe superar los 5MB'
         ];
     }
 }

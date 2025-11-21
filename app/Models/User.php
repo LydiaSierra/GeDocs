@@ -25,7 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
         'technical_sheet',
         'status',
     ];
@@ -56,6 +56,14 @@ class User extends Authenticatable
     public function sheetNumbers()
     {
         return $this->belongsToMany(Sheet_number::class, 'sheet_number_user', 'user_id', 'sheet_number_id');
+    }
 
+    //Relacion con table pqrs
+    public function createdPqrs(){
+        return $this->hasMany(PQR::class, 'user_id');
+    }
+
+    public function assignedPqrs(){
+        return $this-> hasMany(PQR::class, 'responsible_id');
     }
 }

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 
@@ -16,5 +15,6 @@ class RoleSeeder extends Seeder
         Role::firstOrCreate(['name' => 'Admin']);
         Role::firstOrCreate(['name' => 'Instructor']);
         Role::firstOrCreate(['name' => 'Aprendiz']);
+        Role::firstOrCreate(['name'=> 'Dependencia']);
     }
 }

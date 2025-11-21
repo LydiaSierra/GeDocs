@@ -17,10 +17,12 @@ class SheetSeeder extends Seeder
         $sheet = Sheet_number::create([
             "number" => 3002085
         ]);
-        $user = User::find(1) ?? User::first();
+        $userInstructor = User::find(2) ?? User::first();
+        $userAprendiz = User::find(4) ?? User::first();
 
-        if($user){
-            $sheet->users()->attach($user->id);
+        if($userInstructor && $userAprendiz){
+            $sheet->users()->attach($userInstructor->id);
+            $sheet->users()->attach($userAprendiz->id);
         }
     }
 }
