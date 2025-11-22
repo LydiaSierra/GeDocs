@@ -14,10 +14,6 @@ const NotificationsLayout = ({children}) => {
                     <NotficationMenu/>
 
                     <div className='pt-1.5 pb-2 w-full h-full flex'>
-
-                        <NotificationSidebar/>
-
-
                         <div className={"p-2"}>
                             {children}
                         </div>

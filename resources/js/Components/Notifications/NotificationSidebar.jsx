@@ -4,7 +4,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
 
 
-const NotificationSidebar = () => {
+const NotificationSidebar = ({details,setDetails,temporalNotifications}) => {
     const { loading, notifications } = useContext(NotificationsContext);
 
     return (
@@ -27,7 +27,7 @@ const NotificationSidebar = () => {
                                 })}
                             </>
                             :
-                            <div className={"h-full flex flex-col gap-1.5 justify-start items-center text-gray-400"}>
+                            <div className={"h-full flex flex-col gap-1.5 justify-start cursor-pointer items-center text-gray-400"}>
                                 
                                 {/* Ejemplo como profesor */}
                                 <div className={"w-full bg-[#6CF1F5] p-1 mt-1.5 rounded-xl"}>
@@ -46,7 +46,7 @@ const NotificationSidebar = () => {
 
 
                                 {/* Ejemplo de aprendiz */}
-                                <div className={"w-full bg-gray-200 p-1 mt-1.5 rounded-xl"}>
+                                <div className={"w-full bg-gray-200 p-1 mt-1.5 rounded-xl cursor-pointer hover:bg-[#6CF1F5]"}>
                                     <h1 className={"font-bold text-black"}> 
                                         Nuevo Aprendiz
                                     </h1>
@@ -61,7 +61,7 @@ const NotificationSidebar = () => {
                                 </div>
 
                                 {/* Ejemplo de notificación sin leer */}
-                                <div className={"w-full bg-white p-1 mt-1.5 rounded-xl"}>
+                                <div className={"w-full bg-white p-1 mt-1.5 cursor-pointer rounded-xl hover:bg-[#6CF1F5]"}>
                                     <h1 className={"font-bold text-black"}> 
                                         Nuevo Instructor
                                     </h1>
@@ -78,6 +78,10 @@ const NotificationSidebar = () => {
                                 {/* <h1>Sin notificaciones</h1> */}
                             </div>
                         }
+                        <NotificationsCard 
+                        details={details} 
+                        setDetails={setDetails}
+                        temporalNotifications={temporalNotifications}/>
                     </>
                 }
 
