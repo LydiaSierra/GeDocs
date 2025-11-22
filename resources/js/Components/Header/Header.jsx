@@ -1,5 +1,5 @@
-import {BellIcon} from "@heroicons/react/24/outline";
 import {Link, router, usePage} from "@inertiajs/react";
+import NotificationDropDown from "../Notifications/NotificationDropDown";
 import api from "@/lib/axios.js";
 
 
@@ -16,9 +16,8 @@ export default function Header() {
             </div>
 
             <div className="flex gap-4 items-center h-full">
-                <Link href={route("notifications.index")}>
-                    <BellIcon className="w-8 cursor-pointer"/>
-                </Link>
+                
+                <NotificationDropDown/>
 
                 <div className="dropdown dropdown-end">
                     <div tabIndex={0} role="button" className="cursor-pointer rounded-md gap-3 flex items-center">

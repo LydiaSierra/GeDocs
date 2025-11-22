@@ -32,15 +32,20 @@ function NotficationMenu() {
                     </div>
                 </a>
                 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <ListBulletIcon className="text-[#848484] w-10 h-10" />
-                    Instructores
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <ListBulletIcon className="text-[#848484] w-10 h-10" />
+                        Instructores
+                    </div>
+                </a>
 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Fichas
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Fichas
+                    </div>
+                </a>
+
             </div>
             
         </div>
@@ -55,15 +60,19 @@ function NotficationMenu() {
 
             <div className="w-full h-auto flex flex-col  items-start gap-2">
                 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Aprendices
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Aprendices
+                    </div>
+                </a>
                 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Instructores
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Instructores
+                    </div>
+                </a>
 
             </div>
             
@@ -79,20 +88,26 @@ function NotficationMenu() {
 
             <div className="w-full h-auto flex flex-col  items-start gap-2">
                 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Dependencias
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Dependencias
+                    </div>
+                </a>
                 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Series y Subseries
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Series y Subseries
+                    </div>
+                </a>
 
-                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                    <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                    Secciones y Subsecciones
-                </div>
+                <a href="#">
+                    <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
+                        <UserCircleIcon className="text-[#848484] w-10 h-10" />
+                        Secciones y Subsecciones
+                    </div>
+                </a>
             </div>
             
         </div>
