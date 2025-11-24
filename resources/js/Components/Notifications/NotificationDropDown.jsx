@@ -55,7 +55,7 @@ const [aprendiz,setAprendiz]=useState([
                     <ul className="w-full h-auto">
                         {instructor.map((item,index)=>(
                         <li key={index} className="flex flex-row p-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
-                        relative">
+                        relative hover:bg-[#abe7ef] cursor-pointer">
 
                             <UserCircleIcon className="w-13 h-13 self-start text-[#404142]"/>
 
@@ -92,7 +92,7 @@ const [aprendiz,setAprendiz]=useState([
                     <ul className="w-full h-auto">
                         {aprendiz.map((item,index)=>(
                         <li key={index} className="flex flex-row p-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
-                        relative">
+                        relative hover:bg-[#abe7ef] cursor-pointer">
 
                             <UserCircleIcon className="w-13 h-13 self-start text-[#404142]"/>
 
