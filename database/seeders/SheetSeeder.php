@@ -15,7 +15,7 @@ class SheetSeeder extends Seeder
     public function run(): void
     {
         $sheet = Sheet_number::create([
-            "number" => 3002085
+            "number" => "3002085"
         ]);
         $userInstructor = User::find(2) ?? User::first();
         $userAprendiz = User::find(4) ?? User::first();

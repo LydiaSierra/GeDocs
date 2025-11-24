@@ -9,16 +9,18 @@ class File extends Model
 {
 
     use HasFactory;
-    protected $fillable = [
+ 
+     protected $fillable = [
         'name',
-        'file_path',
-        'type',
+        'path',
+        'extension',
+        'mime_type',
         'size',
-        'folder_id',
+        'folder_id'
     ];
 
-    public function folder(){
+     public function folder()
+    {
         return $this->belongsTo(Folder::class);
     }
-
 }

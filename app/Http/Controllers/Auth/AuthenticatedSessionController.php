@@ -37,7 +37,7 @@ class AuthenticatedSessionController extends Controller
             Auth::logout();
 
             return redirect()->route('login')->with('pending', [
-                'message' => "$user->role. Tu cuenta sigue en revisión.",
+                'message' => "Instructor. Tu cuenta sigue en revisión.",
             ]);
         }
 

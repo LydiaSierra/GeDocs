@@ -13,30 +13,42 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        return response()->json(['success'=> true, 'notifications' => $request->user()->notifications], 200);
+        $notifications = $request->user()
+            ->notifications()              
+            ->latest()                      
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'notifications' => $notifications
+        ]);
     }
 
     public function unread(Request $request)
     {
         return response()->json([
-            'success'=> true,
+            'success' => true,
             'notifications' => $request->user()->unreadNotifications,
         ]);
     }
 
-    public function show(Request $request, $id){
-        $notification = $request->user()->notifications()->find($id);
-        if(!$notification){
-            return response()->json(["success"=> false, "message"=> "Notification not found"], 404);
-        }
-        return response()->json(['success'=> true, 'notification' => $notification], 200);
-    }
-    public function read(Request $request){
+
+      public function read(Request $request)
+    {
         return response()->json([
-            'success'=> true,
+            'success' => true,
             'notifications' => $request->user()->readNotifications,
         ]);
     }
+    public function show(Request $request, $id)
+    {
+        $notification = $request->user()->notifications()->find($id);
+        if (!$notification) {
+            return response()->json(["success" => false, "message" => "Notification not found"], 404);
+        }
+        return response()->json(['success' => true, 'notification' => $notification], 200);
+    }
+  
 
     public function markAsRead(Request $request, $id)
     {
@@ -50,6 +62,8 @@ class NotificationController extends Controller
         }
 
         $notification->markAsRead();
+        
+        return response()->json(["success" => true, "notifications"=> $notification],200);
 
     }
 }

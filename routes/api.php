@@ -8,19 +8,20 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('api')->group(function () {
 
     // --------- FOLDERS ---------
-    Route::get('/folders/parent_id/{id}', [FolderController::class, 'getByParent']);
+    Route::get('/folders/parent_id/{id}', [FolderController::class, 'show']);
     Route::get('/folders', [FolderController::class, 'index']);
-    Route::get('/allFolders', [FolderController::class, 'getAllFolders']);
+    Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
+    Route::post("/folders/{id}/upload", [FolderController::class,"upload"]);
 
     // --------- NOTIFICATIONS ---------
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/{id}', [NotificationController::class, 'show']);
-    Route::get('/notifications/unread', [NotificationController::class, 'unread']);
-    Route::get('/notifications/read', [NotificationController::class, 'read']);
-    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::get('/notifications/filter/unread', [NotificationController::class, 'unread']);
+    Route::get('/notifications/filter/read', [NotificationController::class, 'read']);
+    Route::post('/notifications/{id}/mark-as-read   ', [NotificationController::class, 'markAsRead']);
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {

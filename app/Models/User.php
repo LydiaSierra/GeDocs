@@ -64,6 +64,6 @@ class User extends Authenticatable
     }
 
     public function assignedPqrs(){
-        return $this-> hasMany(PQR::class, 'responsible_id');
+        return $this->hasMany(PQR::class, 'responsible_id');
     }
 }
