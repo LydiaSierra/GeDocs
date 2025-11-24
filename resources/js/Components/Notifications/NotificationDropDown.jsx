@@ -3,7 +3,7 @@ import { useState } from "react";
 import api from "@/lib/axios.js";
 import {Link, router, usePage} from "@inertiajs/react";
 
-function NotificationDropDown() {
+function NotificationDropDown({temporalNotifications}) {
 const [instructor,setInstructor]=useState([
     {
         nombre: "Juan Jose Peréz",
@@ -37,7 +37,7 @@ const [aprendiz,setAprendiz]=useState([
   return (
     <div>
         <div className="dropdown dropdown-end h-full ">
-            <div tabIndex={0} role="button" className="self-center bg-none cursor-pointer ">
+            <div tabIndex={0} role="button" className="self-center bg-none cursor-pointer " onClick={(e) => e.stopPropagation()}>
                 <BellIcon className="text-[#848484] w-8 h-8 bg-none cursor-pointer rounded-md fill-none hover:bg-gray-300"/>
             </div>
 

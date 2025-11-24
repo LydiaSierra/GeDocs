@@ -6,24 +6,33 @@ import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx"
 
 const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) => {
     return (
-        <div className="w-full h-auto flex flex-col gap-2">
-            <h1 className="text">Solicitudes de Instructor</h1>
+        <div className="w-full h-full flex flex-col gap-2 mt-2">
+            <h1 className="font-bold text-2xl text-black">Solicitudes de Instructor</h1>
 
-            <ul className="w-full h-auto flex flex-col gap-3 overflow-y-scroll pr-2 mt-1 rounded-lg">
+            <ul className="w-full h-full flex flex-col gap-3 overflow-y-scroll pr-2 mt-1 rounded-lg">
 
                 {temporalNotifications.map((item) => {
 
                     let bgColor = "bg-white"; 
                     let borderColor = "border-transparent";
-                    let textColor = "text-black";
+                    let textColor1 = "text-black";
+                    let textColor2 = "text-[#606164]";
+                    let textColor3 = "text-[#606164]";
+                    let textColor4 = "text-[#010515]";
 
                     if (item.read && !item.selected) {
-                    bgColor = "bg-gray-200";             // leido
+                    textColor1 = "text-[#848484]";             // leido
+                    textColor2 = "text-[#606164]";             
+                    textColor3 = "text-[#606164]";             
+                    textColor4 = "text-[#606164]";             
                     }
 
                     if (item.selected) {
                     bgColor = "bg-[#6CF1F5]";            // seleccionado
-                    textColor = "text-";
+                    textColor1 = "text-[#404142]";
+                    textColor2 = "text-[#606164]";
+                    textColor3 = "text-[#606164]";
+                    textColor4 = "text-[#404142]";
                     }
 
                     return (
@@ -32,29 +41,31 @@ const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) =
                             key={item.id}
                             onClick={() => handleSelectNotification(item.id)}
                             className={`flex flex-row w-full h-auto border-y border-x-none ${borderColor} ${bgColor} 
-                            cursor-pointer relative hover:bg-[#3CACBB] bg-[#6CF1F5] p-2 mt-1.5 rounded-xl`}
+                            cursor-pointer relative hover:bg-[#6CF1F5] bg-[#6CF1F5] p-2 mt-1.5 rounded-xl`}
                         >
 
-                        {/* Info */}
                         <div className="w-full flex flex-col items-start gap-1">
 
-                        <h1 className={`text-[16px] font-bold ${textColor}`}>
-                            {item.solicitud === "instructor" ? "Nuevo Instructor" : "Nuevo Aprendiz"}
-                        </h1>
+                            <h1 className={`text-[16px] font-bold ${textColor1}`}>
+                                {item.solicitud === "instructor" ? "Nuevo Instructor" : "Nuevo Aprendiz"}
+                            </h1>
 
-                        <p className="text-[13px]">Solicitud de acceso:</p>
-                        <p className="text-[13px]">{`${item.solicitante} solicita un nuevo acceso con...`}</p>
+                            <p className={`text-[13px] ${textColor2}`} >Solicitud de acceso:</p>
+                            <p className={`text-[13px] ${textColor3}`}>{`${item.solicitante} solicita un nuevo acceso con
+                            el rol instructor en el sistema`}</p>
 
                         </div>
 
-                        {/* Fecha */}
-                        <p className="absolute top-3 right-3 text-[12px] text-gray-700">
+                        <p className={`absolute top-3 right-3 text-[12px] ${textColor4}`}>
                         {item.fecha}
                         </p>
 
-                            <PlusCircleIcon className="w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute 
-                        -top-1.5 right-0" />
-                        
+                        {!item.read && !item.selected && (
+                            <PlusCircleIcon
+                                className="w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute -top-1.5 right-0"
+                            />
+                        )}
+
                     </li>
                     );
                 })}
@@ -63,7 +74,7 @@ const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) =
         </div>
 
         
-        /* <div className={"h-full flex flex-col gap-1.5 justify-start cursor-pointer items-center text-gray-400"}>
+    /* <div className={"h-full flex flex-col gap-1.5 justify-start cursor-pointer items-center text-gray-400"}>
         
     //     {/* Ejemplo como profesor */
     //     <div className={"w-full bg-[#6CF1F5] p-1 mt-1.5 rounded-xl"}>

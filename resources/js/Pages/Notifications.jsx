@@ -86,7 +86,8 @@ const Notifications = () => {
 };
 
     return (
-        <NotificationsLayout>
+        <NotificationsLayout
+        temporalNotifications={temporalNotifications}>
 
             <NotificationSidebar 
             temporalNotifications={temporalNotifications}
@@ -95,10 +96,11 @@ const Notifications = () => {
 
             {details && (
                 <NotificationsCard 
+                    handleSelectNotification={handleSelectNotification}
                     item={temporalNotifications.find(n => n.selected)}
                 />
             )}
-            
+
         </NotificationsLayout>
     );
 }
