@@ -66,7 +66,7 @@ const NotificationsCard = ({details,setDetails,temporalNotifications}) => {
                 </div>
                 ))}
                  */}
-                <div className="notificationContainer bg-white flex flex-col w-full h-[120%] gap-3.5 p-3.5 mt-9 rounded-md">
+                <div className="notificationContainer bg-white flex flex-col w-full h-[80%] gap-3.5 p-3.5 mt-9 rounded-md">
                     <p className="font-semibold text-[#000000] text-2xl"> Solicitud de Acceso: <br />
                         El usuario Julio Alexis Hoyos solicita un nuevo acceso con el rol de instructor
                     </p>
