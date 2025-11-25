@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
         ]);
 
-       
+
 
            // Crear dependencias
         $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
@@ -58,7 +58,7 @@ class DatabaseSeeder extends Seeder
 
         $userInstructor->assignRole('Instructor');
 
-    
+
 
          // Usuario dependiente (encargado)
         $dependencia = User::create([
@@ -68,6 +68,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'dependent@test.com',
             'password' => bcrypt('password'),
             'status' => 'activo',
+            'dependency_id' => $recursosHumanos->id,
         ]);
 
         $dependencia->assignRole('Dependencia');

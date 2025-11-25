@@ -45,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // ============= PQRS ==============
-    Route::apiResource('pqrs', PQRController::class);
     Route::post('pqrs/{id}/respond', [PQRController::class, 'respond']);
 
     // USER AUTH INFO
@@ -61,7 +60,28 @@ Route::middleware('auth:sanctum')->group(function () {
         return response()->json(['message' => 'Logout exitoso']);
     });
 
+    Route::patch('pqrs/{id}', [PQRController::class, 'update']);
+
+    // Listar todas las PQRs
+    Route::get('pqrs', [PQRController::class, 'index']);
+
 });
+
+// ----------- CREAR PQRS -------------
+
+
+// Crear una nueva PQR
+Route::post('pqrs', [PQRController::class, 'store']);
+
+// Mostrar una PQR específica
+Route::get('pqrs/{id}', [PQRController::class, 'show']);
+
+// Actualizar una PQR
+Route::put('pqrs/{id}', [PQRController::class, 'update']);
+
+
+// Eliminar una PQR
+Route::delete('pqrs/{id}', [PQRController::class, 'destroy']);
 
 // ----------- LOGIN -------------
 Route::middleware("api")->post('/login', function (Request $request) {
