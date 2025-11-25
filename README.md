@@ -67,6 +67,14 @@ Here you'll find a clear guide so that any developer on the team can correctly u
 
 # ROLES
 ## Crear Rol
+
+#INSTALACIÓN
+```
+composer require spatie/laravel-permission.
+```
+```
+php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"
+```
 ``` 
 use Spatie\Permission\Models\Role;
 
