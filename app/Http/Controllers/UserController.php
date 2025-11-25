@@ -14,34 +14,54 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $authUser = $request->user();
+
         $query = User::with('roles', "sheetNumbers");
 
+        if ($authUser->hasRole("Instructor")) {
+            $query->role("Aprendiz");
+        }
 
         $users = $query->get();
-        return response()->json(["success" => true, "data" => $users]);
+
+        return response()->json([
+            "success" => true,
+            "data" => $users
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+
+        if (!$request->user()->hasRole("Admin")) {
+            return response()->json([
+                "success" => false,
+                "message" => "No tienes permiso para crear usuarios"
+            ]);
+        }
+
         $validated = $request->validate([
             'type_document' => 'required|string|max:50',
             'document_number' => 'required|string|max:50|unique:users,document_number',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'role' => 'nullable|string|in:Aprendiz,Instructor',
-            'technical_sheet_id' => 'nullable|exists:technical_sheets,id',
             'password' => "required|string",
+            "status" => "active"
         ]);
+
+
 
         $validated['password'] = Hash::make($validated['password']);
 
         $user = User::create($validated);
+        $user->assignRole('Aprendiz');
 
-        $role = $validated['role'] ?? 'Aprendiz';
-        $user->assignRole($role);
+        $user->load('roles');
+        $user->load('sheetNumbers');
 
         return response()->json([
             "success" => true,
@@ -53,12 +73,24 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $user = User::with('roles')->find($id);
+
+        $authUser = $request->user();
+
+        if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
+            $user = User::role("Aprendiz")->with('roles')->find($id);
+        } else {
+            $user = User::with('roles')->find($id);
+        }
+
+
         if (!$user) {
             return response()->json(["success" => false, "message" => "Usuario no encontrado"], 404);
         }
+
+
+
         return response()->json(["success" => true, "data" => $user]);
     }
 
@@ -105,6 +137,12 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuario no encontrado"
+            ]);
+        }
         $user->delete();
 
         return response()->json([
@@ -116,8 +154,14 @@ class UserController extends Controller
 
     public function userByFilter(Request $request)
     {
+        if (!$request->query()) {
+            return response()->json([
+                "success" => false,
+                "message" => "No hay filtro seleccionado"
+            ]);
+        }
         // Allowed filters
-        $allowed = ["name", "email", "document_number", "technical_sheet"];
+        $allowed = ["name", "email", "document_number"];
 
         // Validate if the used filter is allowed
         foreach ($request->query() as $key => $value) {
@@ -128,16 +172,24 @@ class UserController extends Controller
                 ], 400);
             }
         }
-
-        $query = User::with('roles');
-
+        
+        
+        
+        
         // loop through the array allowed to search for each selected filter
+        
+        $query = User::with('roles', "sheetNumbers");
 
-        foreach ($allowed as $field) {
-            if ($request->filled($field)) {
-                $query->where($field, "LIKE", "%" . $request->$field . "%");
-            }
+        foreach ($request->query() as $key => $value) {
+               $query->where($key, "LIKE", "%{$value}%");
         }
+
+        $authUser = $request->user();
+
+        if(!$authUser->hasRole("Admin")) {
+            $query->role("Aprendiz");
+        }
+
 
         $users = $query->get();
 

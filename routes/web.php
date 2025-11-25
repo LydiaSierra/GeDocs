@@ -11,6 +11,12 @@ use Inertia\Inertia;
 
 
 Route::middleware('auth')->group(function () {
+    // --------- NOTIFICATIONS ---------
+    Route::get('/api/notifications', [NotificationController::class, 'index']);
+    Route::get('/api/notifications/{id}', [NotificationController::class, 'show']);
+    Route::get('/api/notifications/filter/unread', [NotificationController::class, 'unread']);
+    Route::get('/api/notifications/filter/read', [NotificationController::class, 'read']);
+    Route::post('/api/notifications/{id}/mark-as-read   ', [NotificationController::class, 'markAsRead']);
 
     // Inbox principal
     Route::get('/', fn() => Inertia::render('Inbox'))
