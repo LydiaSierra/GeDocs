@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\PQRResponseMail;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class PQRController extends Controller
 {
@@ -60,24 +62,34 @@ class PQRController extends Controller
         $validated = $request->validate([
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
-            'response_time' => 'required|date|after:today',
             'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
+            'response_time' => 'nullable|date|after:today',
+            'response_days' => 'sometimes|in:10,15,30',
             'sheet_number_id' => 'required|exists:sheet_numbers,id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'email'=> 'nullable|email|string',
-            'document'=> 'nullable|string|max:100',
+            'email'=> 'nullable|email|string|unique:p_q_r_s,email',
+            'document'=> 'nullable|string|max:100|unique:p_q_r_s,document',
         ]);
 
         $user = $request->user();
         $userId = $user ? $user->id : null;
+
+          // Si envían response_days y no response_time, calcular response_time desde hoy
+        if (isset($validated['response_days']) && empty($validated['response_time'])) {
+            $validated['response_time'] = Carbon::now()->addDays((int)$validated['response_days'])->toDateString();
+        }
+
+        // Asegurar que response_time exista o sea null
+        $responseTime = $validated['response_time'] ?? null;
 
 
         // Crear la PQR
         $pqr = PQR::create([
             'description' => $validated['description'],
             'affair' => $validated['affair'],
-            'response_time' => $validated['response_time'],
+            'response_time' => $responseTime,
+            'response_days' => $validated['response_days'] ?? null,
             'state' => false,
             'user_id' => $userId,
             'responsible_id' => null,
@@ -146,6 +158,7 @@ class PQRController extends Controller
     {
         $validated = $request->validate([
             'response_time' => 'sometimes|date|after:today',
+            'response_days' => 'sometimes|in:10,15,30',
             'state' => 'sometimes|boolean',
             'dependency_id' => 'sometimes|exists:dependencies,id',
             'responsible_id' => 'sometimes|exists:users,id'
@@ -159,7 +172,34 @@ class PQRController extends Controller
             return response()->json(['message' => 'PQR no encontrada'], 404);
         }
 
-        $pqr->update($validated);
+        //Permisos para establecer tiempos por dias
+        $canSetDays = $user -> hasRole('Admin') || $user -> hasRole('Instructor') || ((int) $pqr->responsible_id) == $user->id;
+
+        if (isset($validated['response_days'])) {
+            if (!$canSetDays) {
+                return response()->json(['message' => 'No autorizado para establecer tiempo de respuesta'], 403);
+            }
+            // asigna y persiste la columna response_days explícitamente
+            $pqr->response_days = (int)$validated['response_days'];
+            $pqr->response_time = Carbon::now()->addDays($pqr->response_days)->toDateString();
+            // removemos para que no lo sobreescriba más abajo
+            unset($validated['response_days']);
+        }
+
+        //Permisos para autorizar el update de tiempo de respuesta
+
+        if (isset($validated['response_time'])) {
+            if (!($user->hasRole('Admin') || $user->hasRole('Instructor'))) {
+                return response()->json(['message' => 'No autorizado para modificar el tiempo de respuesta'], 403);
+            }
+
+        }
+
+        // Actualizar el resto de campos (evitar sobrescribir response_days)
+        $data = Arr::except($validated, ['response_days']);
+        $pqr->fill($data);
+        $pqr->save();
+
 
         return response()->json([
             'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),

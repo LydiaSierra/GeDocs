@@ -15,6 +15,7 @@ class PQR extends Model
         'description',
         'affair',
         'response_time',
+        'response_days',
         'state',
         'user_id',
         'responsible_id',

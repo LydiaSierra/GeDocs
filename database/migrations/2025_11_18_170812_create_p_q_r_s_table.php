@@ -16,11 +16,11 @@ return new class extends Migration
             $table->string('description');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('affair');
-            $table->date('response_time');
-            $table->boolean('state');
+            $table->unsignedSmallInteger('response_days')->nullable();
+            $table->date('response_time')->nullable();
+            $table->boolean('state')->default(false);
             $table->foreignId('responsible_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('dependency_id')->constrained('dependencies')->onDelete('cascade');
-            //El after es para modificar orden en la DB
             $table->string('email')->nullable()->unique();
             $table->string('document')->nullable()->unique();
             $table->timestamps();
