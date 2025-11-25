@@ -24,6 +24,8 @@ class PQR extends Model
         'response_status',
         'request_type',
         'sheet_number_id',
+        'email',
+        'document'
     ];
 
 

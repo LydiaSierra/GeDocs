@@ -65,6 +65,8 @@ class PQRController extends Controller
             'sheet_number_id' => 'required|exists:sheet_numbers,id',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'email'=> 'nullable|email|string',
+            'document'=> 'nullable|string|max:100',
         ]);
 
         $user = $request->user();
@@ -82,7 +84,9 @@ class PQRController extends Controller
             'dependency_id' => null,
             'request_type' => $validated['request_type'],
             'sheet_number_id' => $validated['sheet_number_id'],
-            'response_status' => 'pending'
+            'response_status' => 'pending',
+            'email'=> $validated['email'] ?? null,
+            'document'=> $validated['document'] ?? null,
         ]);
 
         // Guardar archivos

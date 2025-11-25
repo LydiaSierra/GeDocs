@@ -20,6 +20,9 @@ return new class extends Migration
             $table->boolean('state');
             $table->foreignId('responsible_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('dependency_id')->constrained('dependencies')->onDelete('cascade');
+            //El after es para modificar orden en la DB
+            $table->string('email')->nullable()->unique();
+            $table->string('document')->nullable()->unique();
             $table->timestamps();
         });
     }
