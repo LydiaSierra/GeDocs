@@ -8,7 +8,8 @@ import { ArrowDownTrayIcon, EllipsisVerticalIcon, FolderIcon, InformationCircleI
 const Folder = ({ folder }) => {
     const { gridView, handleModalDetails } = useContext(ArchiveUIContext);
     const { showContextMenu } = useContext(RightClickContext);
-    const { handleFolderNavegation } = useContext(ArchiveDataContext);
+    const { openFolder } = useContext(ArchiveDataContext);
+
     return (
         <>
             {gridView ?
@@ -54,7 +55,7 @@ const Folder = ({ folder }) => {
                 :
                 <div className="flex flex-col">
                     <div key={folder.id} className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100" onDoubleClick={() => {
-                        handleFolderNavegation(folder.id)
+                        openFolder(folder.id, true)
                     }}>
                         <div className="flex gap-2 items-center font-medium">
                             <FolderIcon className="w-8 text-gray-800" />

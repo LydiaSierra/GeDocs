@@ -10,31 +10,31 @@ export function NotificationsProvider({children}) {
     const [loading, setLoading] = useState(false);
 
     const loadNotifications = useCallback(async () => {
-        try{
+        try {
             setLoading(true);
-        const endpoint = filter ? `api/notifications/${filter}` : "/api/notifications"
-        const res = await api.get(endpoint);
+            const endpoint = filter ? `api/notifications/${filter}` : "/api/notifications"
+            const res = await api.get(endpoint);
 
-        if (res.data.success) {
-            setNotifications(res.data.notifications);
-        }
+            if (res.data.success) {
+                setNotifications(res.data.notifications);
+            }
 
-        }catch (err){
+        } catch (err) {
             console.error(err)
 
-        }finally {
+        } finally {
             setLoading(false)
         }
     }, [filter]);
 
-
-    const markAsRead = useCallback((id)=>{
-        setNotifications(prev => 
-            prev.map(n => n.id === id ? {...n, read_at:new Date().toISOString()} : n)
+    const markAsRead = useCallback((id) => {
+        setNotifications(prev =>
+            prev.map(n => n.id === id ? {...n, read_at: new Date().toISOString()} : n)
         )
     }, [])
 
-    useEffect(()=>{
+
+    useEffect(() => {
         loadNotifications();
     }, [filter])
 

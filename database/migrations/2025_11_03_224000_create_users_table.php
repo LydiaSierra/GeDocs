@@ -13,12 +13,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
             $table->string('type_document')->nullable();
-            $table->string('role')->nullable();
-            $table->string('document_number')->unique();
-            $table->string("status")->default("pendiente");
-            $table->string('technical_sheet')->nullable();
+            $table->integer('document_number')->unique();
+            $table->string("status")->default("pending");
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();

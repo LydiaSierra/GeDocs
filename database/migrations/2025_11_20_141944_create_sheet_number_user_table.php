@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('sheet_number_user', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('sheet_number_id')->constrained('sheet_numbers')->onDelete('cascade');
             $table->timestamps();
         });
     }
 
     /**
+     *
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('sheet_number_users');
     }
 };

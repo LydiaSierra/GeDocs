@@ -1,6 +1,6 @@
 "use client";
 
-import {useContext, useEffect} from "react";
+import { useContext, useEffect } from "react";
 import {
     FolderIcon,
     DocumentIcon,
@@ -9,22 +9,24 @@ import {
     EllipsisVerticalIcon,
     InformationCircleIcon, ArrowLeftIcon,
 } from "@heroicons/react/24/solid";
-import {ArchiveDataContext} from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
-import {ArchiveUIContext} from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
-import {usePage} from "@inertiajs/react";
+import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
+import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
+import { usePage } from "@inertiajs/react";
 import Folder from "@/Components/ArchiveExplorer/Folder.jsx";
-import {RightClickContext} from "@/context/ArchiveExplorer/RightClickContext.jsx";
+import { RightClickContext } from "@/context/ArchiveExplorer/RightClickContext.jsx";
+import FileExplorer from "./FileExplorer";
 
 
 // Main ArchiveExplorer component
 
 export default function ContainerFolders() {
     const {
-        files,
         folders,
         loading,
         goBack,
         historyStack,
+        currentFolder,
+        files,
     } = useContext(ArchiveDataContext);
 
     const {
@@ -38,7 +40,7 @@ export default function ContainerFolders() {
         return (
             <div className="flex flex-col justify-center items-center h-64">
                 <div className="animate-spin">
-                    <ArrowPathIcon className="w-12 h-12 text-gray-600"/>
+                    <ArrowPathIcon className="w-12 h-12 text-gray-600" />
                 </div>
                 <p className="text-gray-500 text-sm">Cargando...</p>
             </div>
@@ -50,9 +52,14 @@ export default function ContainerFolders() {
 
     return (
         <div className="my-4 relative ">
+            {currentFolder &&
+                <div>
+                    <h1 className="font-bold text-xl my-2">{currentFolder?.name}</h1>
+                </div>
+            }
             {historyStack.length > 0 &&
                 <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
-                    <ArrowLeftIcon className={"w-5 h-5 text-white"}/>
+                    <ArrowLeftIcon className={"w-5 h-5 text-white"} />
                 </div>
             }
             <div className="flex justify-between px-4 border-b border-gray-400 py-3 my-3">
@@ -70,8 +77,13 @@ export default function ContainerFolders() {
                 <div
                     className={`${gridView ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3`}>
                     {(folders || []).map((folder) => (
-                        <Folder key={folder.id} folder={folder}/>
+                        <Folder key={folder.id} folder={folder} />
                     ))}
+
+                    {(files || []).map((file) => (  
+                        <FileExplorer key={file.id} file={file} />
+                    ))}
+
                 </div>
 
             </div>

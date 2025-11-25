@@ -8,6 +8,7 @@ use App\Models\TechnicalSheet;
 use App\Notifications\NewUserRegistered;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
@@ -38,21 +39,31 @@ class RegisteredUserController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
+            'status' => "pending",
             'technical_sheet_id' => $validated['technical_sheet_id'] ?? null,
-            'status' => 'pendiente',
             'password' => Hash::make($validated['password']),
         ]);
 
         event(new Registered($user));
 
-        auth()->login($user);
 
-        if ($user->role === "Instructor") {
-            $admin = User::where('role', 'admin')->first();
-            if ($admin) {
+        $user->assignRole($validated['role']);
+
+        if ($user->hasRole('Instructor')) {
+            $admin = User::role("Admin")->first();
+            if($admin){
                 $admin->notify(new NewUserRegistered($user));
             }
+            if ($user->status === "pending") {
+                Auth::logout();
+                return redirect()->route('login')->with('pending', [
+                    'message' => "Instructor. Tu cuenta sera revisada por el administrador",
+                ]);
+            }
         }
+
+
+        auth()->login($user);
 
         return redirect("/");
     }

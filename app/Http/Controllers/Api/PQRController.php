@@ -3,48 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StorePQRRequest;
-use App\Http\Requests\UpdatePQRRequest;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse; //Importacion para repuestas ne json
+use Illuminate\Http\JsonResponse;
 use App\Models\PQR;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PQRResponseMail;
 
 class PQRController extends Controller
 {
-    //Metodo index (Iniicio y autenticación)
-    public function index(Request $request): JsonResponse //retorna Json
+    /**
+     * LISTAR TODAS LAS PQRS
+     */
+    public function index(Request $request): JsonResponse
     {
-        $user = $request->user(); //Obtiene el usuario autenticado
-        if(!$user){ //Verifica si hay usuario
-            return response()->json(['message' => 'No autenticado'], 401);
-        }
-
-         $roleName = $user->role?->name ?? null;
-
-         if (!$roleName) {
-            return response()->json(['message' => 'Usuario sin rol asignado'], 403);
-        }
-
-        // Usuario final: solo sus PQRs creadas
-        if ($roleName === 'usuario') {
-            $pqrs = PQR::where('user_id', $user->id)
-                       ->with(['creator', 'responsible', 'dependency']) //Carga relaciones
-                       ->get();
-        }
-        // Superadmin: todas las PQRs
-        elseif ($roleName === 'superadmin') {
-            $pqrs = PQR::with(['creator', 'responsible', 'dependency'])->get();
-        }
-        // Encargado: solo PQRs asignadas a él
-        elseif ($roleName === 'encargado') {
-            $pqrs = PQR::where('responsible_id', $user->id) //pqrs asignadas a el
-                       ->with(['creator', 'responsible', 'dependency'])
-                       ->get();
-        }
-        else {
-            return response()->json(['message' => 'Rol no autorizado'], 403);
-        }
+        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports'])->get();
 
         return response()->json([
             'data' => $pqrs,
@@ -52,67 +26,82 @@ class PQRController extends Controller
         ], 200);
     }
 
-    //Metodo para crear PQRS
-    public function store(Request $request):JsonResponse{
-         $validated = $request->validate((new StorePQRRequest)->rules(), (new StorePQRRequest)->messages());
-
-        $user = $request->user();
-
-        if (!$user) {
-            return response()->json(['message' => 'No autenticado'], 401);
-        }
-
-        $roleName = $user->role?->name ?? null;
-
-        // Solo si es usuario final pueden crear PQRs
-        if ($roleName !== 'usuario') {
-            return response()->json(['message' => 'Solo usuarios normales pueden crear PQRs'], 403);
-        }
-
-        //Creacion del PQRS
-        $pqr = PQR::create([
-            'document_type' => $request->document_type,
-            'document' => $request->document,
-            'name' => $request->name,
-            'address' => $request->address,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'affair' => $request->affair,
-            'description' => $request->description,
-            'state' => 'pendiente',
-            'user_id' => $user->id,
+    /**
+     * CREAR UNA PQR (solo Aprendiz / usuario normal)
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'description' => 'required|string|max:1000',
+            'affair' => 'required|string|max:255',
+            'response_time' => 'required|date|after:today',
+            'dependency_id' => 'required|exists:dependencies,id',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
+        $user = $request->user();
+
+
+        // Buscar responsable por rol
+        $responsible = User::role('Dependencia')->first();
+
+        if (!$responsible) {
+            return response()->json(['message' => 'No hay responsables disponibles'], 422);
+        }
+
+        // Crear la PQR
+        $pqr = PQR::create([
+            'description' => $validated['description'],
+            'affair' => $validated['affair'],
+            'response_time' => $validated['response_time'],
+            'state' => false,
+            'user_id' => $user->id,
+            'responsible_id' => $responsible->id,
+            'dependency_id' => $validated['dependency_id'],
+            'response_status' => 'pending'
+        ]);
+
+        // Guardar archivos
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('pqr_attachments', 'public');
+
+                $pqr->attachedSupports()->create([
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'type' => $file->getClientOriginalExtension(),
+                    'size' => $file->getSize()
+                ]);
+            }
+        }
+
         return response()->json([
-            'data' => $pqr->load(['creator', 'responsible', 'dependency']),
+            'data' => $pqr->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
             'message' => 'PQR creada exitosamente'
-        ],201);
+        ], 201);
     }
 
-
-    public function show(Request $request, string $id):JsonResponse
+    /**
+     * MOSTRAR UNA PQR
+     */
+    public function show(Request $request, string $id): JsonResponse
     {
-        /** @var \App\Models\User $user */
         $user = $request->user();
-        if(!$user){
-            return response()->json(['message'=> 'No autenticado'],401);
+        $roleName = $user->getRoleNames()->first();
+
+        $pqr = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports'])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['message' => 'PQR no encontrada'], 404);
         }
 
-        $pqr = PQR::with(['creator', 'responsible','dependency'])->find($id);
-
-        if(!$pqr){
-            return response()->json(['message'=> 'PQR no encontrada'], 404);
+        // Autorización por rol
+        if ($roleName === 'Aprendiz' && $pqr->user_id !== $user->id) {
+            return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
         }
 
-        //Verificar permisos segun el rol
-
-        $roleName = $user->role?->name ?? null;
-
-        if($roleName === 'usuario' && $pqr->user_id !== $user->id){
-            return response()->json(['message'=> 'No autorizado para ver este PQR'],403);
-        }
-
-        if ($roleName === 'encargado' && $pqr->responsible_id !== $user->id) {
+        if ($roleName === 'Dependencia' && $pqr->responsible_id !== $user->id) {
             return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
         }
 
@@ -123,88 +112,126 @@ class PQRController extends Controller
     }
 
     /**
-     * Update the specified resource in storage. (PATCH)
+     * ACTUALIZAR UNA PQR
      */
-    public function update(Request $request, string $id):JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
-        //Validar manualmente el request
-        $validated = $request->validate((new UpdatePQRRequest)->rules(), (new UpdatePQRRequest)->messages());
+        $validated = $request->validate([
+            'response_time' => 'sometimes|date|after:today',
+            'state' => 'sometimes|boolean',
+            'dependency_id' => 'sometimes|exists:dependencies,id',
+            'responsible_id' => 'sometimes|exists:users,id'
+        ]);
 
         $user = $request->user();
+        $roleName = $user->getRoleNames()->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'No autenticado'], 401);
-        }
-
-        //Buscar PQR a actualizar
         $pqr = PQR::find($id);
         if (!$pqr) {
             return response()->json(['message' => 'PQR no encontrada'], 404);
         }
 
-         $roleName = $user->role?->name ?? null;
-
-        //Logica por roles para actualizar
-         if ($roleName === 'superadmin') {
-            // Superadmin puede actualizar response_time, dependency_id y responsible_id
+        // ADMIN
+        if ($roleName === 'Admin') {
             $updateData = [];
 
             if ($request->has('response_time')) {
-                $updateData['response_time'] = $request->response_time;
+                $updateData['response_time'] = $validated['response_time'];
             }
 
             if ($request->has('dependency_id')) {
-                $updateData['dependency_id'] = $request->dependency_id;
+                $updateData['dependency_id'] = $validated['dependency_id'];
 
-                // Si se asigna dependencia, buscar encargado y cambiar estado
-                if ($request->dependency_id) {
-                    //Buscar encargado por dependencia
-                    $encargado = User::where('dependency_id', $request->dependency_id)
-                                   ->where('role_id', function($query) {
-                                       $query->select('id')->from('roles')->where('name', 'encargado');
-                                   })->first();
-                    //Asignar encargado si existe
-                    if ($encargado) {
-                        $updateData['responsible_id'] = $encargado->id;
-                        $updateData['state'] = 'asignado';
-                    }
+                // Reasignar responsable
+                $encargado = User::role('Dependencia')->first();
+                if ($encargado) {
+                    $updateData['responsible_id'] = $encargado->id;
+                    $updateData['state'] = false;
                 }
             }
+
             $pqr->update($updateData);
         }
-        elseif ($roleName === 'encargado') {
-            // Encargado solo puede cambiar estado si la PQR está asignada a él
+        // DEPENDENT
+        elseif ($roleName === 'Dependencia') {
             if ($pqr->responsible_id !== $user->id) {
                 return response()->json(['message' => 'No autorizado para actualizar esta PQR'], 403);
             }
 
             if ($request->has('state')) {
-                $allowedStates = ['asignado', 'resuelto'];
-                if (!in_array($request->state, $allowedStates)) {
-                    return response()->json(['message' => 'Estado no válido'], 422);
-                }
-
-                $pqr->update(['state' => $request->state]);
+                $pqr->update(['state' => $request->boolean('state')]);
             }
-        }
-        else {
-            return response()->json(['message' => 'No autorizado para actualizar PQRs'], 403);
+        } else {
+            return response()->json(['message' => 'No autorizado'], 403);
         }
 
-         return response()->json([
-            //Fresh carga el modelo desde la base de datos actualizado
-            //Load -> carga las relaciones despues de la actualizacion
-            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency']),
+        return response()->json([
+            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
             'message' => 'PQR actualizada exitosamente'
         ], 200);
     }
 
     /**
-     * Remove the specified resource from storage.
-     * DELETE
+     * RESPONDER UNA PQR
+     */
+    public function respond(Request $request, string $id): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $roleName = $user->getRoleNames()->first();
+
+            $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($id);
+            if (!$pqr) {
+                return response()->json(['error' => 'PQR no encontrada'], 404);
+            }
+
+            if (!in_array($roleName, ['Admin', 'Dependencia'])) {
+                return response()->json(['error' => 'No autorizado'], 403);
+            }
+
+            if ($roleName === 'Dependencia' && $pqr->responsible_id !== $user->id) {
+                return response()->json(['error' => 'Solo puedes responder tus PQRs'], 403);
+            }
+
+            if (in_array($pqr->response_status, ['responded', 'closed'])) {
+                return response()->json(['error' => 'Esta PQR ya fue respondida'], 422);
+            }
+
+            $validated = $request->validate([
+                'response_message' => 'required|string|min:10|max:2000',
+                'response_status' => 'sometimes|in:responded,closed'
+            ]);
+
+            // Actualizar
+            $pqr->update([
+                'response_message' => $validated['response_message'],
+                'response_date' => now(),
+                'response_status' => $validated['response_status'] ?? 'responded',
+                'state' => true
+            ]);
+
+            // Enviar correo al creador
+            try {
+                Mail::to($pqr->creator->email)->send(new PQRResponseMail($pqr));
+            } catch (\Exception $e) {
+                Log::error('Error enviando email: ' . $e->getMessage());
+            }
+
+            return response()->json([
+                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
+                'message' => 'Respuesta enviada exitosamente'
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * ELIMINAR PQR (NO PERMITIDO)
      */
     public function destroy(string $id)
     {
-        return response()->json(['message' => 'No esta permitido eliminar el PQRS'],405);
+        return response()->json(['message' => 'No está permitido eliminar PQRs'], 405);
     }
 }

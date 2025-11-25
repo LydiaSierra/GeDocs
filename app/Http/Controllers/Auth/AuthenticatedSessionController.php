@@ -33,12 +33,11 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->status === "pendiente") {
+        if ($user->status === "pending") {
             Auth::logout();
 
             return redirect()->route('login')->with('pending', [
-                'message' => 'Tu cuenta sigue en revisión. Un instructor/administrador debe habilitarla.',
-                'role' => $user->role,
+                'message' => "Instructor. Tu cuenta sigue en revisión.",
             ]);
         }
 
