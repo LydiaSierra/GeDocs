@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import {Head, Link, router, useForm} from '@inertiajs/react';
+import {XMarkIcon} from "@heroicons/react/24/outline";
 
 export default function Login({status, canResetPassword}) {
     const {data, setData, post, processing, errors, reset} = useForm({
@@ -78,6 +79,14 @@ export default function Login({status, canResetPassword}) {
                     )}
                 </div>
 
+                <a
+                    href="#"
+                    className="text-sm text-green-700 hover:underline cursor-pointer"
+                    onClick={() => document.getElementById('my_modal_5').showModal()}
+                >
+                    ¿Olvidaste tu contraseña?
+                </a>
+
                 <div className={"flex justify-center my-4"}>
 
                     <PrimaryButton className="ms-2 w-full cursor-pointer" disabled={processing}>
@@ -92,6 +101,27 @@ export default function Login({status, canResetPassword}) {
                     </Link>
                 </div>
             </form>
+            <dialog id="my_modal_5" className="modal">
+                <div className="modal-box p-15">
+                    <XMarkIcon className="absolute right-0 top-0 size-5 mr-5 mt-5 cursor-pointer"
+                               onClick={() => document.getElementById("my_modal_5").close()}></XMarkIcon>
+                    <h3 className="font-bold text-2xl text-center">Recuperar Contraseña</h3>
+                    <p className="text-center text-lg">Ingresa tu correo para recuperar contraseña</p>
+                    <div className="modal-action justify-center">
+                        <form method="dialog" className="flex flex-col items-center gap-3">
+                            <input
+                                className="w-70 border border-gray-300 rounded-lg px-3 py-2 text-black placeholder:text-gray-600
+                                focus:outline-none focus:ring-2 focus:ring-gray-700"
+                                type="email"
+                                placeholder="Ingresa tu correo"
+                            />
+
+                            <button className="btn border border-green-700 h-10 rounded-lg w-full">Enviar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
         </GuestLayout>
     );
 }
