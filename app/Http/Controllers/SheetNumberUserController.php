@@ -65,7 +65,26 @@ class SheetNumberUserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $sheet = Sheet_Number_user::find($id);
+
+        if (!$sheet) {
+            return response()->json([
+                "success" => false, 
+                "message" => "Ficha no encontrada"
+            ], 404);
+        }
+
+        $request->validate([
+            "sheet_number_id" => "sometimes|required|numeric",
+            "user_id"=>"sometimes|required|numeric"
+        ]);
+
+        $sheet->update($request->only('number'));
+
+        return response()->json([
+            "success" => true, 
+            "message" => "Ficha actualizada con exito"
+        ], 200);
     }
 
     /**
@@ -74,5 +93,20 @@ class SheetNumberUserController extends Controller
     public function destroy(string $id)
     {
         //
+                $sheet = Sheet_Number_user::find($id);
+
+        if (!$sheet) {
+            return response()->json([
+                "success" => false, 
+                "message" => "Ficha no encontrada"
+            ], 404);
+        }
+
+        $sheet->delete();
+
+        return response()->json([
+            "success" => true, 
+            "message" => "Ficha eliminada con exito"
+        ], 200);
     }
 }
