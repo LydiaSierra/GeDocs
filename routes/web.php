@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function () {
     ])
     )->name('notifications.index');
 
+
     //Vista de una sola notificacion pasando el id
     Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [
         'notificationId' => $id
