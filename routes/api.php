@@ -23,9 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
+
+
         // ============= SHEETS ==============
-
-
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
 
         Route::get('/sheets', [SheetController::class, 'index']);
@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+        Route::put('/users/status/{id}/{status}', [UserController::class, 'updateStatus']);
+
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
         Route::put('/sheets/{id}', [SheetController::class, 'update']);
