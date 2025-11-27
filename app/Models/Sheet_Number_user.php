@@ -15,4 +15,9 @@ class Sheet_Number_user extends Model
     {
         return $this->hasMany(User::class);
     }
+    
+    public function sheets()
+    {
+        return $this->hasMany(Sheet_number::class);
+    }
 }
