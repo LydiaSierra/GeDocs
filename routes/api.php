@@ -16,12 +16,6 @@ Route::middleware('api')->group(function () {
     Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
     Route::post("/folders/{id}/upload", [FolderController::class,"upload"]);
 
-    // --------- NOTIFICATIONS ---------
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
-    Route::get('/notifications/filter/unread', [NotificationController::class, 'unread']);
-    Route::get('/notifications/filter/read', [NotificationController::class, 'read']);
-    Route::post('/notifications/{id}/mark-as-read   ', [NotificationController::class, 'markAsRead']);
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {
