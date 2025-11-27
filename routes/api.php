@@ -8,26 +8,33 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 
-Route::middleware('api')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
     Route::get('/folders/parent_id/{id}', [FolderController::class, 'show']);
     Route::get('/folders', [FolderController::class, 'index']);
     Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
-    Route::post("/folders/{id}/upload", [FolderController::class,"upload"]);
+    Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
+
 
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {
         Route::get('/users', [UserController::class, 'index']);
-        Route::get('/users/filter', [UserController::class, 'userByFilter']);
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
         // ============= SHEETS ==============
+
+
+        Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
+
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
     });
 
     // ONLY ADMIN
     Route::middleware('role:Admin')->group(function () {
+
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
@@ -35,7 +42,8 @@ Route::middleware('api')->group(function () {
         Route::post('/sheets', [SheetController::class, 'store']);
         Route::put('/sheets/{id}', [SheetController::class, 'update']);
         Route::delete('/sheets', [SheetController::class, 'destroy']);
-        Route::delete('/sheets/delete/{numberSheet}/{idUser}', [SheetController::class, 'deleteUserFromSheet']);
+        Route::delete('/sheets/delete/user/{numberSheet}/{idUser}', [SheetController::class, 'deleteUserFromSheet']);
+
     });
 
 

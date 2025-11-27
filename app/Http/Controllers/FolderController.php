@@ -30,12 +30,10 @@ class FolderController extends Controller
             return [
                 "id" => $file->id,
                 "name" => $file->name,
-                "extension" => $file->extension,
-                "mime_type" => $file->mime_type,
+                "type" => $file->type,
                 "size" => $file->size,
-                "url" => asset("storage/" . $file->path),
-                "is_pdf" => $file->extension === "pdf",
-
+                "url" => asset("storage/" . $file->file_path),
+                "is_pdf" => str_contains($file->type, 'pdf'),
                 "created_at" => $file->created_at,
             ];
         });
@@ -78,61 +76,83 @@ class FolderController extends Controller
     //UPLOAD FILE 
     public function upload(Request $request, $folderId)
     {
-        $request->validate([
-            "files.*" => "required|file|max:51200", // 50MB
-        ]);
-
-        $folder = Folder::findOrFail($folderId);
-        $uploadedFiles = [];
-
-        foreach ($request->file('files') as $file) {
-
-            $folderCode = $folder->folder_code ?? "000";
-            $timestamp = now()->timestamp;
-
-            $newName = "{$folderCode}_{$timestamp}_{$file->getClientOriginalName()}";
-
-            $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
-
-            $newFile = File::create([
-                "name" => $newName,
-                "path" => $path,
-                "extension" => $file->getClientOriginalExtension(),
-                "mime_type" => $file->getClientMimeType(),
-                "size" => $file->getSize(),
-                "folder_id" => $folderId,
-
+        try {
+            // Validar que la carpeta existe primero
+            $folder = Folder::findOrFail($folderId);
+            
+            $request->validate([
+                "files.*" => "required|file|max:51200", // 50MB
             ]);
 
-            $uploadedFiles[] = [
-                "id" => $newFile->id,
-                "name" => $newFile->name,
-                "extension" => $newFile->extension,
-                "mime_type" => $newFile->mime_type,
-                "size" => $newFile->size,
-                "url" => asset("storage/" . $newFile->path),
-                "is_image" => in_array($newFile->extension, ["jpg", "jpeg", "png", "webp", "gif"]),
-                "is_pdf" => $newFile->extension === "pdf",
-            ];
+            $uploadedFiles = [];
+
+            if (!$request->hasFile('files')) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "No files provided"
+                ], 400);
+            }
+
+            foreach ($request->file('files') as $file) {
+                $folderCode = $folder->folder_code ?? "000";
+                $timestamp = now()->timestamp;
+
+                $newName = "{$folderCode}_{$timestamp}_{$file->getClientOriginalName()}";
+
+                $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
+
+                $newFile = File::create([
+                    "name" => $newName,
+                    "file_path" => $path,
+                    "type" => $file->getClientMimeType(),
+                    "size" => $file->getSize(),
+                    "folder_id" => $folderId,
+                ]);
+
+                $uploadedFiles[] = [
+                    "id" => $newFile->id,
+                    "name" => $newFile->name,
+                    "type" => $newFile->type,
+                    "size" => $newFile->size,
+                    "url" => asset("storage/" . $newFile->file_path),
+                ];
+            }
+
+            return response()->json([
+                "success" => true,
+                "files" => $uploadedFiles
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Folder not found"
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Validation error",
+                "errors" => $e->errors()
+            ], 422);
+        } catch (\Throwable $th) {
+            \Log::error('Upload error: ' . $th->getMessage());
+            return response()->json([
+                "success" => false,
+                "message" => $th->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            "success" => true,
-            "files" => $uploadedFiles
-        ]);
     }
-
 
     // DOWNLOAD FILE
     public function download($fileId)
     {
         $file = File::findOrFail($fileId);
 
-        if (!Storage::disk('public')->exists($file->path)) {
+        if (!Storage::disk('public')->exists($file->file_path)) {
             return response()->json(["success" => false, "message" => "Archivo no encontrado"], 404);
         }
 
-        return Storage::disk('public')->download($file->path, $file->name);
+        return response()->download(Storage::disk('public')->path($file->file_path), $file->name);
     }
 
     /** Delete File */
@@ -140,7 +160,7 @@ class FolderController extends Controller
     {
         $file = File::findOrFail($fileId);
 
-        Storage::disk('public')->delete($file->path);
+        Storage::disk('public')->delete($file->file_path);
         $file->delete();
 
         return response()->json(["success" => true]);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sheet_number;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class SheetController extends Controller
@@ -66,8 +67,8 @@ class SheetController extends Controller
         $sheet = Sheet_number::create($validate);
 
         return response()->json([
-            "success" => true, 
-            "message" => "Ficha creada con exito", 
+            "success" => true,
+            "message" => "Ficha creada con exito",
             "ficha" => $sheet
         ], 200);
     }
@@ -86,7 +87,7 @@ class SheetController extends Controller
 
         if ($sheet->isEmpty()) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -118,8 +119,8 @@ class SheetController extends Controller
         });
 
         return response()->json([
-            "success" => true, 
-            "message" => "Ficha encontrada exitosamente", 
+            "success" => true,
+            "message" => "Ficha encontrada exitosamente",
             "sheet" => $formattedSheets
         ], 200);
     }
@@ -134,7 +135,7 @@ class SheetController extends Controller
 
         if (!$sheet) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -146,7 +147,7 @@ class SheetController extends Controller
         $sheet->update($request->only('number'));
 
         return response()->json([
-            "success" => true, 
+            "success" => true,
             "message" => "Ficha actualizada con exito"
         ], 200);
     }
@@ -161,7 +162,7 @@ class SheetController extends Controller
 
         if (!$sheet) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -169,7 +170,7 @@ class SheetController extends Controller
         $sheet->delete();
 
         return response()->json([
-            "success" => true, 
+            "success" => true,
             "message" => "Ficha eliminada con exito"
         ], 200);
     }
@@ -186,7 +187,7 @@ class SheetController extends Controller
 
         if (!$sheet) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -196,7 +197,7 @@ class SheetController extends Controller
 
         if (!$user) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Usuario no encontrado en la ficha"
             ], 404);
         }
@@ -205,8 +206,69 @@ class SheetController extends Controller
         $sheet->users()->detach($user->id);
 
         return response()->json([
-            "success" => true, 
+            "success" => true,
             "message" => "Usuario eliminado de la ficha con exito"
         ], 200);
     }
+
+
+  public function addUserFromSheet(Request $request, string $numberSheet, string $idUser)
+{
+    $sheet = Sheet_number::where("number", $numberSheet)->first();
+
+    if (!$sheet) {
+        return response()->json([
+            "success" => false,
+            "message" => "Ficha no encontrada"
+        ], 404);
+    }
+
+    $user = User::find($idUser);
+
+    if (!$user) {
+        return response()->json([
+            "success" => false,
+            "message" => "Usuario no encontrado"
+        ], 404);
+    }
+
+    if ($user->hasRole("Admin")) {
+        return response()->json([
+            "success" => false,
+            "message" => "No puedes agregar a este usuario"
+        ], 500);
+    }
+
+    $authUser = $request->user();
+
+    $authUser->load("sheetNumbers");
+
+    if ($authUser->hasRole("Instructor") && !$authUser->sheetNumbers->contains("id", $sheet->id)) {
+        return response()->json([
+            "success" => false,
+            "message" => "No tienes permisos sobre esta ficha"
+        ], 403);
+    }
+
+    $sheet->load("users");  
+
+    if ($sheet->users->contains("id", $user->id)) {
+        return response()->json([
+            "success" => false,
+            "message" => "Este usuario ya está asignado a esta ficha"
+        ], 409); // 409 Conflict
+    }
+
+    $sheet->users()->attach($user->id);
+
+    return response()->json([
+        "success" => true,
+        "message" => "Usuario agregado correctamente a la ficha",
+    ]);
+}
+
+
+
+
+
 }
