@@ -171,10 +171,7 @@ class UserController extends Controller
                     "message" => "Filtro '$key' no está permitido"
                 ], 400);
             }
-        }
-        
-        
-        
+        }    
         
         // loop through the array allowed to search for each selected filter
         
@@ -197,6 +194,33 @@ class UserController extends Controller
             "success" => true,
             "data" => $users
         ]);
+    }
+
+    public function updateStatus(string $id, string $status){
+        $statuFilter = ["pending", "active"];
+
+        $user = User::find($id);
+        if(!$user){
+            return response()->json([
+                "success"=> false,
+                "message"=> "Usuario no encontrado"
+            ]);
+        }
+       if(!in_array($status, $statuFilter)) {
+        return response()->json([
+            "success"=> false,
+            "message"=> "Estado no permitido"
+            ]);
+       }
+       $user->status = $status;
+       $user->save();
+
+       return response()->json([
+        "success"=> true,
+        "message" => "Estado del usuario $user->id cambiado con exito a $status"
+        ]);
+       
+
     }
 
 }

@@ -266,6 +266,12 @@ METHOD PUT
 /api/users/{id del usuario}
 ```
 
+## Cambiar el estado del usuario (active o pending)
+METHOD UPDATE 
+```
+/api/users/status/{id el usuario}/{estado}
+```
+
 ## Eliminar usuario
 METHOD DELETE 
 ```
