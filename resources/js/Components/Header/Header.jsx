@@ -45,8 +45,11 @@ export default function Header() {
 
                         </div>
                         <li>
-                            <a>Settings</a>
+                            <Link href={route('profile.edit')}>
+                                Settings
+                            </Link>
                         </li>
+
 
                         <li>
                             <button

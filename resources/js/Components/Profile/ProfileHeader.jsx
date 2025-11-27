@@ -188,7 +188,9 @@ export default function ProfileHeader() {
                         </div>
 
                         <li>
-                            <a>Settings</a>
+                            <Link href={route('profile.edit')}>
+                                Settings
+                            </Link>
                         </li>
 
                         <li>
