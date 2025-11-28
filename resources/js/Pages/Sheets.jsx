@@ -1,6 +1,6 @@
 import SheetsLayaout from '@/Layouts/SheetsLayaout.jsx'
 
-export default function Chips(){
+export default function Sheets(){
     return(
         
         <SheetsLayaout/>

@@ -31,21 +31,10 @@ export default function ChipsSidebar() {
                 </div>
             </div>
 
-            {/* Categorías */}
-            <div id="inbox-categories" className="flex my-3 w-full items-center">
-                <form className="flex gap-2 w-full overflow-x-auto p-1">
-                    <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Preguntas" />
-                    <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Quejas" />
-                    <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Reclamos" />
-                    <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap" type="checkbox" aria-label="Sugerencias" />
-                    <button className="p-3 bg-gray-100 rounded-md ml-2 shrink-0">
-                        <BarsArrowUpIcon className="size-5" />
-                    </button>
-                </form>
-            </div>
+        
 
             {/* TABLA - ahora ocupando TODA la pantalla disponible */}
-            <div className="flex-1 w-full  border rounded-lg overflow-hidden">
+            <div className="flex-1 w-full  border rounded-lg overflow-hidden mt-10">
                 
                 <SheetsTable />
             </div>

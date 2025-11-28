@@ -40,11 +40,12 @@
                         </div>
                     </a>
 
-                    <a href="#">
+                    <a href={route('sheets')}>
                         <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
                             <UserCircleIcon className="text-[#848484] w-7 h-7" />
                             Fichas
                         </div>
+                
                     </a>
 
                 </div>

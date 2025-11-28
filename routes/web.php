@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))
         ->name('sheets');
+    
     // Vistas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
