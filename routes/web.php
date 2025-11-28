@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
     ])
     )->name('notifications.index');
 
+    // Gestion de Usuarios
+    Route::get('/users/instructor', fn() => Inertia::render('Users')
+    )->name('users');
 
     //Vista de una sola notificacion pasando el id
     Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [
