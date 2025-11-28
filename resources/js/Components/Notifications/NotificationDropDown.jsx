@@ -2,21 +2,26 @@ import { BellIcon, PlusCircleIcon, UserCircleIcon } from "@heroicons/react/24/ou
 import { useState } from "react";
 import api from "@/lib/axios.js";
 import { Link, router, usePage } from "@inertiajs/react";
+import NotificationSidebar from "./NotificationSidebar";
 
 function NotificationDropDown({ temporalNotifications }) {
+
+    const [solicitudAprendiz, setSolicitudAprendiz] = useState(false);
+    const [solicitudInstructor, setSolicitudInstructor] = useState(false);
+
     const [instructor, setInstructor] = useState([
         {
-            nombre: "Juan Jose Peréz",
+            nombre: "Johan Alexis Rendón",
             solicitud: "instructor",
             fecha: "08/09/2025"
         },
         {
-            nombre: "Juan Jose Peréz",
+            nombre: "Johan Alexis Rendón",
             solicitud: "instructor",
             fecha: "08/09/2025"
         },
         {
-            nombre: "Juan Jose Peréz",
+            nombre: "Johan Alexis Rendón",
             solicitud: "instructor",
             fecha: "08/09/2025"
         }
@@ -34,6 +39,8 @@ function NotificationDropDown({ temporalNotifications }) {
             fecha: "08/09/2025"
         }
     ])
+
+    
     return (
 
         <>
@@ -77,7 +84,7 @@ function NotificationDropDown({ temporalNotifications }) {
                         </ul>
                         <Link className="w-full flex justify-center" href={route("notifications.index")}>
                             <button className="self-center cursor-pointer w-[40%] h-10 bg-none border-2 flex justify-center items-center 
-                        border-solid border-[#848484] rounded-2xl hover:border-none hover:bg-[#848484] hover:text-white">
+                        border-solid border-[#848484] rounded-2xl hover:border-none hover:bg-[#848484] hover:text-white" onClick={() => setSolicitudInstructor(true)}>
                                 Todas las Solicitudes</button>
                         </Link>
                     </li>
@@ -114,18 +121,22 @@ function NotificationDropDown({ temporalNotifications }) {
                         </ul>
                         <Link className="w-full flex justify-center" href={route("notifications.index")}>
                             <button className="self-center cursor-pointer w-[40%] h-10 bg-none border-2 flex justify-center items-center 
-                        border-solid border-[#848484] rounded-2xl hover:border-none hover:bg-[#848484] hover:text-white">
+                        border-solid border-[#848484] rounded-2xl hover:border-none hover:bg-[#848484] hover:text-white" onClick={() => setSolicitudAprendiz(true)}>
                                 Todas las Solicitudes</button>
                         </Link>
 
+
+
                     </li>
                 </ul>
-
-
-
+                
             </div>
+
+            
+            
         </>
 
+        
     )
 }
 

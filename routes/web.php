@@ -13,6 +13,13 @@ use Inertia\Inertia;
 Route::middleware('auth')->group(function () {
   
 
+    // --------- NOTIFICATIONS ---------
+    Route::get('/api/notifications', [NotificationController::class, 'index']);
+    Route::get('/api/notifications/{id}', [NotificationController::class, 'show']);
+    Route::get('/api/notifications/filter/unread', [NotificationController::class, 'unread']);
+    Route::get('/api/notifications/filter/read', [NotificationController::class, 'read']);
+    Route::post('/api/notifications/{id}/mark-as-read   ', [NotificationController::class, 'markAsRead']);
+
     // Inbox principal
     Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
@@ -23,6 +30,9 @@ Route::middleware('auth')->group(function () {
     ])
     )->name('notifications.index');
 
+    // Gestion de Usuarios
+    Route::get('/users/instructor', fn() => Inertia::render('Users')
+    )->name('users');
 
     //Vista de una sola notificacion pasando el id
     Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [

@@ -4,15 +4,19 @@ import {UserCircleIcon,PlusCircleIcon } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
 
 
-const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) => {
+const NotificationSidebar = () => {
+
+    const {notifications, markAsReadNotification} = useContext(NotificationsContext);
+
+
     return (
         <div className="w-full h-full flex flex-col gap-2 mt-2">
-            <h1 className="font-bold text-2xl text-black">Solicitudes de Instructor</h1>
+            <h1 className="font-bold text-2xl text-black"> Solicitudes de instructores </h1>
 
             <ul className="w-full h-full flex flex-col gap-3 overflow-y-scroll pr-2 mt-1 rounded-lg">
 
-                {temporalNotifications.map((item) => {
-
+                {/* condicionales para estilos dependiendo el estado de la notificacion */}
+                {notifications.map((item) => {
                     let bgColor = "bg-white"; 
                     let borderColor = "border-transparent";
                     let textColor1 = "text-black";
@@ -20,14 +24,14 @@ const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) =
                     let textColor3 = "text-[#606164]";
                     let textColor4 = "text-[#010515]";
 
-                    if (item.read && !item.selected) {
+                    if (item?.read && !item?.selected) {
                     textColor1 = "text-[#848484]";             // leido
                     textColor2 = "text-[#606164]";             
                     textColor3 = "text-[#606164]";             
                     textColor4 = "text-[#606164]";             
                     }
 
-                    if (item.selected) {
+                    if (item?.selected) {
                     bgColor = "bg-[#6CF1F5]";            // seleccionado
                     textColor1 = "text-[#404142]";
                     textColor2 = "text-[#606164]";
@@ -39,32 +43,37 @@ const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) =
 
                         <li
                             key={item.id}
-                            onClick={() => handleSelectNotification(item.id)}
-                            className={`flex flex-row w-full h-auto border-y border-x-none ${borderColor} ${bgColor} 
-                            cursor-pointer relative hover:bg-[#6CF1F5] bg-[#6CF1F5] p-2 mt-1.5 rounded-xl`}
+                            onClick={() => markAsReadNotification(item.id)}
+                            className={`flex flex-row w-full h-auto border-y border-x-none ${item.read_at ? "text-gray-500" : "text-black font-bold bg-[#6CF1F5]"} 
+                            cursor-pointer relative hover:bg-[#6CF1F5]  p-2 mt-1.5 rounded-xl`}
                         >
 
                         <div className="w-full flex flex-col items-start gap-1">
 
                             <h1 className={`text-[16px] font-bold ${textColor1}`}>
-                                {item.solicitud === "instructor" ? "Nuevo Instructor" : "Nuevo Aprendiz"}
+                                {/* {item.solicitud === "instructor" ? "Nuevo Instructor" : "Nuevo Aprendiz"} */}
+                                Nuevo instructor
                             </h1>
 
-                            <p className={`text-[13px] ${textColor2}`} >Solicitud de acceso:</p>
-                            <p className={`text-[13px] ${textColor3}`}>{`${item.solicitante} solicita un nuevo acceso con
-                            el rol instructor en el sistema`}</p>
+                            {/* texto de la notificacion */}
+                            <p className="text-[13px]"> Solicitud de acceso: </p>
+                            <p className="text-[13px]"> {`${item.data.user.name} desea solicitar un nuevo acceso con
+                            el rol instructor en el sistema`} </p>
 
                         </div>
 
                         <p className={`absolute top-3 right-3 text-[12px] ${textColor4}`}>
-                        {item.fecha}
+                        {new Date(item.created_at).toLocaleDateString()}
                         </p>
 
-                        {!item.read && !item.selected && (
+                        <PlusCircleIcon
+                            className={`${item.read_at ? "hidden" : "w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute -top-1.5 right-0" }`}
+                        />
+                        {/* {!item?.read && !item?.selected && (
                             <PlusCircleIcon
                                 className="w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute -top-1.5 right-0"
                             />
-                        )}
+                        )} */}
 
                     </li>
                     );
@@ -73,59 +82,9 @@ const NotificationSidebar = ({temporalNotifications,handleSelectNotification}) =
             </ul>
         </div>
 
-        
-    /* <div className={"h-full flex flex-col gap-1.5 justify-start cursor-pointer items-center text-gray-400"}>
-        
-    //     {/* Ejemplo como profesor */
-    //     <div className={"w-full bg-[#6CF1F5] p-1 mt-1.5 rounded-xl"}>
-    //         <h1 className={"font-bold text-black"}> 
-    //             Nuevo Instructor
-    //         </h1>
-            
-    //         <h3 className={"text-gray-700 text-xm"}> 
-    //             Solicitud de acceso
-    //         </h3>
-            
-    //         <p className={"text-xs text-gray-500"}> 
-    //             Julio Alexis Hoyos desea solicitar un nuevo acceso con el rol de instructor en el sistema.
-    //         </p>
-    //     </div>
-
-
-    //     {/* Ejemplo de aprendiz */}
-    //     <div className={"w-full bg-gray-200 p-1 mt-1.5 rounded-xl cursor-pointer hover:bg-[#6CF1F5]"}>
-    //         <h1 className={"font-bold text-black"}> 
-    //             Nuevo Aprendiz
-    //         </h1>
-            
-    //         <h3 className={"text-gray-700 text-xm"}> 
-    //             Solicitud de acceso
-    //         </h3>
-            
-    //         <p className={"text-xs text-gray-500"}> 
-    //             Johan Alexis Rendon desea solicitar un nuevo acceso con el rol de Aprendiz en el sistema.
-    //         </p>
-    //     </div>
-
-    //     {/* Ejemplo de notificación sin leer */}
-    //     <div className={"w-full bg-white p-1 mt-1.5 cursor-pointer rounded-xl hover:bg-[#6CF1F5]"}>
-    //         <h1 className={"font-bold text-black"}> 
-    //             Nuevo Instructor
-    //         </h1>
-            
-    //         <h3 className={"text-gray-700 text-xm"}> 
-    //             Solicitud de acceso
-    //         </h3>
-            
-    //         <p className={"text-xs text-gray-500"}> 
-    //             Sebastian castellanos desea solicitar un nuevo acceso con el rol de Instructor en el sistema.
-    //         </p>
-    //     </div>
-        
-    //     {/* <h1>Sin notificaciones</h1> */}
-    // </div> */
+    
     );
 }
 
 
-export default NotificationSidebar
+export default NotificationSidebar;

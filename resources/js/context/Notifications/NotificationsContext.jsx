@@ -9,43 +9,37 @@ export function NotificationsProvider({children}) {
     const [filter, setFilter] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const loadNotifications = useCallback(async () => {
-        try {
-            setLoading(true);
-            const endpoint = filter ? `api/notifications/${filter}` : "/api/notifications"
-            const res = await api.get(endpoint);
-
-            if (res.data.success) {
-                setNotifications(res.data.notifications);
-            }
-
-        } catch (err) {
-            console.error(err)
-
-        } finally {
-            setLoading(false)
+    const fetchNotifications = useCallback(async() => {
+        const res = await api.get("/api/notifications");
+        if(res.data.succes === false){
+            console.log("ERRROR AL OBTENER NOTIFICACIONES!")
+            return;
         }
-    }, [filter]);
+        setNotifications(res.data.notifications)
+    })
 
-    const markAsRead = useCallback((id) => {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? {...n, read_at: new Date().toISOString()} : n)
-        )
-    }, [])
-
+    const markAsReadNotification = useCallback(async(id) => {
+        const res = await api.post(`/api/notifications/${id}/mark-as-read`);
+        if(res.data.succes === false){
+            console.log("ERRROR AL MARCAR NOTIFICACIONES LEIDAS!")
+            return;
+        }
+    })
 
     useEffect(() => {
-        loadNotifications();
-    }, [filter])
+      fetchNotifications()
+    
 
 
+    }, [])
+    
+
+ 
     return (
         <NotificationsContext.Provider
             value={{
                 notifications,
-                setNotifications,
-                loading,
-                markAsRead
+                markAsReadNotification
             }}
         >
             {children}
