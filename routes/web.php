@@ -11,6 +11,7 @@ use Inertia\Inertia;
 
 
 Route::middleware('auth')->group(function () {
+    
     // --------- NOTIFICATIONS ---------
     Route::get('/api/notifications', [NotificationController::class, 'index']);
     Route::get('/api/notifications/{id}', [NotificationController::class, 'show']);
