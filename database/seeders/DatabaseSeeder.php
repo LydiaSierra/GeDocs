@@ -22,9 +22,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
         ]);
 
-       
 
-           // Crear dependencias
+
+        // Crear dependencias
         $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
         $sistemas = Dependency::create(['name' => 'Sistemas']);
         $academica = Dependency::create(['name' => 'Académica']);
@@ -35,12 +35,12 @@ class DatabaseSeeder extends Seeder
 
         //Usuario admin
         $userAdmin = User::create([
-            'type_document'      => 'CC',
-            'document_number'    => 1020304050,
-            'name'               => 'Julio Alexis',
-            'email'              => 'julioalexishoyoscolorado@gmail.com',
+            'type_document' => 'CC',
+            'document_number' => 1020304050,
+            'name' => 'Julio Alexis',
+            'email' => 'julioalexishoyoscolorado@gmail.com',
             'password' => bcrypt('password'),
-            'status'             => 'active',
+            'status' => 'active',
         ]);
 
         $userAdmin->assignRole('Admin');
@@ -48,44 +48,44 @@ class DatabaseSeeder extends Seeder
 
         //Usuario Instructor
         $userInstructor = User::create([
-            'type_document'      => 'CC',
-            'document_number'    => 1094454354,
-            'name'               => 'Instructor User',
-            'email'              => 'instructor@gmail.com',
+            'type_document' => 'CC',
+            'document_number' => 1094454354,
+            'name' => 'Instructor User',
+            'email' => 'instructor@gmail.com',
             'password' => bcrypt('password'),
-            'status'             => 'active',
+            'status' => 'active',
         ]);
 
         $userInstructor->assignRole('Instructor');
 
-    
 
-         // Usuario dependiente (encargado)
+
+        // Usuario dependiente (encargado)
         $dependencia = User::create([
             'type_document' => 'CC',
             'document_number' => 1020304051,
             'name' => 'Carlos Dependent',
             'email' => 'dependent@test.com',
             'password' => bcrypt('password'),
-            'status' => 'activo',
+            'status' => 'pending',
         ]);
 
         $dependencia->assignRole('Dependencia');
 
 
-         // Usuario normal
+        // Usuario normal
         $aprendiz = User::create([
             'type_document' => 'CC',
             'document_number' => 1020304052,
             'name' => 'Maria User',
             'email' => 'user@test.com',
             'password' => bcrypt('password'),
-            'status' => 'activo',
+            'status' => 'pending',
         ]);
         $aprendiz->assignRole('Aprendiz');
 
 
-         $this->call([
+        $this->call([
             SheetSeeder::class,
         ]);
     }

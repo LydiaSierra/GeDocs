@@ -14,15 +14,20 @@ class SheetSeeder extends Seeder
      */
     public function run(): void
     {
-        $sheet = Sheet_number::create([
+        $sheet1 = Sheet_number::create([
             "number" => "3002085"
         ]);
+
+        $sheet2 = Sheet_number::create([
+            "number" => "3002082"
+        ]);
+        
         $userInstructor = User::find(2) ?? User::first();
         $userAprendiz = User::find(4) ?? User::first();
 
-        if($userInstructor && $userAprendiz){
-            $sheet->users()->attach($userInstructor->id);
-            $sheet->users()->attach($userAprendiz->id);
+        if ($userInstructor && $userAprendiz) {
+            $sheet1->users()->attach($userInstructor->id);
+            $sheet1->users()->attach($userAprendiz->id);
         }
     }
 }

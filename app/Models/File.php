@@ -9,12 +9,11 @@ class File extends Model
 {
 
     use HasFactory;
- 
-     protected $fillable = [
+
+    protected $fillable = [
         'name',
-        'path',
-        'extension',
-        'mime_type',
+        'file_path',
+        'type',
         'size',
         'folder_id'
     ];
