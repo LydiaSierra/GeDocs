@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {usePage} from "@inertiajs/react";
 
-const ToastMessage = ({message}) => {
+const ToastMessage = () => {
     const [show, setShow] = useState(false);
     const {pending} = usePage().props;
+    console.log(pending);
+    
 
 
     useEffect(() => {
