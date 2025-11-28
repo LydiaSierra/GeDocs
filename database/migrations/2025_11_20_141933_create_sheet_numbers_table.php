@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('sheet_numbers', function (Blueprint $table) {
             $table->id();
             $table->string("number")->unique();
+            $table->string("state")->nullable();
+            $table->foreignId("director")->nullable()->constrained("users")->onDelete("cascade");
             $table->timestamps();
         });
     }

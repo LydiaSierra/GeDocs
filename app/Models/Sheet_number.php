@@ -11,7 +11,9 @@ class Sheet_number extends Model
     protected $with = ["users"];
 
     protected $fillable = [
-        "number"
+        "number",
+        "director",
+        "state"
     ];
 
     public function users(){

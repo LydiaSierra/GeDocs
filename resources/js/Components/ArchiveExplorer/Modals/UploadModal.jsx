@@ -7,6 +7,7 @@ const UploadModal = ({onOpen}) => {
     const [dragActive, setdragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([])
     const [error, seterror] = useState("")
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleFiles = (files) => {
         seterror("")
@@ -90,13 +91,22 @@ const UploadModal = ({onOpen}) => {
                     {selectedFiles.length > 0 &&
 
                         <button
-                            className="px-4 py-2 rounded bg-blue-600 text-white"
-                            onClick={()=>{
-                                 uploadFiles(currentFolder?.id ?? null, selectedFiles)
-                                onOpen(false);
+                            className="px-4 py-2 rounded bg-blue-600 text-white disabled:bg-gray-400"
+                            disabled={isLoading}
+                            onClick={async ()=>{
+                                try {
+                                    setIsLoading(true);
+                                    await uploadFiles(currentFolder?.id ?? null, selectedFiles);
+                                    onOpen(false);
+                                    setSelectedFiles([]);
+                                    seterror("");
+                                } catch (err) {
+                                    seterror(err.message || "Error al subir los archivos");
+                                    setIsLoading(false);
+                                }
                             }}
                         >
-                            Subir
+                            {isLoading ? "Subiendo..." : "Subir"}
                             
                         </button>
                     }

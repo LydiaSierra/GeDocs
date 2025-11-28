@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Models\Folder;
 use App\Models\File;
@@ -30,10 +31,11 @@ class FolderController extends Controller
             return [
                 "id" => $file->id,
                 "name" => $file->name,
-                "type" => $file->type,
+                "extension" => $file->extension,
+                "mime_type" => $file->mime_type,
                 "size" => $file->size,
-                "url" => asset("storage/" . $file->file_path),
-                "is_pdf" => str_contains($file->type, 'pdf'),
+                "url" => asset("storage/" . $file->path),
+                "is_pdf" => $file->extension === "pdf",
                 "created_at" => $file->created_at,
             ];
         });
@@ -103,8 +105,9 @@ class FolderController extends Controller
 
                 $newFile = File::create([
                     "name" => $newName,
-                    "file_path" => $path,
-                    "type" => $file->getClientMimeType(),
+                    "path" => $path,
+                    "extension" => $file->getClientOriginalExtension(),
+                    "mime_type" => $file->getClientMimeType(),
                     "size" => $file->getSize(),
                     "folder_id" => $folderId,
                 ]);
@@ -112,9 +115,11 @@ class FolderController extends Controller
                 $uploadedFiles[] = [
                     "id" => $newFile->id,
                     "name" => $newFile->name,
-                    "type" => $newFile->type,
+                    "extension" => $newFile->extension,
+                    "mime_type" => $newFile->mime_type,
                     "size" => $newFile->size,
-                    "url" => asset("storage/" . $newFile->file_path),
+                    "is_pdf" => $newFile->extension,
+                    "url" => asset("storage/" . $newFile->path),
                 ];
             }
 
@@ -134,11 +139,11 @@ class FolderController extends Controller
                 "message" => "Validation error",
                 "errors" => $e->errors()
             ], 422);
-        } catch (\Throwable $th) {
-            \Log::error('Upload error: ' . $th->getMessage());
+        } catch (Exception $e) {
+            \Log::error('Upload error: ' . $e->getMessage());
             return response()->json([
                 "success" => false,
-                "message" => $th->getMessage()
+                "message" => $e->getMessage()
             ], 500);
         }
     }
@@ -148,11 +153,11 @@ class FolderController extends Controller
     {
         $file = File::findOrFail($fileId);
 
-        if (!Storage::disk('public')->exists($file->file_path)) {
+        if (!Storage::disk('public')->exists($file->path)) {
             return response()->json(["success" => false, "message" => "Archivo no encontrado"], 404);
         }
 
-        return response()->download(Storage::disk('public')->path($file->file_path), $file->name);
+        return response()->download(Storage::disk('public')->path($file->path), $file->name);
     }
 
     /** Delete File */
@@ -160,7 +165,7 @@ class FolderController extends Controller
     {
         $file = File::findOrFail($fileId);
 
-        Storage::disk('public')->delete($file->file_path);
+        Storage::disk('public')->delete($file->path);
         $file->delete();
 
         return response()->json(["success" => true]);

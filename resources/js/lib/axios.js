@@ -4,11 +4,11 @@ const api = axios.create({
   baseURL: "/",
   headers: {
     "X-Requested-With": "XMLHttpRequest",
-    "Content-Type": "application/json",
     "Accept": "application/json",
   },
   withCredentials: true, 
 });
+
 
 
 const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");

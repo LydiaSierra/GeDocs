@@ -37,7 +37,7 @@ class NewUserRegistered extends Notification
     {
         $user = $this->newUser;
         return [
-            'role' => "Instrcutor",
+            'role' => "Instructor",
             'user' => $user,
         ];
     }

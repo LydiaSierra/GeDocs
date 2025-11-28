@@ -107,26 +107,30 @@ export function ArchiveDataProvider({ children }) {
     }
 
     const uploadFiles = async (folderId, files) => {
-        if (!files || files.length === 0) {
-            throw new Error("No files selected");
+        try {
+
+            if (!files || files.length === 0) {
+                throw new Error("No hay archivos seleccionados");
+            }
+
+            const formData = new FormData();
+
+            Array.from(files).forEach(file => {
+                formData.append('files[]', file);
+            });
+
+            const res = await api.post(`/api/folders/${folderId}/upload`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            if (!res.data.success) {
+                throw new Error("Error: " + res.data.message);
+            }
+            setFiles(prev => [...prev, ...(Array.isArray(res.data.files) ? res.data.files : [])]);
+        } catch (err) {
+            console.error("Error al hacer la petición: ", err.message || err);
+            throw err;
         }
-
-        const formData = new FormData();
-
-        Array.from(files).forEach(file => {
-            formData.append('files[]', file);
-        });
-
-        const res = await api.post(`/api/folders/${folderId}/upload`, formData, {
-            headers: { "Content-Type": "multipart/form-data" }
-        });
-
-        // Actualizar lista
-        if(!res.data.success){
-            throw new Error("Error "+res.data.message);
-            
-        }
-        setFiles(prev => [...prev, ...res.data.files]);
     };
 
 
@@ -142,6 +146,7 @@ export function ArchiveDataProvider({ children }) {
         }
     };
 
+ 
     // Whenever parentId changes, fetch the corresponding folders and files
     useEffect(() => {
         getAllFolders()

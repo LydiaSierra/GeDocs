@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 const File = ({ file }) => {
-    const { gridView, } = useContext;
+    const { gridView } = useContext(ArchiveUIContext);
     const { deleteFile } = useContext(ArchiveDataContext);
 
     const open = () => {
@@ -30,21 +30,19 @@ const File = ({ file }) => {
                     onDoubleClick={open}
                 >
                     {/* ICON + NAME */}
-                    <div className="flex lg:flex-col items-center gap-3">
+                    <div className="flex lg:flex-col items-center gap-3 w-full select-none">
 
                         {file.is_image ? (
-                            <img
-                                src={file.url}
-                                alt={file.name}
-                                className="w-12 h-12 object-cover rounded-md"
-                            />
+                            <PhotoIcon className="w-8 text-blue-500" />
                         ) : file.is_pdf ? (
-                            <DocumentIcon className="w-12 h-12 text-red-600 lg:mb-2" />
+                            <div className="w-12 h-14">
+                                <iframe src={file.url} frameborder="0" className="w-full h-full object-cover"></iframe>
+                            </div>
                         ) : (
-                            <DocumentIcon className="w-12 h-12 text-gray-600 lg:mb-2" />
+                            <DocumentIcon className="w-8 text-gray-800" />
                         )}
 
-                        <p className="font-medium line-clamp-1 text-gray-700">
+                        <p className="font-medium w-full truncate text-gray-700 hover:underline">
                             {file.name}
                         </p>
                     </div>
@@ -74,7 +72,6 @@ const File = ({ file }) => {
                             <li>
                                 <button
                                     className="flex items-center gap-2 cursor-pointer"
-                                    onClick={handleDownload}
                                 >
                                     <ArrowDownTrayIcon className="size-4 fill-gray-700" />
                                     Descargar
@@ -103,12 +100,13 @@ const File = ({ file }) => {
                         onDoubleClick={open}
                     >
 
-                        <div className="flex gap-2 items-center font-medium">
-
+                        <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium"}`}>
                             {file.is_image ? (
                                 <PhotoIcon className="w-8 text-blue-500" />
                             ) : file.is_pdf ? (
-                                <DocumentIcon className="w-8 text-red-600" />
+                                <div className="w-12 h-14">
+                                    <iframe src={file.url} frameborder="0" className="w-full h-full object-cover"></iframe>
+                                </div>
                             ) : (
                                 <DocumentIcon className="w-8 text-gray-800" />
                             )}

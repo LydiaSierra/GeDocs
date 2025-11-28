@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\PQRController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FolderController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 
@@ -15,8 +15,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/folders', [FolderController::class, 'index']);
     Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
+    Route::delete('/folders/file/{fileId}', [FolderController::class, 'destroyFile']);
 
-
+    // --------- NOTIFICATIONS ---------
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/{id}', [NotificationController::class, 'show']);
+    Route::get('/notifications/filter/unread', [NotificationController::class, 'unread']);
+    Route::get('/notifications/filter/read', [NotificationController::class, 'read']);
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {
@@ -24,17 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
 
-
         // ============= SHEETS ==============
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
-
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
     });
 
     // ONLY ADMIN
     Route::middleware('role:Admin')->group(function () {
-
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
@@ -45,9 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/sheets/{id}', [SheetController::class, 'update']);
         Route::delete('/sheets', [SheetController::class, 'destroy']);
         Route::delete('/sheets/delete/user/{numberSheet}/{idUser}', [SheetController::class, 'deleteUserFromSheet']);
-
     });
-
 
     // ============= PQRS ==============
     Route::apiResource('pqrs', PQRController::class);
