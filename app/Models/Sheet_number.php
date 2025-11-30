@@ -10,10 +10,18 @@ class Sheet_number extends Model
     use HasFactory;
 
     protected $fillable = [
-        "number"
+        "number",
+        'ventanilla_unica_id',
     ];
+
+    //
 
     public function users(){
         return $this->belongsToMany(User::class, "sheet_number_user", "sheet_number_id", "user_id");
+    }
+
+    public function dependencies()
+    {
+        return $this->hasMany(Dependency::class);
     }
 }
