@@ -39,8 +39,7 @@ class PQRController extends Controller
         }
 
         // Si quieres que solo admin vea todas, validaaquí
-        if (!$user->hasRole('Admin')) {
-            return response()->json(['message' => 'Noautorizado'], 403);
+        if ($user->hasRole('Admin')) {
             $pqrs = PQR::all();
          }
 

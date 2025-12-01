@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PQRController;
+use App\Http\Controllers\DependencyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FolderController;
@@ -29,6 +30,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // ============= SHEETS ==============
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+        Route::post('/dependency', [DependencyController::class, 'store']);
+        Route::get('/dependency', [DependencyController::class, 'index']);
+        Route::get('/dependency/{id}', [DependencyController::class, 'show']);
+        Route::put('/dependency/{id}', [DependencyController::class, 'update']);
+        Route::delete('/dependency/{id}', [DependencyController::class, 'destroy']);
     });
 
     // ONLY ADMIN
