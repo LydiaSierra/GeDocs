@@ -103,5 +103,11 @@ class DatabaseSeeder extends Seeder
             'status' => 'activo',
         ]);
         $aprendiz->assignRole('Aprendiz');
+
+        $this->call([
+            PQRSeeder::class,
+        ]);
     }
+
+
 }
