@@ -6,6 +6,7 @@ use App\Models\Dependency;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Sheet_number;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,17 +19,35 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-            FoldersSeeder::class,
             RoleSeeder::class,
+            SheetSeeder::class,
+            FoldersSeeder::class,
         ]);
 
 
 
-           // Crear dependencias
-        $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
-        $sistemas = Dependency::create(['name' => 'Sistemas']);
-        $academica = Dependency::create(['name' => 'Académica']);
-        $financiera = Dependency::create(['name' => 'Financiera']);
+        //Dependencias
+        // Busca una ficha existente para asociar dependencias adicionales
+        $sheet = Sheet_number::first();
+
+        if ($sheet) {
+            $recursosHumanos = Dependency::firstOrCreate([
+                'name' => 'Recursos Humanos',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Sistemas',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Académica',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Financiera',
+                'sheet_number_id' => $sheet->id,
+            ]);
+        }
 
 
 
@@ -85,9 +104,10 @@ class DatabaseSeeder extends Seeder
         ]);
         $aprendiz->assignRole('Aprendiz');
 
-
-         $this->call([
-            SheetSeeder::class,
+        $this->call([
+            PQRSeeder::class,
         ]);
     }
+
+
 }
