@@ -1,6 +1,6 @@
 import {DocumentTextIcon, UserCircleIcon} from "@heroicons/react/24/solid";
 
-export default function InboxMailCard() {
+export default function InboxMailCard(mailTitle, mailDescription, mailSender) {
     return (
         <div
             className="w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer">
