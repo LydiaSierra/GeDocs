@@ -23,7 +23,7 @@ const NotificationCard = () => {
     }
 
     return (
-        <div className=" bg-white flex flex-col w-full h-auto gap-5 p-3.5 mt-13 rounded-md col-span-2">
+        <div className=" bg-white flex flex-col w-full h-[70%] gap-5 p-3.5 mt-13 rounded-md col-span-2">
             <div className="w-full h-auto flex flex-row justify-between">
                 <button className="h-auto w-auto cursor-pointer rounded-[50%] hover:bg-gray-400 p-1 hover:text-white">
                     <ArrowUturnLeftIcon className="w-7 h-7" onClick={closeDetails}/>

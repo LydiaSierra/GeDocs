@@ -10,6 +10,7 @@ export function NotificationsProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [loadingDetailsNotification, setLoadingDetailsNotification] = useState(false)
     const [visibleDetails, setVisibleDetails] = useState(null);
+    const [notificationSeleted, setNotificationSeleted] = useState(null)
 
     const fetchNotifications = useCallback(async () => {
         setLoading(true);
@@ -23,6 +24,7 @@ export function NotificationsProvider({ children }) {
     });
 
     const markAsReadNotification = useCallback(async (id) => {
+        setNotificationSeleted(id);
         setLoadingDetailsNotification(true)
         setNotifications((prev) =>
             prev.map((notification) =>
@@ -44,10 +46,10 @@ export function NotificationsProvider({ children }) {
             console.log("ERRROR AL RECIBIR LA NOTIFICACION!");
             return;
         }
-        setVisibleDetails(resNotification.data.notification);
+        setVisibleDetails(resNotification.data.notification);   
         setLoadingDetailsNotification(false)
        
-    });
+    }, [notificationSeleted]);
 
     const closeDetails = useCallback(() => {
         setVisibleDetails(null)
@@ -65,7 +67,8 @@ export function NotificationsProvider({ children }) {
                 loading,
                 visibleDetails,
                 loadingDetailsNotification,
-                closeDetails
+                closeDetails,
+                notificationSeleted
             }}
         >
             {children}
