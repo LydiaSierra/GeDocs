@@ -5,7 +5,7 @@
     return (
         <div className="w-[97%] bg-white mt-18 rounded-lg flex flex-col items-center gap-1 overflow-hidden">
 
-            {/* Perlfil Info */}
+            {/* Perfil Info */}
             <div className="w-full h-auto flex flex-col  items-start gap-2">
                 <div className="w-5/5 flex flex-col items-start gap-5 p-2">
                         <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-lg 
