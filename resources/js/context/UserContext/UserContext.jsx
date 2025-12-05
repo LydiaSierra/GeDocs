@@ -1,45 +1,44 @@
-import {createContext, useState, useEffect, useCallback} from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
-import {router, usePage} from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 
 export const UserContext = createContext();
 
-export function UserProvider({children}) {
+export function UserProvider({ children }) {
     const [user, setUser] = useState([]);
-    const [filter, setFilter] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [idSelected, setidSelected] = useState(null);
+    const [content, setContent]=useState(null);
 
-    const fetchUser = useCallback(async() => {
+    const fetchUser = useCallback(async () => {
         const res = await api.get("/api/users");
-        if(res.data.succes === false){
-            console.log("ERRROR AL OBTENER NOTIFICACIONES!")
+        if (res.data.success === false) {
+            console.log("ERRROR AL OBTENER USUARIOS!");
             return;
         }
-        setUser([])
-    })
+        setUser(res.data.data);
+        setLoading(false);
+    });
 
-    // const markAsReadNotification = useCallback(async(id) => {
-    //     const res = await api.post(`/api/notifications/${id}/mark-as-read`);
-    //     if(res.data.succes === false){
-    //         console.log("ERRROR AL MARCAR NOTIFICACIONES LEIDAS!")
-    //         return;
-    //     }
-    // })
+    const ShowInformation = (id) => {
+        setidSelected(user.find((item) => item.id === id));
+    };
 
     useEffect(() => {
-      fetchUser()
-    
+        fetchUser();
+    }, []);
 
-
-    }, [])
-    
-
- 
     return (
         <UserContext.Provider
             value={{
                 // props
-                user
+                user,
+                loading,
+                ShowInformation,
+                idSelected,
+                setidSelected,
+                content,
+                setContent
             }}
         >
             {children}
