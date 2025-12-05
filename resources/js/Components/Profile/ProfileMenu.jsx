@@ -90,7 +90,7 @@
 
                 <div className="w-full h-auto flex flex-col  items-start gap-2">
                     
-                    <a href="#">
+                    <a href={route('dependencies')}>
                         <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-lg font-medium hover:underline">
                             <UserCircleIcon className="text-[#848484] w-7 h-7" />
                             Dependencias
