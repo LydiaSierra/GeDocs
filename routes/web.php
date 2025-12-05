@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -47,7 +46,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::post('/upload', [FileController::class, 'store'])
-    ->name('files.store');
+
 
 require __DIR__ . '/auth.php';

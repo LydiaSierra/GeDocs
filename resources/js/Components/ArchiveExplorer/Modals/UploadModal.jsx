@@ -2,32 +2,39 @@ import { ArchiveDataContext } from '@/context/ArchiveExplorer/ArchiveDataContext
 import { PlusIcon } from '@heroicons/react/24/solid';
 import React, { useContext, useState } from 'react'
 
-const UploadModal = ({onOpen}) => {
-    const {uploadFiles, currentFolder} = useContext(ArchiveDataContext)
+const UploadModal = ({ onOpen }) => {
+    const { uploadFiles, currentFolder } = useContext(ArchiveDataContext)
     const [dragActive, setdragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([])
     const [error, seterror] = useState("")
     const [isLoading, setIsLoading] = useState(false);
 
     const handleFiles = (files) => {
-        seterror("")
+        seterror("");
 
         if (!files || files.length === 0) {
-            setSelectedFiles([])
-            return
+            setSelectedFiles([]);
+            return;
         }
 
-        const pdfFiles = Array.from(files).filter(file =>
-            file.type === "application/pdf"
+        const allowedTypes = [
+            "application/pdf",
+            "application/vnd.ms-excel", // .xls
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
+        ];
+
+        const validFiles = Array.from(files).filter(file =>
+            allowedTypes.includes(file.type)
         );
 
-        if (pdfFiles.length !== files.length) {
-            seterror("Solo se permiten archivos pdf");
-            return
+        if (validFiles.length !== files.length) {
+            seterror("Solo se permiten archivos PDF y Excel (.xls, .xlsx)");
+            return;
         }
 
-        setSelectedFiles(Array.from(files));
-    }
+        setSelectedFiles(validFiles);
+    };
+
 
     const handleDrop = (e) => {
         e.preventDefault()
@@ -93,7 +100,7 @@ const UploadModal = ({onOpen}) => {
                         <button
                             className="px-4 py-2 rounded bg-blue-600 text-white disabled:bg-gray-400"
                             disabled={isLoading}
-                            onClick={async ()=>{
+                            onClick={async () => {
                                 try {
                                     setIsLoading(true);
                                     await uploadFiles(currentFolder?.id ?? null, selectedFiles);
@@ -107,7 +114,7 @@ const UploadModal = ({onOpen}) => {
                             }}
                         >
                             {isLoading ? "Subiendo..." : "Subir"}
-                            
+
                         </button>
                     }
                 </div>

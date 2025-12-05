@@ -5,9 +5,12 @@ import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
+import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
+import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
 
 export default function Explorer() {
     const { openFolder, setHistoryStack, fetchFolders, currentFolder } = useContext(ArchiveDataContext);
+    const { selectedItem } = useContext(ArchiveUIContext);
     const [openModalUpload, setopenModalUpload] = useState(false);
 
 
@@ -50,6 +53,9 @@ export default function Explorer() {
 
                     {openModalUpload &&
                         <UploadModal onOpen={setopenModalUpload} />
+                    }
+                    {selectedItem &&
+                        <ModalDetails />
                     }
                 </div>
 

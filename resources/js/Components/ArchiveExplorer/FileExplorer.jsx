@@ -10,9 +10,10 @@ import {
     DocumentIcon,
     PhotoIcon,
 } from "@heroicons/react/24/solid";
+import { Link } from "@inertiajs/react";
 
 const File = ({ file }) => {
-    const { gridView } = useContext(ArchiveUIContext);
+    const { gridView, showDetails } = useContext(ArchiveUIContext);
     const { deleteFile } = useContext(ArchiveDataContext);
 
     const open = () => {
@@ -48,45 +49,13 @@ const File = ({ file }) => {
                     </div>
 
                     {/* OPTIONS BUTTON */}
-                    <div className="dropdown dropdown-end lg:absolute lg:top-2 lg:right-2">
-                        <div
-                            tabIndex={0}
-                            role="button"
-                            className="z-1 border-none bg-transparent rounded-full hover:bg-[#75D0D1]"
-                        >
-                            <EllipsisVerticalIcon className="size-8 fill-gray-700" />
-                        </div>
-
-                        <ul className="dropdown-content menu bg-base-100 rounded-box w-40 p-2 shadow-sm">
-
-                            <li>
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-2 cursor-pointer"
-                                >
-                                    <InformationCircleIcon className="size-4 fill-gray-700" />
-                                    Detalles
-                                </button>
-                            </li>
-
-                            <li>
-                                <button
-                                    className="flex items-center gap-2 cursor-pointer"
-                                >
-                                    <ArrowDownTrayIcon className="size-4 fill-gray-700" />
-                                    Descargar
-                                </button>
-                            </li>
-
-                            <li>
-                                <button
-                                    className="flex items-center gap-2 cursor-pointer text-red-600"
-                                    onClick={() => deleteFile(file.id)}
-                                >
-                                    Eliminar
-                                </button>
-                            </li>
-
+                    <div className={`dropdown dropdown-bottom dropdown-end ${gridView ? "absolute right-2 left-2" : "relative"}`}>
+                        <button tabIndex={"-1"} role="button" className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
+                            <EllipsisVerticalIcon className="w-6" />
+                        </button>
+                        <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                            <li><a href={file.url} download={file.name}>Descargar</a></li>
+                            <li><button onClick={() => showDetails(file)}>Detalles</button></li>
                         </ul>
                     </div>
 
@@ -96,8 +65,7 @@ const File = ({ file }) => {
                 <div className="flex flex-col">
                     <div
                         key={file.id}
-                        className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100"
-                        onDoubleClick={open}
+                        className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100  select-none"
                     >
 
                         <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium"}`}>
@@ -111,15 +79,21 @@ const File = ({ file }) => {
                                 <DocumentIcon className="w-8 text-gray-800" />
                             )}
 
-                            <p>{file.name}</p>
+                            <p className="hover:underline" onDoubleClick={open}>{file.name}</p>
                         </div>
 
                         <div className="flex gap-5 items-center">
                             <p>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
 
-                            <button className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
-                                <EllipsisVerticalIcon className="w-6" />
-                            </button>
+                            <div className="dropdown dropdown-bottom dropdown-end">
+                                <button tabIndex={"-1"} role="button" className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
+                                    <EllipsisVerticalIcon className="w-6" />
+                                </button>
+                                <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                                    <li><a href={file.url} download={file.name}>Descargar</a></li>
+                                    <li><button onClick={() => showDetails(file)}>Detalles</button></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

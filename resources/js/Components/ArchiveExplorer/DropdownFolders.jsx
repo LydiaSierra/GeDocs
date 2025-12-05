@@ -9,7 +9,7 @@ import {usePage} from "@inertiajs/react";
 
 const DropdownFolders = () => {
     const {showDropFolders} = useContext(ArchiveUIContext);
-    const {folders, allFolders, openFolder} = useContext(ArchiveDataContext);
+    const {allFolders, openFolder} = useContext(ArchiveDataContext);
     const url = usePage().url;
 
 
@@ -42,7 +42,7 @@ const DropdownFolders = () => {
                             Carpetas
                         </p>
                         {renderFolders()}
-                        <div className={"absolute top-0 -right-1  h-full w-2 cursor-ew-resize hover:border-r border-gray-500"}></div>
+                      
                     </div>
                 </div>
 
