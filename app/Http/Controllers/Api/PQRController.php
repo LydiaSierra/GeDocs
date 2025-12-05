@@ -13,6 +13,9 @@ use App\Mail\PQRResponseMail;
 use App\Models\Dependency;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB; // sirve para manejar transacciones de la db y realiza consultas directas.
+use App\Models\comunication;
+use App\Models\AttachedSupport;
 use App\Models\Sheet_number as SheetNumber;
 
 class PQRController extends Controller
@@ -280,4 +283,162 @@ class PQRController extends Controller
     {
         return response()->json(['message' => 'No está permitido eliminar PQRs'], 405);
     }
+
+    //Funciones de comunicaciones
+    public function createCommunication(Request $request, string $id): JsonResponse
+    {
+        $user = $request->user();
+        $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        $validated = $request->validate([
+            'message' => 'required|string|min:10|max:2000',
+            'requires_response' => 'boolean',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Crear la comunicación
+            $comunication = $pqr->comunications()->create([
+                'message' => $validated['message'],
+                'requires_response' => $validated['requires_response'] ?? false
+            ]);
+
+            // Generar UUID si requiere respuesta
+            $responseUrl = null;
+            if ($validated['requires_response'] ?? false) {
+                $comunication->generateResponseUuid(7); // 7 días para expirar
+                $responseUrl = $comunication->getResponseUrl();
+            }
+
+            // Guardar archivos si los hay
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('communication_attachments', 'public');
+
+                    $comunication->attachedSupports()->create([
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'type' => $file->getClientOriginalExtension(),
+                        'size' => $file->getSize(),
+                    ]);
+                }
+            }
+
+            // Enviar email
+            $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
+            Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
+
+            DB::commit();
+
+            return response()->json([
+                'data' => $comunication->load(['attachedSupports']),
+                'message' => 'Comunicación enviada exitosamente',
+                'response_url' => $responseUrl
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error creando comunicación: ' . $e->getMessage());
+            return response()->json(['error' => 'Error interno del servidor'], 500);
+        }
+    }
+
+    /**
+     * MOSTRAR FORMULARIO DE RESPUESTA
+     */
+    public function showResponseForm(string $uuid): JsonResponse
+    {
+        $comunication = comunication::where('response_uuid', $uuid)
+            ->with(['pqr', 'attachedSupports'])
+            ->first();
+
+        if (!$comunication) {
+            return response()->json(['error' => 'Enlace no encontrado'], 404);
+        }
+
+        if (!$comunication->isResponseValid()) {
+            $message = $comunication->response_used
+                ? 'Este enlace ya fue utilizado'
+                : 'Este enlace ha expirado';
+            return response()->json(['error' => $message], 410);
+        }
+
+        return response()->json([
+            'data' => [
+                'pqr' => $comunication->pqr,
+                'communication' => $comunication,
+                'expires_at' => $comunication->response_expires_at,
+                'instructions' => 'Adjunta los documentos requeridos y envía tu respuesta.'
+            ]
+        ]);
+    }
+
+    /**
+     * PROCESAR RESPUESTA CON ARCHIVOS
+     */
+    public function processResponse(Request $request, string $uuid): JsonResponse
+    {
+        $comunication = comunication::where('response_uuid', $uuid)->first();
+
+        if (!$comunication) {
+            return response()->json(['error' => 'Enlace no encontrado'], 404);
+        }
+
+        if (!$comunication->isResponseValid()) {
+            $message = $comunication->response_used
+                ? 'Este enlace ya fue utilizado'
+                : 'Este enlace ha expirado';
+            return response()->json(['error' => $message], 410);
+        }
+
+        $validated = $request->validate([
+            'message' => 'nullable|string|max:1000',
+            'attachments' => 'required',
+        ]);
+        DB::beginTransaction();
+    try {
+        // Crear comunicación del usuario
+        $userResponse = $comunication->pqr->comunications()->create([
+            'message' => $request->input('message', 'Documentos adjuntos enviados'),
+            'requires_response' => false
+        ]);
+
+        // Guardar archivos
+        $files = $request->file('attachments');
+        $files = is_array($files) ? $files : [$files];
+
+        foreach ($files as $file) {
+            $path = $file->store('user_responses', 'public');
+
+            AttachedSupport::create([
+                'name' => $file->getClientOriginalName(),
+                'path' => $path,
+                'type' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'pqr_id' => $comunication->pqr->id,
+                'comunication_id' => $userResponse->id
+            ]);
+        }
+        // Marcar UUID como usado
+        $comunication->markResponseAsUsed();
+
+        DB::commit();
+
+        return response()->json([
+            'message' => 'Documentos enviados exitosamente',
+            'data' => $userResponse->load(['attachedSupports'])
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Error procesando respuesta: ' . $e->getMessage());
+        return response()->json(['error' => 'Error interno del servidor'], 500);
+    }
+}
 }

@@ -47,12 +47,23 @@
             border-radius: 5px;
             margin: 10px 0;
         }
+        .btn:hover {
+            background: #218838;
+        }
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h2>Respuesta a tu PQR</h2>
-        <p>Tu consulta ha sido respondida</p>
+         <p>{{ $comunication ? 'Nueva comunicación' : 'Tu consulta ha sido respondida' }}</p>
     </div>
 
     <div class="content">
@@ -67,16 +78,40 @@
             {{ $pqr->description }}
         </div>
 
-        <h4>Respuesta oficial:</h4>
-        <div class="response-box">
-            {{ $pqr->response_message }}
-        </div>
+        @if($comunication)
+            <h4>{{ $comunication->sender_type === 'system' ? 'Respuesta oficial:' : 'Nueva comunicación:' }}</h4>
+            <div class="response-box">
+                {{ $comunication->message }}
+            </div>
 
-        <p><strong>Fecha de respuesta:</strong> {{ $pqr->response_date->format('d/m/Y H:i') }}</p>
+            {{-- Mostrar archivos adjuntos si los hay --}}
+            @if($comunication->attachedSupports && $comunication->attachedSupports->count() > 0)
+                <h5>Archivos adjuntos:</h5>
+                <ul>
+                    @foreach($comunication->attachedSupports as $attachment)
+                        <li>{{ $attachment->name }} ({{ number_format($attachment->size / 1024, 2) }} KB)</li>
+                    @endforeach
+                </ul>
+            @endif
 
-        <div style="text-align: center;">
-            <a href="{{ config('app.url') }}" class="btn">Acceder al Sistema</a>
-        </div>
+            {{-- Mostrar link de respuesta si es necesario --}}
+            @if($comunication->requires_response && $responseUrl)
+                <div class="alert">
+                    <strong>Se requiere información adicional</strong><br>
+                    Para continuar con el procesamiento de tu PQR, necesitamos que adjuntes algunos documentos.
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <a href="{{ $responseUrl }}" class="btn">
+                        📎 Adjuntar Documentos Requeridos
+                    </a>
+                </div>
+
+                <p style="font-size: 12px; color: #666;">
+                    <strong>Nota:</strong> Este enlace es de un solo uso y expira en 7 días.
+                    Una vez que subas los documentos, el enlace dejará de funcionar.
+                </p>
+            @endif
+        @endif
     </div>
 
     <div class="footer">

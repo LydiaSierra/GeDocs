@@ -16,12 +16,17 @@ class AttachedSupport extends Model
         'path',
         'type',
         'size',
-        'pqr_id'
+        'pqr_id',
+        'comunication_id'
     ];
 
     public function pqr()
     {
         return $this->belongsTo(PQR::class, 'pqr_id');
+    }
+
+    public function comunication(){
+        return $this->belongsTo(comunication::class, 'comunication_id');
     }
 
 }

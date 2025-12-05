@@ -89,6 +89,20 @@ Route::put('pqrs/{id}', [PQRController::class, 'update']);
 // Eliminar una PQR
 Route::delete('pqrs/{id}', [PQRController::class, 'destroy']);
 
+// ----------- RESPUESTAS PQR -------------
+Route::prefix('pqr')->group(function () {
+    // Ruta para mostrar el formulario de respuesta (GET)
+    Route::get('responder/{uuid}', [PQRController::class, 'showResponseForm'])->name('pqr.show-response-form');
+
+    // Ruta para procesar la respuesta con archivos (POST)
+    Route::post('responder/{uuid}', [PQRController::class, 'processResponse'])->name('pqr.upload-response');
+
+    // Ruta para crear comunicaciones (para admins autenticados)
+    Route::post('{id}/comunicaciones', [PQRController::class, 'createCommunication'])
+        ->middleware('auth:sanctum')
+        ->name('pqr.create-communication');
+});
+
 // ----------- LOGIN -------------
 Route::middleware("api")->post('/login', function (Request $request) {
     $request->validate([
