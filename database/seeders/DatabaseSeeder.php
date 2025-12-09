@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
 
 
 
+
         // Crear dependencias
         $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
         $sistemas = Dependency::create(['name' => 'Sistemas']);
@@ -57,6 +58,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $userInstructor->assignRole('Instructor');
+
 
 
 

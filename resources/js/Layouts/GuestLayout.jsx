@@ -1,6 +1,8 @@
 import {Link, usePage} from '@inertiajs/react';
 import {useEffect, useState} from "react";
 import ToastMessage from "@/Components/ToastMessage.jsx";
+import PrimaryButton from "@/Components/PrimaryButton.jsx";
+import {XMarkIcon} from "@heroicons/react/24/outline";
 
 export default function GuestLayout({children}) {
 
@@ -21,10 +23,9 @@ export default function GuestLayout({children}) {
 
             </div>
             <div className={"hidden md:inline-block"}>
-                <img src="/images/imgLogin.png" alt=""/>
+                <img src="/images/OBJECTS.svg" alt=""/>
             </div>
-
-                <ToastMessage/>
+            <ToastMessage/>
         </div>
     );
 }

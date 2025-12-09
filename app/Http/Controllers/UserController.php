@@ -44,21 +44,29 @@ class UserController extends Controller
             ]);
         }
 
-        $validated = $request->validate([
+        $validate = $request->validate([
             'type_document' => 'required|string|max:50',
             'document_number' => 'required|string|max:50|unique:users,document_number',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => "required|string",
-            "status" => "active"
+            "status" => "required|string",
+            "role" => "required|string",
         ]);
 
+        $statuFilter = ["pending", "active"];
 
+        if (!in_array($validate["status"], $statuFilter)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Estado no permitido"
+            ]);
+        }
 
-        $validated['password'] = Hash::make($validated['password']);
+        $validate['password'] = Hash::make($validate['password']);
 
-        $user = User::create($validated);
-        $user->assignRole('Aprendiz');
+        $user = User::create($validate);
+        $user->assignRole($validate["role"]);
 
         $user->load('roles');
         $user->load('sheetNumbers');
@@ -79,9 +87,9 @@ class UserController extends Controller
         $authUser = $request->user();
 
         if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
-            $user = User::role("Aprendiz")->with('roles')->find($id);
+            $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
         } else {
-            $user = User::with('roles')->find($id);
+            $user = User::with('roles', "sheetNumbers")->find($id);
         }
 
 
@@ -101,27 +109,37 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        $validated = $request->validate([
+        $validate = $request->validate([
             'type_document' => 'sometimes|required|string|max:50',
             'document_number' => 'sometimes|required|string|max:50|unique:users,document_number,' . $user->id,
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'sometimes|nullable|string|in:Aprendiz,Instructor',
+            'status' => 'sometimes|nullable|string',
             'technical_sheet_id' => 'sometimes|nullable|exists:technical_sheets,id',
             'password' => "sometimes|required|string",
         ]);
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        if (!empty($validate['password'])) {
+            $validate['password'] = Hash::make($validate['password']);
         } else {
-            unset($validated['password']);
+            unset($validate['password']);
         }
 
-        $user->update($validated);
+        $user->update($validate);
 
         // Actualizar rol si llega uno nuevo
-        if (!empty($validated['role'])) {
-            $user->syncRoles([$validated['role']]);
+        if (!empty($validate['role'])) {
+            $user->syncRoles([$validate['role']]);
+        }
+
+        $statuFilter = ["pending", "active"];
+
+        if (!in_array($validate["status"], $statuFilter)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Estado no permitido"
+            ]);
         }
 
         return response()->json([
@@ -171,19 +189,19 @@ class UserController extends Controller
                     "message" => "Filtro '$key' no está permitido"
                 ], 400);
             }
-        }    
-        
+        }
+
         // loop through the array allowed to search for each selected filter
-        
+
         $query = User::with('roles', "sheetNumbers");
 
         foreach ($request->query() as $key => $value) {
-               $query->where($key, "LIKE", "%{$value}%");
+            $query->where($key, "LIKE", "%{$value}%");
         }
 
         $authUser = $request->user();
 
-        if(!$authUser->hasRole("Admin")) {
+        if (!$authUser->hasRole("Admin")) {
             $query->role("Aprendiz");
         }
 
@@ -195,32 +213,4 @@ class UserController extends Controller
             "data" => $users
         ]);
     }
-
-    public function updateStatus(string $id, string $status){
-        $statuFilter = ["pending", "active"];
-
-        $user = User::find($id);
-        if(!$user){
-            return response()->json([
-                "success"=> false,
-                "message"=> "Usuario no encontrado"
-            ]);
-        }
-       if(!in_array($status, $statuFilter)) {
-        return response()->json([
-            "success"=> false,
-            "message"=> "Estado no permitido"
-            ]);
-       }
-       $user->status = $status;
-       $user->save();
-
-       return response()->json([
-        "success"=> true,
-        "message" => "Estado del usuario $user->id cambiado con exito a $status"
-        ]);
-       
-
-    }
-
 }

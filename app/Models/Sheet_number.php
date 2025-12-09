@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Sheet_number extends Model
 {
     use HasFactory;
-    protected $with = ["users"];
 
     protected $fillable = [
         "number",
-        "director",
+        "active",
         "state"
     ];
 

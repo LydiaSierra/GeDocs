@@ -153,10 +153,7 @@ export function ArchiveDataProvider({ children }) {
     };
 
  
-    // Whenever parentId changes, fetch the corresponding folders and files
-    useEffect(() => {
-        getAllFolders()
-    }, []);
+
 
     // Provide all data and actions to any component that uses this context
     return (
@@ -176,6 +173,7 @@ export function ArchiveDataProvider({ children }) {
                 currentFolder,
                 allFolders,
                 uploadFiles,
+                getAllFolders,
                 deleteFile,
 
             }}

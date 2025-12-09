@@ -28,6 +28,7 @@ class SheetSeeder extends Seeder
         if ($userInstructor && $userAprendiz) {
             $sheet1->users()->attach($userInstructor->id);
             $sheet1->users()->attach($userAprendiz->id);
+            $sheet2->users()->attach($userInstructor->id);
         }
     }
 }

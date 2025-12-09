@@ -9,7 +9,7 @@ import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
 
 export default function Explorer() {
-    const { openFolder, setHistoryStack, fetchFolders, currentFolder } = useContext(ArchiveDataContext);
+    const { openFolder, setHistoryStack, fetchFolders, currentFolder, getAllFolders } = useContext(ArchiveDataContext);
     const { selectedItem } = useContext(ArchiveUIContext);
     const [openModalUpload, setopenModalUpload] = useState(false);
 
@@ -26,6 +26,7 @@ export default function Explorer() {
         } else {
             fetchFolders()
         }
+        getAllFolders()
 
     }, [])
 

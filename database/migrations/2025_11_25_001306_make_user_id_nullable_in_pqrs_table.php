@@ -11,15 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sheet_numbers', function (Blueprint $table) {
-            $table->id();
-            $table->string("number")->unique();
-            
-            $table->boolean("active")->default(false)->nullable;
-
-            $table->string("state")->nullable();
-
-            $table->timestamps();
+        Schema::table('p_q_r_s', function (Blueprint $table) {
+            $table->unsignedBigInteger('user_id')->nullable()->change();
         });
     }
 
@@ -28,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sheet_numbers');
+        Schema::table('p_q_r_s', function (Blueprint $table) {
+            $table->unsignedBigInteger('user_id')->nullable(false)->change();
+        });
     }
 };

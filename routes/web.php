@@ -35,7 +35,19 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
+    
+    //Direccion a Formulario
+    Route::get('/form', fn() => Inertia::render('Form'))
+        ->name('form');
 
+    //Vistas de Fichas
+    Route::get('/sheets', fn() => Inertia::render('Sheets'))
+        ->name('sheets');
+
+    //Vistas Dependencias
+    Route::get('/dependencies', fn() => Inertia::render('Dependencies'))
+        ->name('dependencies');
+    
     // Vistas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
@@ -43,6 +55,8 @@ Route::middleware('auth')->group(function () {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    
 });
 
 

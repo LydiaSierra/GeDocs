@@ -15,19 +15,25 @@ class PQR extends Model
         'description',
         'affair',
         'response_time',
+        'response_days',
         'state',
         'user_id',
         'responsible_id',
         'dependency_id',
         'response_message',
         'response_date',
-        'response_status'
+        'response_status',
+        'request_type',
+        'sheet_number_id',
+        'email',
+        'document'
     ];
 
 
     protected $casts = [
         'state' => 'boolean',
         'response_time' => 'date',
+        'response_date' => 'datetime',
     ];
 
     //Relaciones
@@ -63,5 +69,9 @@ class PQR extends Model
     public function isClosed()
     {
         return $this->response_status === 'closed';
+    }
+
+    public function sheetNumber(){
+        return $this->belongsTo(Sheet_number::class);
     }
 }
