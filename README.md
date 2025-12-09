@@ -211,3 +211,74 @@ Notification::send(User::role('administrador')->get(), new SystemAlertNotificati
 ```
 Notification::send($usuarios, new AlertNotification());
 ```
+# Documentación de Endpoints de la API
+
+Este documento describe los endpoints de la API para la gestión de Dependencias, PQRS y sus comunicaciones. Todos los endpoints listados aquí tienen el prefijo `/api`.
+
+---
+
+## Endpoints de Dependencias
+
+Estos endpoints son para gestionar las dependencias dentro del sistema.
+
+| Método    | URI                | Acción                             | Rol Requerido      |
+|-----------|--------------------|------------------------------------|--------------------|
+| `GET`     | `/dependency`      | Obtiene una lista de todas las dependencias. | Admin o Instructor |
+| `POST`    | `/dependency`      | Crea una nueva dependencia.        | Admin o Instructor |
+| `GET`     | `/dependency/{id}` | Muestra una dependencia específica. | Admin o Instructor |
+| `PUT`     | `/dependency/{id}` | Actualiza una dependencia específica. | Admin o Instructor |
+| `DELETE`  | `/dependency/{id}` | Elimina una dependencia específica.  | Admin o Instructor |
+
+---
+
+## Endpoints de PQRS
+
+Endpoints para la creación y gestión de Peticiones, Quejas, Reclamos y Sugerencias (PQRS).
+
+| Método    | URI          | Acción                                 | Autenticación Requerida |
+|-----------|--------------|----------------------------------------|-------------------------|
+| `GET`     | `/pqrs`      | Lista todas las PQRS.                  | Sí (Sanctum)            |
+| `POST`    | `/pqrs`      | Crea una nueva PQR.                    | No                      |
+| `GET`     | `/pqrs/{id}` | Muestra una PQR específica.            | No                      |
+| `PUT`     | `/pqrs/{id}` | Actualiza una PQR específica.          | No                      |
+| `PATCH`   | `/pqrs/{id}` | Actualiza parcialmente una PQR.        | Sí (Sanctum)            |
+| `DELETE`  | `/pqrs/{id}` | Elimina una PQR específica.            | No                      |
+
+---
+
+## Endpoints de Comunicaciones (Respuestas de PQRS)
+
+Endpoints para gestionar las respuestas y comunicaciones asociadas a una PQR.
+
+### Respuesta a una PQR por parte del responsable
+| Método | URI                 | Acción                                           | Autenticación Requerida |
+|--------|---------------------|--------------------------------------------------|-------------------------|
+| `POST` | `/pqrs/{id}/respond`| Registra la respuesta principal a una PQR.       | Sí (Sanctum)            |
+
+**Request Body para `/pqrs/{id}/respond`:**
+```json
+{
+  "response_message": "Contenido de la respuesta."
+}
+```
+
+### Respuesta a una PQR por parte de un usuario (con posible adjunto)
+| Método | URI                    | Acción                                                          | Autenticación Requerida |
+|--------|------------------------|-----------------------------------------------------------------|-------------------------|
+| `GET`  | `/pqr/responder/{uuid}`| Muestra un formulario para responder (si aplica).               | No                      |
+| `POST` | `/pqr/responder/{uuid}`| Procesa el envío de una respuesta, posiblemente con archivos.   | No                      |
+
+**Request Body para `/pqr/responder/{uuid}`:**
+Este endpoint espera un `form-data` que puede incluir campos de texto y archivos adjuntos.
+
+### Creación de Comunicaciones Internas
+| Método | URI                         | Acción                                     | Autenticación Requerida |
+|--------|-----------------------------|--------------------------------------------|-------------------------|
+| `POST` | `/pqr/{id}/comunicaciones`| Crea una comunicación interna para una PQR. | Sí (Sanctum)            |
+
+**Request Body para `/pqr/{id}/comunicaciones`:**
+```json
+{
+  "message": "Contenido de la comunicación interna."
+}
+```
