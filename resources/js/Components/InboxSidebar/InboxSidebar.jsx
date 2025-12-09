@@ -4,23 +4,10 @@ import {
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import InboxMailCard from "@/components/InboxMailCard/InboxMailCard";
-<<<<<<< Updated upstream
 import {useEffect, useState} from "react";
 
 export default function InboxSidebar({children}) {
 
-=======
-import {useState} from "react";
-
-export default function InboxSidebar() {
-
-    const [mailCards, setMailCards] = useState([])
-
-    const loadMailCards = () => {
-
-    }
-
->>>>>>> Stashed changes
     return (
         <div
             className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-full md:ml-1 justify-between items-center md:p-3 ">
