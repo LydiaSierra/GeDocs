@@ -1,10 +1,22 @@
 import { UserContext } from "@/context/UserContext/UserContext";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
-import { useContext } from "react";
+import { useContext, useState,useEffect } from "react";
 import UserModal from "./UserModal";
 
-export const UserList = () => {
-    const { user, loading,content,ShowInformation} = useContext(UserContext);
+export const UserList = ({ url }) => {
+    const { user, loading, ShowInformation } = useContext(UserContext);
+    const [content, setContent] = useState(null);
+
+    useEffect(() => {
+        if (url === "/users/instructor") {
+            setContent("Instructor");
+        } else if (url === "/users/aprendiz") {
+            setContent("Dependencia");
+        }else if (url==="/users/fichas"){
+            setContent("Ficha")
+        }
+    }, [url]);
+
     if (loading) {
         return (
             <div className="w-full flex flex-col items-center justify-center h-full">
@@ -32,11 +44,10 @@ export const UserList = () => {
                             item.roles.some((r) => r.name === content)
                         )
                         .map((item) => (
-
                             <tr
                                 key={item.id}
-                                onClick={()=>{
-                                    ShowInformation(item.id)
+                                onClick={() => {
+                                    ShowInformation(item.id);
                                 }}
                                 className=" bg-white hover:bg-accent text-center cursor-pointer h-15 rounded-[7px]"
                             >
@@ -63,7 +74,9 @@ export const UserList = () => {
                                 </td>
                                 <td className=" text-[#606164] font-normal">
                                     <div className="bg-[#E8E8E8] rounded-md">
-                                        {item.status === "pending" ? "Pendiente" : "Activo"}
+                                        {item.status === "pending"
+                                            ? "Pendiente"
+                                            : "Activo"}
                                     </div>
                                 </td>
                                 <td className="rounded-r-[7px] px-2">
@@ -73,7 +86,7 @@ export const UserList = () => {
                         ))}
                 </tbody>
             </table>
-            <UserModal/>
+            <UserModal />
         </div>
     );
 };

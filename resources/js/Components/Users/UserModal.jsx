@@ -1,15 +1,19 @@
 import { UserContext } from "@/context/UserContext/UserContext";
 import React, { useContext } from "react";
+import UserEdit from "./userModal/UserEdit";
+import DeleteConfirm from "./DeleteConfirm";
 
 function UserModal() {
-    const { idSelected, setidSelected } = useContext(UserContext);
-
+    const { idSelected, setidSelected, edit, setEdit, isDelete, setIsDelete } =
+            useContext(UserContext);
+            
     if (idSelected !== null) {
-        return (
-            <div
+        if(edit===false){
+            return (
+              <div
                 className={`modal ${
                     idSelected ? "modal-open" : ""
-                } w-full h-full`}
+                } w-full h-full `}
             >
                 <div className="w-[50%] h-[70%] bg-white flex flex-col gap-5 relative rounded-md p-10">
                     <button
@@ -128,18 +132,34 @@ function UserModal() {
                             </div>
 
                             <div className="w-full h-[10%] flex flex-row justify-start pl-4 gap-10">
-                                <button className="w-25 h-8 rounded-[5px] bg-primary text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary">
+                                <button className="w-25 h-8 rounded-[5px] bg-primary text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary"
+                                onClick={() => {
+                                    setIsDelete(false);
+                                    setEdit(true);
+                                }}>
                                     Editar
                                 </button>
-                                <button className="w-25 h-8 rounded-[5px] bg-[#EA4649] text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-[#EA4649] hover:bg-white hover:text-[#EA4649]">
+                                <button className="w-25 h-8 rounded-[5px] bg-[#EA4649] text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-[#EA4649] hover:bg-white hover:text-[#EA4649]"
+                                onClick={() => {
+                                    document
+                                        .getElementById("my_modal_7")
+                                        .showModal();
+                                }}>
                                     Borrar
                                 </button>
                             </div>
                         </div>
+                        <DeleteConfirm />
                     </div>
                 </div>
-            </div>
-        );
+            </div>  
+            );
+        }
+        else{
+            return(
+                <UserEdit/>
+            )
+        }
     }
 }
 

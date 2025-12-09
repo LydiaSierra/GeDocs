@@ -21,9 +21,19 @@ Route::middleware('auth')->group(function () {
     ])
     )->name('notifications.index');
 
-    // Gestion de Usuarios
-    Route::get('/users', fn() => Inertia::render('Users')
-    )->name('users');
+    // Gestion de Instructor
+    Route::get('/users/instructor', fn() => Inertia::render('Users')
+    )->name('instructor');
+
+    // Gestion de Aprendices
+    Route::get('/users/aprendiz', fn() => Inertia::render('Users')
+    )->name('aprendiz');
+
+    // Gestion de Ficha
+    Route::get('/users/ficha', fn() => Inertia::render('Users')
+    )->name('ficha');
+
+    
 
     //Vista de una sola notificacion pasando el id
     Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [

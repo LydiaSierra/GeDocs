@@ -8,7 +8,9 @@ export function UserProvider({ children }) {
     const [user, setUser] = useState([]);
     const [loading, setLoading] = useState(false);
     const [idSelected, setidSelected] = useState(null);
-    const [content, setContent]=useState(null);
+    
+    const [edit,setEdit]=useState(false);
+    const [isDelete,setIsDelete]=useState(false);
 
     const fetchUser = useCallback(async () => {
         const res = await api.get("/api/users");
@@ -37,8 +39,10 @@ export function UserProvider({ children }) {
                 ShowInformation,
                 idSelected,
                 setidSelected,
-                content,
-                setContent
+                edit,
+                setEdit,
+                isDelete,
+                setIsDelete
             }}
         >
             {children}

@@ -2,14 +2,15 @@ import React, { useContext } from "react";
 import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { UserContext } from "@/context/UserContext/UserContext";
 
-function UserSearch() {
-    const { content} = useContext(UserContext);
+function UserSearch({ url }) {
     return (
         <div className="w-full h-auto flex flex-col gap-5">
             <h1 className="text-2xl">
-                 {content === "Instructor"
-                            ? "Lista de Instructores"
-                            : "Lista de Aprendices"}
+                {url === "/users/instructor"
+                    ? "Lista de Instructores"
+                    : url === "/users/aprendiz"
+                    ? "Lista de Aprendices"
+                    : "Lista de Fichas"}
             </h1>
             <div id="inbox-search" className="flex gap-2 w-[40%]">
                 <div className="flex items-center bg-[#E8E8E8] px-2 rounded-md flex-1 min-w-0">
