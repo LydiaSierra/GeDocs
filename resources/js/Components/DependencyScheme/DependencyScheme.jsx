@@ -1,136 +1,182 @@
+
+// Importa la instancia personalizada de Axios desde tu carpeta de librerías
 import api from "@/lib/axios";
+
+// Importa React y el hook useState (aunque en este componente no se está usando)
 import React, { useState } from "react";
 
+// Componente principal
 const DependencyScheme = () => {
 
-    const [formData, setFormData] = useState({
-        codigo: "",
-        fecha: "",
-        lugar: "",
-        tratamiento: "",
-        nombres: "",
-        cargo: "",
-        empresa: "",
-        direccion: "",
-        ciudad: "",
-        asunto: "",
-        saludo: "",
-        texto: "",
-        despedida1: "",
-        despedida2: "",
-        despedida3: "",
-        firma_nombres: "",
-        firma_cargo: "",
-        anexo: "",
-        copia: "",
-        transcriptor: "",
-    });
+    // ------------------------------
+    // Función que maneja la generación del PDF
+    // ------------------------------
+    const handleGeneratePdf = async (e) => {
+        e.preventDefault();          // Evita que el formulario recargue la página
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleGeneratePdf = async () => {
         try {
+            // Toma todos los datos del formulario que disparó el evento
+            const form = new FormData(e.target);
+
+            // Convierte los datos del formulario en un objeto normal de JS
+            const data = Object.fromEntries(form.entries());
+
+            // Hace una petición POST al backend para generar el PDF
+            // responseType: "blob" es necesario para recibir archivos binarios (PDF)
             const response = await api.post(
                 "/generate-pdf",
-                formData,
+                data,
                 { responseType: "blob" }
             );
 
+            // Crea una URL temporal en el navegador con el PDF recibido
             const url = window.URL.createObjectURL(new Blob([response.data]));
+
+            // Crea un enlace <a> para forzar la descarga
             const a = document.createElement("a");
             a.href = url;
-            a.download = "acta.pdf";
-            a.click();
+            a.download = "acta.pdf";  // Nombre del archivo descargado
+            a.click();                // Simula el click para descargar
+
         } catch (error) {
             console.error("Error generando el PDF:", error.message);
         }
     };
 
+    // ------------------------------
+    // Render del formulario
+    // ------------------------------
     return (
-        <div className="p-6 max-w-2xl mx-auto">
-            {/* Código */}
-            <label>Código</label>
-            <input name="codigo" onChange={handleChange} className="input" />
+        <form onSubmit={handleGeneratePdf}>
+            <div className="p-6 gap-2 items-center flex flex-wrap justify-between bg-gray-200">
+                
+                {/* Campo: Código */}
+                <div>
+                    <label>Código</label>
+                    <input name="codigo" className="input" />
+                </div>
 
-            {/* Fecha y lugar */}
-            <label>Fecha de elaboración</label>
-            <input type="date" name="fecha" onChange={handleChange} className="input" />
+                {/* Campo: Fecha de elaboración */}
+                <div>
+                    <label>Fecha de elaboración</label>
+                    <input type="date" name="fecha" className="input" />
+                </div>
 
-            <label>Lugar</label>
-            <input name="lugar" onChange={handleChange} className="input" />
+                {/* Campo: Lugar */}
+                <div>
+                    <label>Lugar</label>
+                    <input name="lugar" className="input" />
+                </div>
 
-            {/* Tratamiento */}
-            <label>Tratamiento</label>
-            <input name="tratamiento" onChange={handleChange} className="input" />
+                {/* Campo: Tratamiento */}
+                <div>
+                    <label>Tratamiento</label>
+                    <input name="tratamiento" className="input" />
+                </div>
 
-            <label>Nombres y Apellidos</label>
-            <input name="nombres" onChange={handleChange} className="input" />
+                {/* Campo: Nombres */}
+                <div>
+                    <label>Nombres y Apellidos</label>
+                    <input name="nombres" className="input" />
+                </div>
 
-            <label>Cargo</label>
-            <input name="cargo" onChange={handleChange} className="input" />
+                {/* Campo: Cargo */}
+                <div>
+                    <label>Cargo</label>
+                    <input name="cargo" className="input" />
+                </div>
 
-            <label>Empresa</label>
-            <input name="empresa" onChange={handleChange} className="input" />
+                {/* Campo: Empresa */}
+                <div>
+                    <label>Empresa</label>
+                    <input name="empresa" className="input" />
+                </div>
 
-            <label>Dirección</label>
-            <input name="direccion" onChange={handleChange} className="input" />
+                {/* Campo: Dirección */}
+                <div>
+                    <label>Dirección</label>
+                    <input name="direccion" className="input" />
+                </div>
 
-            <label>Ciudad</label>
-            <input name="ciudad" onChange={handleChange} className="input" />
+                {/* Campo: Ciudad */}
+                <div>
+                    <label>Ciudad</label>
+                    <input name="ciudad" className="input" />
+                </div>
 
-            {/* Asunto */}
-            <label>Asunto</label>
-            <input name="asunto" onChange={handleChange} className="input" />
+                {/* Campo: Asunto */}
+                <div>
+                    <label>Asunto</label>
+                    <input name="asunto" className="input" />
+                </div>
 
-            {/* Saludo */}
-            <label>Saludo</label>
-            <input name="saludo" onChange={handleChange} className="input" />
+                {/* Campo: Saludo */}
+                <div>
+                    <label>Saludo</label>
+                    <input name="saludo" className="input" />
+                </div>
 
-            {/* Texto */}
-            <label>Texto</label>
-            <textarea name="texto" onChange={handleChange} className="textarea" />
+                {/* Campo: Texto (textarea) */}
+                <div>
+                    <label>Texto</label>
+                    <textarea name="texto" className="textarea" />
+                </div>
 
-            {/* Despedidas */}
-            <label>Despedida línea 1</label>
-            <input name="despedida1" onChange={handleChange} className="input" />
+                {/* Campos: Despedidas */}
+                <div>
+                    <label>Despedida línea 1</label>
+                    <input name="despedida1" className="input" />
+                </div>
 
-            <label>Despedida línea 2</label>
-            <input name="despedida2" onChange={handleChange} className="input" />
+                <div>
+                    <label>Despedida línea 2</label>
+                    <input name="despedida2" className="input" />
+                </div>
 
-            <label>Despedida línea 3</label>
-            <input name="despedida3" onChange={handleChange} className="input" />
+                <div>
+                    <label>Despedida línea 3</label>
+                    <input name="despedida3" className="input" />
+                </div>
 
-            {/* Firma */}
-            <label>Firma - Nombres y Apellidos</label>
-            <input name="firma_nombres" onChange={handleChange} className="input" />
+                {/* Firma */}
+                <div>
+                    <label>Firma - Nombres y Apellidos</label>
+                    <input name="firma_nombres" className="input" />
+                </div>
 
-            <label>Firma - Cargo</label>
-            <input name="firma_cargo" onChange={handleChange} className="input" />
+                <div>
+                    <label>Firma - Cargo</label>
+                    <input name="firma_cargo" className="input" />
+                </div>
 
-            {/* Anexo, Copia, Transcriptor */}
-            <label>Anexo</label>
-            <input name="anexo" onChange={handleChange} className="input" />
+                {/* Anexo, Copia, Transcriptor */}
+                <div>
+                    <label>Anexo</label>
+                    <input name="anexo" className="input" />
+                </div>
 
-            <label>Copia</label>
-            <input name="copia" onChange={handleChange} className="input" />
+                <div>
+                    <label>Copia</label>
+                    <input name="copia" className="input" />
+                </div>
 
-            <label>Transcriptor</label>
-            <input name="transcriptor" onChange={handleChange} className="input" />
+                <div>
+                    <label>Transcriptor</label>
+                    <input name="transcriptor" className="input" />
+                </div>
 
-            {/* Botón */}
-            <button
-                onClick={handleGeneratePdf}
-                className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
-            >
-                Generar PDF
-            </button>
-        </div>
+                {/* Botón del formulario */}
+                <button
+                    type="submit"
+                    className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
+                >
+                    Generar PDF
+                </button>
+            </div>
+        </form>
     );
 };
 
+// Exporta el componente para poder usarlo en otras partes del proyecto
 export default DependencyScheme;
+
