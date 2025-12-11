@@ -1,13 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import api from "@/lib/axios";
+import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 
-export default function EditSheets() {
+export default function EditSheets({ sheet }) {
+    const { fetchSheets } = useContext(SheetsContext);
+
+    // Cargar datos iniciales
     const [formData, setFormData] = useState({
-        nombre: "Grupo 1",
-        numeroFicha: "3002085",
-        director: "Oscar Sanchez",
-        contactoDirector: "3201234567",
-        estado: "Sin Aprendices",
+        nombre: "",
+        numeroFicha: "",
+        director: "",
+        contactoDirector: "",
+        estado: "",
     });
+
+    useEffect(() => {
+        if (sheet) {
+            setFormData({
+                nombre: sheet.name,
+                numeroFicha: sheet.number,
+                director: sheet.director,
+                contactoDirector: sheet.directorPhone,
+                estado: sheet.state,
+            });
+        }
+    }, [sheet]);
 
     const handleChange = (e) => {
         setFormData({
@@ -16,21 +33,42 @@ export default function EditSheets() {
         });
     };
 
+    // GUARDAR CAMBIOS EN LA API
+    const saveChanges = async () => {
+        try {
+            const res = await api.put(`/sheets/${sheet.id}`, {
+                name: formData.nombre,
+                number: formData.numeroFicha,
+                director: formData.director,
+                directorPhone: formData.contactoDirector,
+                state: formData.estado,
+            });
+
+            if (!res.data.success) {
+                console.log("Error editando la ficha");
+                return;
+            }
+
+            // Refrescar la tabla
+            await fetchSheets();
+
+            // Cerrar modal
+            document.getElementById("my_modal_3").close();
+        } catch (e) {
+            console.log("Error:", e);
+        }
+    };
+
     return (
         <div className="w-full bg-gray-100 p-8 rounded-lg">
-
-         
             <h2 className="text-3xl font-semibold mb-6">Editar Ficha</h2>
 
-          
-            <div className=" p-8 rounded-lg shadow-sm border">
-
-               
+            <div className="p-8 rounded-lg shadow-sm border">
                 <div className="grid grid-cols-2 gap-6">
-
-               
                     <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">Nombre</label>
+                        <label className="text-gray-700 font-semibold mb-1">
+                            Nombre
+                        </label>
                         <input
                             type="text"
                             name="nombre"
@@ -40,9 +78,10 @@ export default function EditSheets() {
                         />
                     </div>
 
-                  
                     <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">Número de Ficha</label>
+                        <label className="text-gray-700 font-semibold mb-1">
+                            Número de Ficha
+                        </label>
                         <input
                             type="text"
                             name="numeroFicha"
@@ -52,9 +91,10 @@ export default function EditSheets() {
                         />
                     </div>
 
-                    
                     <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">Director de Grupo</label>
+                        <label className="text-gray-700 font-semibold mb-1">
+                            Director de Grupo
+                        </label>
                         <input
                             type="text"
                             name="director"
@@ -64,9 +104,10 @@ export default function EditSheets() {
                         />
                     </div>
 
-             
                     <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">Contacto Director</label>
+                        <label className="text-gray-700 font-semibold mb-1">
+                            Contacto Director
+                        </label>
                         <input
                             type="text"
                             name="contactoDirector"
@@ -76,9 +117,10 @@ export default function EditSheets() {
                         />
                     </div>
 
-                    
                     <div className="col-span-2 flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">Estado</label>
+                        <label className="text-gray-700 font-semibold mb-1">
+                            Estado
+                        </label>
                         <select
                             name="estado"
                             value={formData.estado}
@@ -91,13 +133,14 @@ export default function EditSheets() {
                             <option>Cancelada</option>
                         </select>
                     </div>
-
                 </div>
             </div>
 
-            
             <div className="flex justify-center mt-8">
-                <button className="bg-green-600 text-white px-12 py-3 rounded-md text-lg hover:bg-green-700 transition shadow-md">
+                <button
+                    onClick={saveChanges}
+                    className="bg-green-600 text-white px-12 py-3 rounded-md text-lg hover:bg-green-700 transition shadow-md"
+                >
                     Guardar
                 </button>
             </div>
