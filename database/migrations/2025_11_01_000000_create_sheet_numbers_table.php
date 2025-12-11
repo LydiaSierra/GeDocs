@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('sheet_numbers', function (Blueprint $table) {
             $table->id();
-            $table->integer("number")->unique();
+            $table->string("number")->unique();
+            $table->boolean("active")->nullable()->default(false); // The instructor can activate the sheet in the dashboard
+            $table->string("state")->nullable()->default("active"); // The state of the sheet (active, inactive, etc.)
+            $table->unsignedBigInteger('ventanilla_unica_id')->nullable();
             $table->timestamps();
         });
     }

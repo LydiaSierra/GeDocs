@@ -1,51 +1,74 @@
-import {createContext, useState, useEffect, useCallback} from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
-import {router, usePage} from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 
 export const NotificationsContext = createContext();
 
-export function NotificationsProvider({children}) {
+export function NotificationsProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
     const [filter, setFilter] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [loadingDetailsNotification, setLoadingDetailsNotification] = useState(false)
+    const [visibleDetails, setVisibleDetails] = useState(null);
+    const [notificationSeleted, setNotificationSeleted] = useState(null)
 
-    const loadNotifications = useCallback(async () => {
-        try {
-            setLoading(true);
-            const endpoint = filter ? `api/notifications/${filter}` : "/api/notifications"
-            const res = await api.get(endpoint);
-
-            if (res.data.success) {
-                setNotifications(res.data.notifications);
-            }
-
-        } catch (err) {
-            console.error(err)
-
-        } finally {
-            setLoading(false)
+    const fetchNotifications = useCallback(async () => {
+        setLoading(true);
+        const res = await api.get("/api/notifications");
+        if (res.data.succes === false) {
+            console.log("ERRROR AL OBTENER NOTIFICACIONES!");
+            return;
         }
-    }, [filter]);
+        setNotifications(res.data.notifications);
+        setLoading(false);
+    });
 
-    const markAsRead = useCallback((id) => {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? {...n, read_at: new Date().toISOString()} : n)
-        )
-    }, [])
+    const markAsReadNotification = useCallback(async (id) => {
+        setNotificationSeleted(id);
+        setLoadingDetailsNotification(true)
+        setNotifications((prev) =>
+            prev.map((notification) =>
+                notification.id === id
+                    ? { ...notification, read_at: Date() }
+                    : notification
+            )
+        );
 
+        const res = await api.post(`/api/notifications/${id}/mark-as-read`);
+        if (res.data.success === false) {
+            console.log("ERRROR AL MARCAR NOTIFICACIONES LEIDAS!");
+            return;
+        }
+
+       
+        const resNotification = await api.get(`/api/notifications/${id}`);
+        if (resNotification.data.success === false) {
+            console.log("ERRROR AL RECIBIR LA NOTIFICACION!");
+            return;
+        }
+        setVisibleDetails(resNotification.data.notification);   
+        setLoadingDetailsNotification(false)
+       
+    }, [notificationSeleted]);
+
+    const closeDetails = useCallback(() => {
+        setVisibleDetails(null)
+    })
 
     useEffect(() => {
-        loadNotifications();
-    }, [filter])
-
+        fetchNotifications();
+    }, []);
 
     return (
         <NotificationsContext.Provider
             value={{
                 notifications,
-                setNotifications,
+                markAsReadNotification,
                 loading,
-                markAsRead
+                visibleDetails,
+                loadingDetailsNotification,
+                closeDetails,
+                notificationSeleted
             }}
         >
             {children}

@@ -6,9 +6,9 @@ import { ArrowDownTrayIcon, EllipsisVerticalIcon, FolderIcon, InformationCircleI
 
 
 const Folder = ({ folder }) => {
-    const { gridView, handleModalDetails } = useContext(ArchiveUIContext);
-    const { showContextMenu } = useContext(RightClickContext);
-    const { handleFolderNavegation } = useContext(ArchiveDataContext);
+    const { gridView, showDetails } = useContext(ArchiveUIContext);
+    const { openFolder } = useContext(ArchiveDataContext);
+
     return (
         <>
             {gridView ?
@@ -54,7 +54,7 @@ const Folder = ({ folder }) => {
                 :
                 <div className="flex flex-col">
                     <div key={folder.id} className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100" onDoubleClick={() => {
-                        handleFolderNavegation(folder.id)
+                        openFolder(folder.id, true)
                     }}>
                         <div className="flex gap-2 items-center font-medium">
                             <FolderIcon className="w-8 text-gray-800" />
@@ -64,9 +64,16 @@ const Folder = ({ folder }) => {
                         <div className="flex gap-5 items-center">
                             <p className="w-26">{folder.departament}</p>
                             <p>{new Date(folder.created_at).toLocaleDateString()}</p>
-                            <button className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
-                                <EllipsisVerticalIcon className="w-6" />
-                            </button>
+                            {/* OPTIONS BUTTON */}
+                            <div className={`dropdown dropdown-bottom dropdown-end ${gridView ? "absolute right-2 left-2" : "relative"}`}>
+                                <button tabIndex={"-1"} role="button" className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
+                                    <EllipsisVerticalIcon className="w-6" />
+                                </button>
+                                <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                                    <li><a>Descargar</a></li>
+                                    <li><button onClick={() => showDetails(folder)}>Detalles</button></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -10,8 +10,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\PQRResponseMail;
+use App\Models\Dependency;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
+use App\Models\Sheet_number as SheetNumber;
 
 class PQRController extends Controller
 {
@@ -28,24 +30,18 @@ class PQRController extends Controller
         $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
             ->where('dependency_id', $user->dependency_id)
             ->get();
-        } else {
-            //Muestra todas las pqrs si no es dependencia
-            $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber'])->get();
+
+            return response()->json($pqrs);
         }
 
         if (!$user) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
 
-        if ($user->hasRole('Dependencia')) {
-            $pqrs = PQR::where('dependency_id', $user->dependency_id)->get();
-        } else {
-            // Si quieres que solo admin vea todas, valida aquí
-            if (!$user->hasRole('Admin')) {
-                return response()->json(['message' => 'No autorizado'], 403);
-            }
+        // Si quieres que solo admin vea todas, validaaquí
+        if ($user->hasRole('Admin')) {
             $pqrs = PQR::all();
-        }
+         }
 
         return response()->json([
             'data' => $pqrs,
@@ -65,12 +61,26 @@ class PQRController extends Controller
             'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
             'response_time' => 'nullable|date|after:today',
             'response_days' => 'sometimes|in:10,15,30',
-            'sheet_number_id' => 'required|exists:sheet_numbers,id',
+            'number' => 'required|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             'email'=> 'nullable|email|string|unique:p_q_r_s,email',
             'document'=> 'nullable|string|max:100|unique:p_q_r_s,document',
         ]);
+
+        //Buscar id de la ficha tecnica por el numero en la tabla sheet
+        $sheetNumber = SheetNumber::where('number', $request->number)->first();
+
+        if (!$sheetNumber) {
+            return response()->json(['error' => 'Ficha técnica no encontrada'], 404);
+        }
+        //Buscar dependencia de ventanilla unica
+        $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
+
+        if(!$ventanillaUnica){
+            return response()->json(['error' => 'Ventanilla unica no encontrada para esta ficha'],404);
+        }
+
 
         $user = $request->user();
         $userId = $user ? $user->id : null;
@@ -93,9 +103,9 @@ class PQRController extends Controller
             'state' => false,
             'user_id' => $userId,
             'responsible_id' => null,
-            'dependency_id' => null,
+            'dependency_id' => $ventanillaUnica->id,
             'request_type' => $validated['request_type'],
-            'sheet_number_id' => $validated['sheet_number_id'],
+            'sheet_number_id' => $sheetNumber->id,
             'response_status' => 'pending',
             'email'=> $validated['email'] ?? null,
             'document'=> $validated['document'] ?? null,

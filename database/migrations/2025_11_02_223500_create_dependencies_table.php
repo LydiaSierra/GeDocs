@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('dependencies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->unsignedBigInteger('sheet_number_id');
             $table->timestamps();
+
+            $table->foreign('sheet_number_id')->references('id')->on('sheet_numbers')->onDelete('cascade');
         });
     }
 
@@ -23,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dependences');
+        Schema::dropIfExists('dependencies');
     }
 };
