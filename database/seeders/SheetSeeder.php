@@ -31,7 +31,7 @@ class SheetSeeder extends Seeder
         $sheet->save();
 
         $sheet1 = Sheet_number::create([
-            "number" => "3002085"
+            "number" => "3002086"
         ]);
 
         $sheet2 = Sheet_number::create([

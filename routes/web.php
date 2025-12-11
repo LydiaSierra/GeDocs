@@ -31,9 +31,6 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
     Route::get('/users/aprendiz', fn() => Inertia::render('Users')
     )->name('aprendiz');
 
-    // Gestion de Ficha
-    Route::get('/users/ficha', fn() => Inertia::render('Users')
-    )->name('ficha');
 
     
 

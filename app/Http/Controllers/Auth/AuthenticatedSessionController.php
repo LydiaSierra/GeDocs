@@ -31,16 +31,7 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $user = Auth::user();
-
-        if ($user->status === "pending") {
-            Auth::logout();
-
-            return redirect()->route('login')->with('pending', [
-                'message' => "Instructor. Tu cuenta sigue en revisión.",
-            ]);
-        }
-
+     
         $request->session()->regenerate();
 
         return redirect('/');

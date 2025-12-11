@@ -33,7 +33,7 @@ export function UserProvider({ children }) {
         setLoading(false);
 
         return res.data.data;
-    });
+    }, []);
 
     const ShowInformation = async (id) => {
         const newArray = user.find((item) => item.id === id);
@@ -67,12 +67,10 @@ export function UserProvider({ children }) {
                 document_number: documento_number.toString(),
                 name: nombre,
                 email: email,
-                status: estado,
+                status: estado,     
             });
 
-            const res2 = await api.put(`/api/users/status/${id}/${estado}`);
-
-            if (res.data.success === false || res2.data.success === false) {
+            if (res.data.success === false) {
                 console.log("ERROR AL ACTUALIZAR USUARIO");
                 return;
             }
@@ -124,7 +122,7 @@ export function UserProvider({ children }) {
 
     useEffect(() => {
         fetchUser();
-    }, [user]);
+    }, []);
 
     return (
         <UserContext.Provider

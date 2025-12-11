@@ -62,7 +62,7 @@ function SettingsBar() {
                         </div>
                     </NavLink>
 
-                    <a href={route("ficha")}>
+                    <a href={route("sheets")}>
                         <div
                             className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline"
                             onClick={() => {
