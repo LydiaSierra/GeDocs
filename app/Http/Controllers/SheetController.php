@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Sheet_number;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\Dependency;
+use Illuminate\Support\Facades\DB;
 
 class SheetController extends Controller
 {
@@ -33,17 +35,26 @@ class SheetController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            "number" => "required|numeric",
-        ]);
+        return DB::transaction(function () use ($request) {
+            // Crear la ficha sin ventanilla_unica_id
+            $sheetNumber = Sheet_number::create([
+                'number' => $request->input('number'),
+                // 'ventanilla_unica_id' => null
+            ]);
 
-        $sheet = Sheet_number::create($validate);
+            // Crear la dependencia "Ventanilla Unica" relacionada a la ficha
+            $ventanilla = Dependency::create([
+                'name' => 'Ventanilla Unica',
+                'sheet_number_id' => $sheetNumber->id,
+            ]);
 
-        return response()->json([
-            "success" => true,
-            "message" => "Ficha creada con exito",
-            "ficha" => $sheet
-        ], 200);
+            // Actualizar la ficha con el id de la ventanilla unica
+            $sheetNumber->ventanilla_unica_id = $ventanilla->id;
+            $sheetNumber->save();
+
+            // Retornar la ficha con la relación cargada
+            return response()->json($sheetNumber->load('dependencies'), 201);
+        });
     }
 
     /**
@@ -104,8 +115,7 @@ class SheetController extends Controller
 
         return response()->json([
             "success" => true,
-            "message" => "Ficha actualizada con exito",
-            "sheet" => $sheet
+            "message" => "Ficha actualizada con exito"
         ], 200);
     }
 

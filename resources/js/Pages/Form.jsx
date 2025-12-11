@@ -1,15 +1,15 @@
 
 import Sidebar from "@/Components/Sidebar/Sidebar.jsx";
 import Inbox from "@/Pages/Inbox";
-import MailReader from "@/Components/MailReader/MailReader";
+import {MailReader} from "@/Components/MailReader/MailReader";
 import { PaperClipIcon } from "@heroicons/react/24/solid";
 
 export default function Form() {
     return (
-          
+
         <div className="bg-senaGray min-h-screen flex flex-col">
 
-          
+
 
 
             <div className="flex flex-1 justify-center">

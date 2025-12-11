@@ -9,10 +9,19 @@ class Dependency extends Model
 {
      use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = [
+        'name',
+        'sheet_number_id'
+    ];
 
+
+    //Relaciones
     public function pqrs()
     {
         return $this->hasMany(PQR::class);
+    }
+
+    public function sheetNumber(){
+        return $this->belongsTo(Sheet_number::class);
     }
 }

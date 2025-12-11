@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sheet_numbers', function (Blueprint $table) {
+        Schema::create('dependencies', function (Blueprint $table) {
             $table->id();
-            $table->string("number")->unique();
-            
-            $table->boolean("active")->default(false)->nullable;
-
-            $table->string("state")->nullable();
-
+            $table->string('name');
+            $table->unsignedBigInteger('sheet_number_id');
             $table->timestamps();
+
+            $table->foreign('sheet_number_id')->references('id')->on('sheet_numbers')->onDelete('cascade');
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sheet_numbers');
+        Schema::dropIfExists('dependencies');
     }
 };

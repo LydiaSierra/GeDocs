@@ -11,11 +11,20 @@ class Sheet_number extends Model
 
     protected $fillable = [
         "number",
+        'ventanilla_unica_id',
+        "number",
         "active",
         "state"
     ];
 
+    //
+
     public function users(){
         return $this->belongsToMany(User::class, "sheet_number_user", "sheet_number_id", "user_id");
+    }
+
+    public function dependencies()
+    {
+        return $this->hasMany(Dependency::class);
     }
 }

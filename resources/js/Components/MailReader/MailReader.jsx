@@ -1,12 +1,43 @@
 import SenderInformationCard from "@/components/SenderInformationCard/SenderInformationCard";
+import {MailContext} from "@/Pages/Inbox.jsx";
+import {useContext, useEffect, useState} from "react";
 
-export default function MailReader() {
+export function MailReader() {
+
+    const {mailCards, selectedMail} = useContext(MailContext);
+    const [currentMail, setCurrentMail] = useState(mailCards[0]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (mailCards && mailCards.length > 0) {
+            setCurrentMail(mailCards[0]);
+        }
+    }, [mailCards]);
+
+    useEffect(() => {
+        if (!mailCards || mailCards.length === 0) return;
+
+        const index = mailCards.findIndex(item => item.id === selectedMail);
+        setCurrentIndex(index);
+        setCurrentMail(mailCards[index]);
+    }, [selectedMail, mailCards]);
+
+
+    if (!currentMail) {
+        return (
+            <div className="h-full w-full flex items-center justify-center text-gray-500">
+                Cargando correo...
+            </div>
+        );
+    }
+
+
     return (
         <div className="h-full w-full shadow-xl rounded-lg p-6 overflow-y-auto hidden lg:block bg-white">
 
             <div id="tag-container" className="flex flex-wrap gap-2">
-                <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white">
-                    Queja
+                <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-black">
+                    {currentMail.request_type}
                 </div>
                 <div className="px-4 py-0.5 bg-senaGray rounded-md font-bold">
                     Primer Contacto
@@ -15,40 +46,30 @@ export default function MailReader() {
 
 
             <div id="serial-data" className="flex flex-wrap gap-3 my-2">
-                <div className="font-bold text-lg">ID: 10010025</div>
-                <div className="font-bold text-lg">08/09/2025</div>
+                <div className="font-bold text-lg">ID: {currentMail.id}</div>
+                <div className="font-bold text-lg">{new Date(currentMail.created_at).toLocaleDateString()}</div>
             </div>
 
 
-            <div>
-                <h2 className="font-bold text-xl">Queja Generalizada</h2>
-                <h3>
-                    Instructor de la ficha 9121043 lleva 4 semanas sin asistir a clases
-                </h3>
+            <div className="mb-3">
+                <h2 className="font-bold text-xl">{currentMail.affair}</h2>
             </div>
 
 
-            <SenderInformationCard />
+            <SenderInformationCard/>
 
 
             <div id="email-description" className="mt-4">
                 <div className="font-bold text-lg mb-2">Descripción</div>
                 <p className="text-justify">
-                    Por medio de la presente, los aprendices de la ficha 9121043 queremos
-                    expresar nuestra inconformidad respecto al instructor asignado, quien
-                    lleva ausentándose de las clases durante las últimas cuatro semanas
-                    sin brindar justificación ni reprogramar las sesiones perdidas. Esta
-                    situación ha generado un retraso significativo en el avance del
-                    programa, afectando nuestro aprendizaje y preparación. Solicitamos a
-                    la coordinación del SENA tomar medidas para garantizar la continuidad
-                    de la formación y evitar mayores perjuicios.
+                    {currentMail.description}
                 </p>
             </div>
 
 
             <div className="my-3">
                 <div className="font-bold text-lg mb-2">Soportes Adjuntos</div>
-                <img className="w-40" src="/images/attached-pdf.png" alt="" />
+                <img className="w-40" src="/images/attached-pdf.png" alt=""/>
             </div>
 
 

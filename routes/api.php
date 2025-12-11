@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('pqrs/{id}', [PQRController::class, 'update']);
 
     // Listar todas las PQRs
-    Route::get('pqrs', [PQRController::class, 'index']);
+    Route::get('/pqrs', [PQRController::class, 'index']);
 
 });
 
