@@ -9,6 +9,8 @@ use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
   
+// routes/web.php
+Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
 
 
     // Inbox principal

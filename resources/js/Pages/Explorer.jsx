@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
+import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 
 export default function Explorer() {
     const { openFolder, setHistoryStack, fetchFolders, currentFolder } = useContext(ArchiveDataContext);
@@ -53,6 +54,8 @@ export default function Explorer() {
                     }
                 </div>
 
+
+                <DependencyScheme/>
             </DashboardLayout>
         </>
 
