@@ -5,7 +5,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useContext, useState } from "react";
 
-
 function SettingsBar() {
     const { notifications, markAsReadNotification, loading, visibleDetails } =
         useContext(NotificationsContext);
@@ -36,7 +35,7 @@ function SettingsBar() {
                 </h1>
 
                 <div className="w-full h-auto flex flex-col  items-start gap-2">
-                    <a href={route("users")}>
+                    <a href={route("aprendiz")}>
                         <div
                             className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline"
                             onClick={() => {
@@ -48,7 +47,10 @@ function SettingsBar() {
                         </div>
                     </a>
 
-                    <a href={route("users")}>
+                    <NavLink
+                        href={route("instructor")}
+                        active={route().current("instructor")}
+                    >
                         <div
                             className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline"
                             onClick={() => {
@@ -58,9 +60,9 @@ function SettingsBar() {
                             <ListBulletIcon className="text-[#848484] w-10 h-10" />
                             Instructores
                         </div>
-                    </a>
+                    </NavLink>
 
-                    <a href={route("users")}>
+                    <a href={route("ficha")}>
                         <div
                             className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline"
                             onClick={() => {
@@ -133,5 +135,6 @@ function SettingsBar() {
 }
 import { UserContext } from "@/context/UserContext/UserContext";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
+import NavLink from "../NavLink";
 
 export default SettingsBar;

@@ -1,3 +1,4 @@
+
 // Importa la instancia personalizada de Axios desde tu carpeta de librerías
 import api from "@/lib/axios";
 
@@ -178,3 +179,4 @@ const DependencyScheme = () => {
 
 // Exporta el componente para poder usarlo en otras partes del proyecto
 export default DependencyScheme;
+
