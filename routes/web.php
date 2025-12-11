@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExplorerController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -8,6 +9,8 @@ use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
   
+// routes/web.php
+Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
 
 
     // Inbox principal

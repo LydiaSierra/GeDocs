@@ -7,6 +7,7 @@ import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
+import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 
 export default function Explorer() {
     const { openFolder, setHistoryStack, fetchFolders, currentFolder, getAllFolders } = useContext(ArchiveDataContext);
@@ -60,6 +61,8 @@ export default function Explorer() {
                     }
                 </div>
 
+
+                <DependencyScheme/>
             </DashboardLayout>
         </>
 
