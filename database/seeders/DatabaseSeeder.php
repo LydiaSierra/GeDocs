@@ -20,37 +20,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleSeeder::class,
-            SheetSeeder::class,
             FoldersSeeder::class,
         ]);
-
-
-
-        //Dependencias
-        // Busca una ficha existente para asociar dependencias adicionales
-        $sheet = Sheet_number::first();
-
-        if ($sheet) {
-            $recursosHumanos = Dependency::firstOrCreate([
-                'name' => 'Recursos Humanos',
-                'sheet_number_id' => $sheet->id,
-            ]);
-            Dependency::firstOrCreate([
-                'name' => 'Sistemas',
-                'sheet_number_id' => $sheet->id,
-            ]);
-            Dependency::firstOrCreate([
-                'name' => 'Académica',
-                'sheet_number_id' => $sheet->id,
-            ]);
-            Dependency::firstOrCreate([
-                'name' => 'Financiera',
-                'sheet_number_id' => $sheet->id,
-            ]);
-        }
-
-
-
 
         //Usuario admin
         $userAdmin = User::create([
@@ -77,9 +48,6 @@ class DatabaseSeeder extends Seeder
 
         $userInstructor->assignRole('Instructor');
 
-
-
-
         // Usuario dependiente (encargado)
         $dependencia = User::create([
             'type_document' => 'CC',
@@ -105,9 +73,35 @@ class DatabaseSeeder extends Seeder
         $aprendiz->assignRole('Aprendiz');
 
         $this->call([
+            SheetSeeder::class
+        ]);
+
+     //Dependencias
+        // Busca una ficha existente para asociar dependencias adicionales
+        $sheet = Sheet_number::first();
+
+        if ($sheet) {
+            $recursosHumanos = Dependency::firstOrCreate([
+                'name' => 'Recursos Humanos',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Sistemas',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Académica',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Financiera',
+                'sheet_number_id' => $sheet->id,
+            ]);
+        }
+
+
+        $this->call([
             PQRSeeder::class,
         ]);
     }
-
-
 }
