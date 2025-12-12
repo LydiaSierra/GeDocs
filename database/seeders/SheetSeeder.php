@@ -30,12 +30,21 @@ class SheetSeeder extends Seeder
         $sheet->ventanilla_unica_id = $ventanilla->id;
         $sheet->save();
 
+        $sheet1 = Sheet_number::create([
+            "number" => "3002086"
+        ]);
+
+        $sheet2 = Sheet_number::create([
+            "number" => "3002082"
+        ]);
+        
         $userInstructor = User::find(2) ?? User::first();
         $userAprendiz = User::find(4) ?? User::first();
 
-        if($userInstructor && $userAprendiz){
-            $sheet->users()->attach($userInstructor->id);
-            $sheet->users()->attach($userAprendiz->id);
+        if ($userInstructor && $userAprendiz) {
+            $sheet1->users()->attach($userInstructor->id);
+            $sheet1->users()->attach($userAprendiz->id);
+            $sheet2->users()->attach($userInstructor->id);
         }
     }
 }

@@ -1,27 +1,33 @@
 import SenderInformationCard from "@/components/SenderInformationCard/SenderInformationCard";
-import {MailContext} from "@/Pages/Inbox.jsx";
-import {useContext, useEffect, useState} from "react";
+import { MailContext } from "@/Pages/Inbox.jsx";
+import { useContext, useEffect, useState } from "react";
 
 export function MailReader() {
 
-    const {mailCards, selectedMail} = useContext(MailContext);
+    const { mailCards, selectedMail } = useContext(MailContext);
     const [currentMail, setCurrentMail] = useState(mailCards[0]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
-        if (mailCards && mailCards.length > 0) {
+        if (mailCards.length > 0 && currentMail?.id !== mailCards[0].id) {
             setCurrentMail(mailCards[0]);
         }
     }, [mailCards]);
 
     useEffect(() => {
-        if (!mailCards || mailCards.length === 0) return;
+        if (!mailCards.length || !selectedMail) return;
 
         const index = mailCards.findIndex(item => item.id === selectedMail);
-        setCurrentIndex(index);
-        setCurrentMail(mailCards[index]);
-    }, [selectedMail, mailCards]);
+        if (index === -1) return;
 
+        setCurrentIndex(index);
+
+        // Evita re-render innecesario
+        if (currentMail?.id !== mailCards[index].id) {
+            setCurrentMail(mailCards[index]);
+        }
+        
+    }, [selectedMail, mailCards]);
 
     if (!currentMail) {
         return (
@@ -56,7 +62,7 @@ export function MailReader() {
             </div>
 
 
-            <SenderInformationCard/>
+            <SenderInformationCard />
 
 
             <div id="email-description" className="mt-4">
@@ -69,15 +75,15 @@ export function MailReader() {
 
             <div className="my-3">
                 <div className="font-bold text-lg mb-2">Soportes Adjuntos</div>
-                <img className="w-40" src="/images/attached-pdf.png" alt=""/>
+                <img className="w-40" src="/images/attached-pdf.png" alt="" />
             </div>
 
 
             <div className="w-full flex flex-col">
-        <textarea
-            className="textarea w-full rounded-lg focus:outline-gray-200 my-2"
-            placeholder="Escribe tu respuesta..."
-        />
+                <textarea
+                    className="textarea w-full rounded-lg focus:outline-gray-200 my-2"
+                    placeholder="Escribe tu respuesta..."
+                />
                 <button className="btn bg-senaGreen p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end">
                     Enviar respuesta
                 </button>

@@ -1,9 +1,11 @@
-import SheetsLayout from '@/Layouts/SheetsLayout.jsx'
+import TableSheets from "@/Components/Sheets/SheetsSidebar";
+import UsersLayout from "@/Layouts/UsersLayout";
 
 export default function Sheets(){
     return(
-
-        <SheetsLayout/>
+        <UsersLayout>
+            <TableSheets/>
+        </UsersLayout>
 
     )
 }

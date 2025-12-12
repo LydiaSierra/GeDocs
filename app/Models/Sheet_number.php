@@ -12,6 +12,9 @@ class Sheet_number extends Model
     protected $fillable = [
         "number",
         'ventanilla_unica_id',
+        "number",
+        "active",
+        "state"
     ];
 
     //

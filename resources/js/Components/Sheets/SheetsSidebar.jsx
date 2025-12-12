@@ -6,7 +6,7 @@ import {
 } from "@heroicons/react/24/solid";
 import SheetsTable from "./SheetsTable";
 import CreateSheets from "./CreateSheets"
-export default function ChipsSidebar() {
+export default function TableSheets() {
     const openEditModal = () => {
         document.getElementById("my_modal_2").showModal();
     };

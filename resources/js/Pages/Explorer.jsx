@@ -1,31 +1,34 @@
 
-import Sidebar from "@/components/Sidebar/Sidebar";
-import { Squares2X2Icon } from "@heroicons/react/24/outline";
 import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
-import { ModalDetails } from "@/components/ArchiveExplorer/ModalDetails";
-import { useContext, useEffect } from "react";
-import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
-import { router, usePage } from "@inertiajs/react";
-import RightClickGlobal from "@/Components/ArchiveExplorer/Modals/ModalRightClick/RightClickGlobal";
-import ModalHandleFolder from "@/Components/ArchiveExplorer/Modals/ModalHandleFolder";
-import { RightClickContext } from "@/context/ArchiveExplorer/RightClickContext";
-import RightClickFolder from "@/Components/ArchiveExplorer/Modals/ModalRightClick/RightClickFolder";
-import RightClickFile from "@/Components/ArchiveExplorer/Modals/ModalRightClick/RightClickFile";
-import Header from "@/Components/Header/Header";
+import { useContext, useEffect, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
+import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
+import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
+import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
+import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
+import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 
 export default function Explorer() {
-    const { gridView, toggleGridView, showModal } = useContext(ArchiveUIContext);
-    const { contextMenu, showContextMenu, hideContextMenu } = useContext(RightClickContext);
-    const { parent_id } = usePage().props;
+    const { openFolder, setHistoryStack, fetchFolders, currentFolder, getAllFolders } = useContext(ArchiveDataContext);
+    const { selectedItem } = useContext(ArchiveUIContext);
+    const [openModalUpload, setopenModalUpload] = useState(false);
 
 
 
 
     useEffect(() => {
-        window.addEventListener('click', hideContextMenu);
-        return () => window.removeEventListener('click', hideContextMenu);
+        const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
+
+        if (savedHistory?.length > 0) {
+            setHistoryStack(savedHistory);
+            const lastFolder = savedHistory[savedHistory.length - 1];
+            openFolder(lastFolder, false);
+        } else {
+            fetchFolders()
+        }
+        getAllFolders()
+
     }, [])
 
 
@@ -34,11 +37,32 @@ export default function Explorer() {
 
         <>
             <DashboardLayout>
-                <div className="bg-white h-full rounded-lg p-2 relative">
-                    <InputSearch />
+                <div className="bg-white h-full rounded-lg p-2 relative overflow-hidden">
+                    <div className="flex justify-between items-center">
+                        <InputSearch />
+                        {currentFolder &&
+                            <button className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
+                                onClick={() => {
+                                    setopenModalUpload(true)
+                                }}
+                            >
+                                Subir Archivo
+                            </button>
+                        }
+                    </div>
                     <ContainerFolders />
+
+
+                    {openModalUpload &&
+                        <UploadModal onOpen={setopenModalUpload} />
+                    }
+                    {selectedItem &&
+                        <ModalDetails />
+                    }
                 </div>
 
+
+                <DependencyScheme/>
             </DashboardLayout>
         </>
 
