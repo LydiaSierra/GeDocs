@@ -1,4 +1,5 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import DeleteUserForm from './Partials/DeleteUserForm';
@@ -7,6 +8,8 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { DashboardLayout } from '@/Layouts/DashboardLayout';
 import ProfileLayout from '@/Layouts/ProfileLayout.jsx';
 =======
+=======
+>>>>>>> Stashed changes
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 import DeleteUserForm from "./Partials/DeleteUserForm";
@@ -15,6 +18,9 @@ import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationFor
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ProfileLayaout from "@/Layouts/ProfileLayaout";
 import { useState } from "react";
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 export default function Edit({ mustVerifyEmail, status }) {
@@ -22,9 +28,13 @@ export default function Edit({ mustVerifyEmail, status }) {
     const [openObject1, setOpenObject1] = useState(false);
     return (
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <ProfileLayout>
 
 
+=======
+        <ProfileLayaout setOpenObject={setOpenObject} openObject={openObject} openObject1={openObject1} setOpenObject1={setOpenObject1}> 
+>>>>>>> Stashed changes
 =======
         <ProfileLayaout setOpenObject={setOpenObject} openObject={openObject} openObject1={openObject1} setOpenObject1={setOpenObject1}> 
 >>>>>>> Stashed changes
@@ -37,10 +47,13 @@ export default function Edit({ mustVerifyEmail, status }) {
                             className="max-w-xl"
                         />
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     </div>
 
                    <div className="hidden md:block bg-white p-4 shadow-sm rounded-lg">
                         <UpdatePasswordForm className="max-w-xl" />
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
                     </div>
