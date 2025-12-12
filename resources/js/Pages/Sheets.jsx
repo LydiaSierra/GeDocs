@@ -1,8 +1,9 @@
-import SheetsLayaout from '@/Layouts/SheetsLayaout.jsx'
+import SheetsLayout from '@/Layouts/SheetsLayout.jsx'
 
 export default function Sheets(){
     return(
-        
-        <SheetsLayaout/>
+
+        <SheetsLayout/>
+
     )
 }

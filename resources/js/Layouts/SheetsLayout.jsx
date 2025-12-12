@@ -5,7 +5,7 @@ import InboxSidebar from "@/Components/InboxSidebar/InboxSidebar";
 import SheetsSidebar from "@/Components/Sheets/SheetsSidebar";
 
 
-const ProfileLayaout = ({children}) => {
+const ProfileLayout = ({children}) => {
     return (
         <>
             <div className='bg-gray-100'>
@@ -19,8 +19,9 @@ const ProfileLayaout = ({children}) => {
                     </div>
 
                 <div className="pt-16 pb-2 w-full max-w-[1800px] flex overflow-hidden">
-                                          
+
                        <SheetsSidebar/>
+
                 </div>
                 </div>
             </div>
@@ -28,4 +29,4 @@ const ProfileLayaout = ({children}) => {
     )
 }
 
-export default ProfileLayaout;
+export default ProfileLayout;
