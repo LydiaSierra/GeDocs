@@ -5,57 +5,58 @@ import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 export default function EditSheets({ sheet }) {
     const { fetchSheets } = useContext(SheetsContext);
 
-    // Cargar datos iniciales
     const [formData, setFormData] = useState({
-        nombre: "",
         numeroFicha: "",
-        director: "",
-        contactoDirector: "",
         estado: "",
     });
+
+    const [successMessage, setSuccessMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         if (sheet) {
             setFormData({
-                nombre: sheet.name,
-                numeroFicha: sheet.number,
-                director: sheet.director,
-                contactoDirector: sheet.directorPhone,
-                estado: sheet.state,
+                numeroFicha: sheet.number || "",
+                estado: sheet.state || "",
             });
         }
     }, [sheet]);
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
+    if (!sheet) return <p>Cargando...</p>;
 
-    // GUARDAR CAMBIOS EN LA API
+    const handleChange = (e) =>
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+
     const saveChanges = async () => {
         try {
-            const res = await api.put(`/sheets/${sheet.id}`, {
-                name: formData.nombre,
-                number: formData.numeroFicha,
-                director: formData.director,
-                directorPhone: formData.contactoDirector,
+            const res = await api.put(`/api/sheets/${sheet.id}`, {
+                number: Number(formData.numeroFicha),
                 state: formData.estado,
             });
 
-            if (!res.data.success) {
-                console.log("Error editando la ficha");
+            if (!res.data?.success) {
+                setErrorMessage("❌ No se pudo actualizar la ficha");
+                setTimeout(() => setErrorMessage(""), 3000);
                 return;
             }
 
-            // Refrescar la tabla
             await fetchSheets();
 
-            // Cerrar modal
-            document.getElementById("my_modal_3").close();
-        } catch (e) {
-            console.log("Error:", e);
+        
+            setSuccessMessage("✔ Ficha actualizada correctamente");
+            setErrorMessage("");
+
+           
+            setTimeout(() => {
+                setSuccessMessage("");
+                const modal = document.getElementById("my_modal_3");
+                if (modal) modal.close();
+            }, 1500);
+        } catch (error) {
+            console.error("Error al editar ficha:", error);
+
+            setErrorMessage("⚠ Ocurrió un error al actualizar la ficha");
+            setTimeout(() => setErrorMessage(""), 3000);
         }
     };
 
@@ -63,21 +64,22 @@ export default function EditSheets({ sheet }) {
         <div className="w-full bg-gray-100 p-8 rounded-lg">
             <h2 className="text-3xl font-semibold mb-6">Editar Ficha</h2>
 
+            {/* Mensaje de éxito */}
+            {successMessage && (
+                <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded-md animate-fadeIn">
+                    {successMessage}
+                </div>
+            )}
+
+            {/* Mensaje de error */}
+            {errorMessage && (
+                <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded-md animate-fadeIn">
+                    {errorMessage}
+                </div>
+            )}
+
             <div className="p-8 rounded-lg shadow-sm border">
                 <div className="grid grid-cols-2 gap-6">
-                    <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">
-                            Nombre
-                        </label>
-                        <input
-                            type="text"
-                            name="nombre"
-                            value={formData.nombre}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm"
-                        />
-                    </div>
-
                     <div className="flex flex-col">
                         <label className="text-gray-700 font-semibold mb-1">
                             Número de Ficha
@@ -86,32 +88,6 @@ export default function EditSheets({ sheet }) {
                             type="text"
                             name="numeroFicha"
                             value={formData.numeroFicha}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm"
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">
-                            Director de Grupo
-                        </label>
-                        <input
-                            type="text"
-                            name="director"
-                            value={formData.director}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm"
-                        />
-                    </div>
-
-                    <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">
-                            Contacto Director
-                        </label>
-                        <input
-                            type="text"
-                            name="contactoDirector"
-                            value={formData.contactoDirector}
                             onChange={handleChange}
                             className="w-full p-3 border rounded-md bg-white shadow-sm"
                         />

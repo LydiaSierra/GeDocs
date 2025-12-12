@@ -1,42 +1,63 @@
 import React, { useContext, useState } from "react";
-import ViewSheets from "./ViewSheets";
+import EditSheets from "./EditSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
+import ViewSheets from "./ViewSheets";
+import DeleteSheets from "./DeleteSheets"; //
 
 export default function SheetsTable() {
-    const { sheets } = useContext(SheetsContext);
+    const { sheets, deleteSheet } = useContext(SheetsContext);
+
     const [hoveredRow, setHoveredRow] = useState(null);
 
-    // NUEVO: ficha seleccionada
+    // Ficha seleccionada para ver/editar
     const [selectedSheet, setSelectedSheet] = useState(null);
+
+    // Ficha seleccionada para eliminar
+    const [sheetToDelete, setSheetToDelete] = useState(null);
 
     const openEditModal = (item) => {
         setSelectedSheet(item);
-        document.getElementById("my_modal_3").showModal();
+        setTimeout(() => {
+            document.getElementById("my_modal_3").showModal();
+        }, 10);
+    };
+
+    const openDeleteModal = (item) => {
+        setSheetToDelete(item);
+        document.getElementById("delete_modal").showModal();
     };
 
     return (
         <div className="w-full overflow-hidden">
-            {/* MODAL */}
             <dialog id="my_modal_3" className="modal">
-                <div className="modal-box max-w-5xl w-[90%] p-8">
+                <div className="modal-box max-w-5xl w-[90%] p-5">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
                             ✕
                         </button>
                     </form>
 
-                    {/* PASAR LA FICHA AL MODAL */}
-                    {selectedSheet && <ViewSheets sheet={selectedSheet} />}
+                    {selectedSheet ? (
+                        <ViewSheets sheet={selectedSheet} />
+                    ) : (
+                        <p>Cargando ficha...</p>
+                    )}
                 </div>
             </dialog>
 
-            <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
+            {/* MODAL DE ELIMINAR */}
+            <DeleteSheets
+                sheetToDelete={sheetToDelete}
+                deleteSheet={deleteSheet}
+            />
+
+            {/* TABLA */}
+            <div className="max-h-[1200px] overflow-y-auto overflow-x-auto">
                 <table className="w-full">
                     <thead className="bg-gray-500 text-white text-sm font-semibold">
                         <tr>
                             <th className="py-3 text-left px-5">Id</th>
                             <th className="py-3 text-left">Ficha</th>
-
                             <th className="py-3 text-left">Alumnos</th>
                             <th className="py-3 text-left rounded-r-lg">
                                 Estado
@@ -64,9 +85,10 @@ export default function SheetsTable() {
                                 </td>
 
                                 <td className="py-3 text-left">20</td>
-                                <th className="py-3 text-left rounded-r-lg">
+
+                                <td className="py-3 text-left rounded-r-lg">
                                     {item.state}
-                                </th>
+                                </td>
 
                                 <td className="py-3 text-left rounded-r-lg relative">
                                     {hoveredRow === i && (
@@ -89,8 +111,18 @@ export default function SheetsTable() {
                                                         Ver
                                                     </button>
                                                 </li>
+
                                                 <li>
-                                                    <a>Eliminar</a>
+                                                    <button
+                                                        className="text-red-600"
+                                                        onClick={() =>
+                                                            openDeleteModal(
+                                                                item
+                                                            )
+                                                        }
+                                                    >
+                                                        Eliminar
+                                                    </button>
                                                 </li>
                                             </ul>
                                         </div>

@@ -22,7 +22,9 @@ function SettingsBar() {
                         font-medium hover:underline"
                         >
                             <UserCircleIcon className="text-[#848484] w-10 h-10" />
-                            Informacion de Perfil
+                            <a href={route("profile.edit")}>
+                                Informacion de Perfil
+                            </a>
                         </div>
                     </a>
                 </div>

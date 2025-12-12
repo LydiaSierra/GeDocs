@@ -44,8 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
-        Route::put('/sheets/{numberSheet}', [SheetController::class, 'update']);
-        Route::delete('/sheets', [SheetController::class, 'destroy']);
+        Route::put('/sheets/{id}', [SheetController::class, 'update']);
+        Route::delete('/sheets/{id}', [SheetController::class, 'destroy']);
         Route::delete('/sheets/delete/user/{numberSheet}/{idUser}', [SheetController::class, 'deleteUserFromSheet']);
     });
 
