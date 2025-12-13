@@ -7,6 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
+use App\Http\Controllers\SheetUserController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -34,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+        Route::get("/sheets_number/{idUser}", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN
