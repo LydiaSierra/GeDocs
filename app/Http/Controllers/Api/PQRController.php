@@ -30,7 +30,7 @@ class PQRController extends Controller
         //Filtro de si el usuario esta autenticado y filtgra por dependencia
 
         if ($user && $user->hasRole('Dependencia')) {
-        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
+        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber', 'comunications.attachedSupports'])
             ->where('dependency_id', $user->dependency_id)
             ->get();
 
@@ -41,16 +41,25 @@ class PQRController extends Controller
             return response()->json(['message' => 'No autenticado'], 401);
         }
 
-        // Si quieres que solo admin vea todas, validaaquí
-        if ($user->hasRole('Admin')) {
-            $pqrs = PQR::all();
-         }
+        // Solo lo vea el admin
+        if ($user && $user->hasRole('Admin')) {
+            $pqrs = PQR::with([
+                'creator',
+                'responsible',
+                'dependency',
+                'attachedSupports',
+                'sheetNumber',
+                'comunications.attachedSupports'
+        ])->get();
 
         return response()->json([
             'data' => $pqrs,
             'message' => 'PQRs obtenidas exitosamente'
         ], 200);
     }
+
+    return response()->json(['message'=> 'No autorizado', 403]);
+}
 
     /**
      * CREAR UNA PQR (solo Aprendiz / usuario normal)
@@ -62,13 +71,11 @@ class PQRController extends Controller
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
             'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
-            'response_time' => 'nullable|date|after:today',
-            'response_days' => 'sometimes|in:10,15,30',
             'number' => 'required|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'email'=> 'nullable|email|string|unique:p_q_r_s,email',
-            'document'=> 'nullable|string|max:100|unique:p_q_r_s,document',
+            'email'=> 'nullable|email|string',
+            'document'=> 'nullable|string|max:100',
         ]);
 
         //Buscar id de la ficha tecnica por el numero en la tabla sheet
@@ -140,22 +147,11 @@ class PQRController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
-        $roleName = $user->getRoleNames()->first();
 
         $pqr = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])->find($id);
 
         if (!$pqr) {
             return response()->json(['message' => 'PQR no encontrada'], 404);
-        }
-
-        // Autorización por rol
-        if ($roleName === 'Aprendiz' && $pqr->user_id !== $user->id) {
-            return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
-        }
-
-        //Solo las pqrs con la dependencia asignada las pueden ver
-        if ($roleName === 'Dependencia' && $pqr->dependency_id !== $user->dependency_id) {
-            return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
         }
 
         return response()->json([
@@ -259,22 +255,29 @@ class PQRController extends Controller
                 'state' => true
             ]);
 
-            // Enviar correo al creador
+            // Enviar correo al creador - CORREGIDO
             try {
-                Mail::to($pqr->creator->email)->send(new PQRResponseMail($pqr));
+                $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
+
+                if ($emailRecipient) {
+                    Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
+                    Log::info('Email enviado exitosamente a: ' . $emailRecipient);
+                } else {
+                    Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
+                }
             } catch (\Exception $e) {
                 Log::error('Error enviando email: ' . $e->getMessage());
             }
 
-            return response()->json([
-                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
-                'message' => 'Respuesta enviada exitosamente'
-            ], 200);
+                return response()->json([
+                    'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
+                    'message' => 'Respuesta enviada exitosamente'
+                ], 200);
 
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error interno: ' . $e->getMessage()], 500);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error interno: ' . $e->getMessage()], 500);
+            }
         }
-    }
 
     /**
      * ELIMINAR PQR (NO PERMITIDO)
@@ -313,6 +316,7 @@ class PQRController extends Controller
             $responseUrl = null;
             if ($validated['requires_response'] ?? false) {
                 $comunication->generateResponseUuid(7); // 7 días para expirar
+                $comunication->save();
                 $responseUrl = $comunication->getResponseUrl();
             }
 
@@ -355,18 +359,22 @@ class PQRController extends Controller
     public function showResponseForm(string $uuid): JsonResponse
     {
         $comunication = comunication::where('response_uuid', $uuid)
-            ->with(['pqr', 'attachedSupports'])
+            ->with(['pqr.attachedSupports'])
             ->first();
 
         if (!$comunication) {
             return response()->json(['error' => 'Enlace no encontrado'], 404);
         }
 
-        if (!$comunication->isResponseValid()) {
-            $message = $comunication->response_used
-                ? 'Este enlace ya fue utilizado'
-                : 'Este enlace ha expirado';
-            return response()->json(['error' => $message], 410);
+        // if (!$comunication->isResponseValid()) {
+        //     $message = $comunication->response_used
+        //         ? 'Este enlace ya fue utilizado'
+        //         : 'Este enlace ha expirado';
+        //     return response()->json(['error' => $message], 410);
+        // }
+
+        if ($comunication->response_expires_at && $comunication->response_expires_at->isPast()) {
+            return response()->json(['error' => 'Este enlace ha expirado'], 410);
         }
 
         return response()->json([
@@ -376,7 +384,7 @@ class PQRController extends Controller
                 'expires_at' => $comunication->response_expires_at,
                 'instructions' => 'Adjunta los documentos requeridos y envía tu respuesta.'
             ]
-        ]);
+        ],200);
     }
 
     /**
@@ -440,5 +448,126 @@ class PQRController extends Controller
         Log::error('Error procesando respuesta: ' . $e->getMessage());
         return response()->json(['error' => 'Error interno del servidor'], 500);
     }
+}
+
+//Dar respuesta final y cerrar la pqr
+public function finalizeResponse(Request $request, string $id):JsonResponse{
+    $user = $request->user();
+    $roleName = $user->getRoleNames()->first();
+
+    $pqr = PQR::with(['creator', 'responsible', 'dependency', 'comunications'])->find($id);
+
+    if (!$pqr) {
+        return response()->json(['error' => 'PQR no encontrada'], 404);
+    }
+
+    // Validar permisos: Solo Admin o Dependencia asignada
+    if (!in_array($roleName, ['Admin', 'Dependencia'])) {
+        return response()->json(['error' => 'No autorizado'], 403);
+    }
+
+    // Si es Dependencia, verificar que sea la dependencia asignada a esta PQR
+    if ($roleName === 'Dependencia' && $pqr->dependency_id !== $user->dependency_id) {
+        return response()->json(['error' => 'Solo puedes finalizar PQRs de tu dependencia'], 403);
+    }
+
+    //Verificar que ya no este cerrada
+    if ($pqr->response_status === 'closed') {
+        return response()->json(['error' => 'Esta PQR ya está cerrada'], 422);
+    }
+
+    $validated = $request->validate([
+        'response_message' => 'required|string|min:10|max:2000',
+        'attachments' => 'nullable|array',
+        'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+    ]);
+    DB::beginTransaction();
+    try {
+        // Actualizar PQR como cerrada
+        $pqr->update([
+            'response_message' => $validated['response_message'],
+            'response_date' => now(),
+            'response_status' => 'closed',
+            'state' => true
+        ]);
+
+        // Crear comunicación final (sin requerir respuesta)
+        $finalCommunication = $pqr->comunications()->create([
+            'message' => $validated['response_message'],
+            'requires_response' => false
+        ]);
+
+        // Guardar archivos adjuntos si los hay
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('final_responses', 'public');
+
+                $finalCommunication->attachedSupports()->create([
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'type' => $file->getClientOriginalExtension(),
+                    'size' => $file->getSize(),
+                    'pqr_id' => $pqr->id,
+                ]);
+            }
+        }
+        // Enviar email final al creador
+        $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
+
+        if ($emailRecipient) {
+            Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
+            Log::info('Email de cierre enviado a: ' . $emailRecipient);
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber', 'comunications.attachedSupports']),
+            'message' => 'PQR finalizada y cerrada exitosamente'
+        ], 200);
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Error finalizando PQR: ' . $e->getMessage());
+        return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
+    }
+
+
+}
+
+//Metodo para archivar y desarchivar una comunicación
+public function ArchiveCommunication(Request $request, string $communicationId):JsonResponse{
+    $user = $request->user();
+
+    // Buscar la comunicación con su PQR
+    $communication = comunication::with('pqr')->find($communicationId);
+
+    if (!$communication) {
+        return response()->json(['error' => 'Comunicación no encontrada'], 404);
+    }
+
+    $pqr = $communication->pqr;
+
+    // Validar permisos: Solo Admin o la Dependencia asignada
+    if (!$user->hasRole('Admin')) {
+        if (!$user->hasRole('Dependencia') || $pqr->dependency_id !== $user->dependency_id) {
+            return response()->json(['error' => 'No autorizado para archivar esta comunicación'], 403);
+        }
+    }
+
+    // Alternar el estado de archivado
+    if ($communication->archived) {
+        $communication->unarchive();
+        $message = 'Comunicación desarchivada exitosamente';
+    } else {
+        $communication->archive();
+        $message = 'Comunicación archivada exitosamente';
+    }
+
+    return response()->json([
+        'data' => $communication->fresh(),
+        'message' => $message,
+        'archived' => $communication->archived
+    ], 200);
 }
 }

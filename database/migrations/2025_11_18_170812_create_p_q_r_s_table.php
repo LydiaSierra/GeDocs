@@ -21,8 +21,8 @@ return new class extends Migration
             $table->boolean('state')->default(false);
             $table->foreignId('responsible_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('dependency_id')->constrained('dependencies')->onDelete('cascade');
-            $table->string('email')->nullable()->unique();
-            $table->string('document')->nullable()->unique();
+            $table->string('email')->nullable();
+            $table->string('document')->nullable();
             $table->timestamps();
         });
     }

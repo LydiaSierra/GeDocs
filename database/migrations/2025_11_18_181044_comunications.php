@@ -16,6 +16,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('pqr_id');
             $table->longText('message');
+            $table->boolean('archived')->default(false);
             $table->timestamps();
 
             //Relaciones

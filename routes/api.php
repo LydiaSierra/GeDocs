@@ -89,6 +89,9 @@ Route::put('pqrs/{id}', [PQRController::class, 'update']);
 // Eliminar una PQR
 Route::delete('pqrs/{id}', [PQRController::class, 'destroy']);
 
+//Ruta para finalizar y cerrar PQR
+Route::post('pqr/{id}/finalize', [PQRController::class, 'finalizeResponse'])->middleware('auth:sanctum');
+
 // ----------- RESPUESTAS PQR -------------
 Route::prefix('pqr')->group(function () {
     // Ruta para mostrar el formulario de respuesta (GET)
@@ -101,6 +104,10 @@ Route::prefix('pqr')->group(function () {
     Route::post('{id}/comunicaciones', [PQRController::class, 'createCommunication'])
         ->middleware('auth:sanctum')
         ->name('pqr.create-communication');
+
+    //Ruta para archivar y desarchivar comunicaciones
+    Route::patch('comunicaciones/{communicationId}/archive',  [PQRController::class, 'archiveCommunication'])
+        ->middleware('auth:sanctum');
 });
 
 // ----------- LOGIN -------------

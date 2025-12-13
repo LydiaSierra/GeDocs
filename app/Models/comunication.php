@@ -17,6 +17,7 @@ class comunication extends Model
     protected $fillable = [
         'pqr_id',
         'message',
+        'archived',
         'response_uuid',
         'response_expires_at',
         'response_used',
@@ -25,6 +26,7 @@ class comunication extends Model
 
     //Casts para campos boolean y fechas
     protected $casts = [
+        'archived' => 'boolean',
         'response_used' => 'boolean',
         'requires_response' => 'boolean',
         'response_expires_at' => 'datetime'
@@ -67,6 +69,18 @@ class comunication extends Model
         $this->save();
     }
 
+    //Archivar comunicación
+    public function archive(){
+        $this-> archived = true;
+        $this-> save();
+    }
+
+    //Desarchivar comunicacion
+    public function unarchive(){
+        $this->archive = false;
+        $this->save();
+    }
+
     //Scope para respuestas validas
     public function scopeValidResponses($query){
         return $query->where('response_used', false)
@@ -74,6 +88,15 @@ class comunication extends Model
                     ->whereNotNull('response_uuid');
     }
 
+    //Scope para comunicaciones no archivadas
+    public function scopeNotArchive($query){
+        return $query->where('archived', false);
+    }
+
+    //Scope para comunicaciones archivadas
+    public function scopeArchive($query){
+        return $query->where('archived', true);
+    }
 
     public function pqr(){
         return $this->belongsTo(PQR::class, 'pqr_id');

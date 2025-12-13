@@ -41,22 +41,30 @@ class DependencyController extends Controller
     {
         $user = $request->user();
 
+        $validate = $request->validate([
+            "name"=> "required|string|max:255",
+            "sheet_number_id" => "nullable|exists:sheet_numbers,id"
+        ]);
+
         //Obtener la ficha del suuario
         $sheet = $user->sheetNumbers()->first();
 
-        if(!$sheet){
+        // Prioridad: 1) Ficha del usuario, 2) Enviada en JSON
+        if ($sheet) {
+            $sheetId = $sheet->id;
+        } elseif (isset($validate['sheet_number_id'])) {
+            $sheetId = $validate['sheet_number_id'];
+        } else {
             return response()->json([
-                "success"=> false,
-                "message"=> "El usuario no tiene ficha asignada"
-            ],422);
+                "success" => false,
+                "message" => "Debe proporcionar un sheet_number_id o tener una ficha asignada"
+            ], 422);
         }
 
-        $validate = $request->validate([
-            "name"=> "required|string|max:255"]);
 
         $dependency = Dependency::create([
             'name' => $validate['name'],
-            'sheet_number_id' => $sheet->id,
+            'sheet_number_id' => $sheetId,
         ]);
 
         return response()->json([

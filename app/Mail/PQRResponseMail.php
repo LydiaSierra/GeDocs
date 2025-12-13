@@ -29,13 +29,28 @@ class PQRResponseMail extends Mailable
         $this->responseUrl = $responseUrl;
     }
 
+     public function build()
+    {
+        return $this->subject('Respuesta a tu PQR - SENA')
+                    ->view('emails.pqr_response');
+    }
+
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
+        // Personalizar asunto según el caso
+        if ($this->comunication) {
+            // Email con link para subir documentos
+            $subject = 'Documentos Requeridos - ' . $this->pqr->affair;
+        } else {
+            // RESPUESTA DIRECTA A LA PQR (Este es tu caso)
+            $subject = 'Respuesta a tu ' . $this->pqr->request_type . ': ' . $this->pqr->affair;
+        }
+
         return new Envelope(
-            subject: 'Respuesta a la PQR: '. $this->pqr->affair,
+            subject: $subject,
         );
     }
 

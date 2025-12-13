@@ -5,118 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Respuesta PQR</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: rgb(184, 184, 184);
-            color: white;
-            padding: 20px;
-            border-radius: 8px 8px 0 0;
-            text-align: center;
-        }
-        .content {
-            background: #f8f9fa;
-            padding: 20px;
-            border: 1px solid #dee2e6;
-        }
-        .response-box {
-            background: white;
-            padding: 15px;
-            border-left: 4px solid #28a745;
-            margin: 15px 0;
-        }
-        .footer {
-            background: #6c757d;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 0 0 8px 8px;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: rgb(184, 184, 184);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .btn:hover {
-            background: #218838;
-        }
-        .alert {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .header { background: #2c5282; color: white; padding: 20px; text-align: center; }
+        .content { padding: 30px; background: #f7fafc; }
+        .response-box { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #3182ce; }
+        .btn { display: inline-block; padding: 12px 30px; background: #3182ce; color: white; text-decoration: none; border-radius: 5px; }
+        .btn:hover { background: #2c5282; }
+        .footer { text-align: center; padding: 20px; color: #718096; font-size: 12px; }
+        .alert { background: #fef5e7; border-left: 4px solid #f39c12; padding: 15px; margin: 20px 0; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2>Respuesta a tu PQR</h2>
-         <p>{{ $comunication ? 'Nueva comunicación' : 'Tu consulta ha sido respondida' }}</p>
+        <h1>Sistema de PQR</h1>
     </div>
 
     <div class="content">
-        <h3>Información de tu PQR:</h3>
-        <p><strong>Asunto:</strong> {{ $pqr->affair }}</p>
-        <p><strong>Fecha de consulta:</strong> {{ $pqr->created_at->format('d/m/Y H:i') }}</p>
-        <p><strong>Dependencia:</strong> {{ $pqr->dependency->name }}</p>
-        <p><strong>Responsable:</strong> {{ $pqr->responsible->name }}</p>
+        <h2>Hola, {{ $pqr->creator ? ', ' . $pqr->creator->name : ''}}</h2>
 
-        <h4>Tu consulta original:</h4>
-        <div style="background: #e9ecef; padding: 10px; border-radius: 5px;">
-            {{ $pqr->description }}
+        <p>Tenemos una actualización sobre tu PQR:</p>
+
+        <div class="response-box">
+            <p><strong>Asunto:</strong> {{ $pqr->affair }}</p>
+            <p><strong>Tipo:</strong> {{ $pqr->request_type }}</p>
+            <p><strong>Fecha de solicitud:</strong> {{ $pqr->created_at->format('d/m/Y H:i') }}</p>
         </div>
 
         @if($comunication)
-            <h4>{{ $comunication->sender_type === 'system' ? 'Respuesta oficial:' : 'Nueva comunicación:' }}</h4>
-            <div class="response-box">
-                {{ $comunication->message }}
+            {{-- CASO 1: Email con link para subir documentos --}}
+            <div class="alert">
+                <p><strong>Acción Requerida</strong></p>
+                <p>{{ $comunication->message }}</p>
             </div>
 
-            {{-- Mostrar archivos adjuntos si los hay --}}
-            @if($comunication->attachedSupports && $comunication->attachedSupports->count() > 0)
-                <h5>Archivos adjuntos:</h5>
-                <ul>
-                    @foreach($comunication->attachedSupports as $attachment)
-                        <li>{{ $attachment->name }} ({{ number_format($attachment->size / 1024, 2) }} KB)</li>
-                    @endforeach
-                </ul>
-            @endif
+            <p>Para continuar con el proceso, necesitamos que adjuntes los documentos solicitados.</p>
 
-            {{-- Mostrar link de respuesta si es necesario --}}
-            @if($comunication->requires_response && $responseUrl)
-                <div class="alert">
-                    <strong>Se requiere información adicional</strong><br>
-                    Para continuar con el procesamiento de tu PQR, necesitamos que adjuntes algunos documentos.
-                </div>
-                <div style="text-align: center; margin: 20px 0;">
+            @if(isset($responseUrl) && $responseUrl)
+                <p style="text-align: center; margin: 30px 0;">
                     <a href="{{ $responseUrl }}" class="btn">
-                        📎 Adjuntar Documentos Requeridos
+                        Adjuntar Documentos Requeridos
                     </a>
-                </div>
-
-                <p style="font-size: 12px; color: #666;">
-                    <strong>Nota:</strong> Este enlace es de un solo uso y expira en 7 días.
-                    Una vez que subas los documentos, el enlace dejará de funcionar.
                 </p>
+
+                <p style="font-size: 12px; color: #718096;">
+                    <strong>Nota importante:</strong> Este enlace es de un solo uso y expirará el
+                    {{ \Carbon\Carbon::parse($comunication->response_expires_at)->format('d/m/Y') }}.
+                </p>
+            @else
+                <p style="color: #e53e3e;">Error: No se pudo generar el enlace de respuesta.</p>
             @endif
+        @else
+            {{-- CASO 2: Respuesta tradicional sin link --}}
+            <div class="response-box">
+                <h3>Respuesta:</h3>
+                <p>{{ $pqr->response_message ?? 'No hay mensaje de respuesta disponible'}}</p>
+
+                @if($pqr->response_time)
+                    <p><strong>Fecha de respuesta:</strong> {{ \Carbon\Carbon::parse($pqr->response_time)->format('d/m/Y H:i') }}</p>
+                @endif
+
+                @if($pqr->response_days)
+                    <p><strong>Días de respuesta:</strong> {{ $pqr->response_days }} días</p>
+                @endif
+
+                <p><strong>Estado:</strong>
+                    <span style="color: {{ $pqr->state ? '#22c55e' : '#ef4444' }};">
+                        {{ $pqr->state ? '✓ Resuelta' : 'En proceso' }}
+                    </span>
+                </p>
+            </div>
+
+            <p>Si tienes alguna pregunta adicional, no dudes en contactarnos.</p>
         @endif
     </div>
 
     <div class="footer">
-        <p>Este es un correo automático, no responder.</p>
-        <p>&copy; {{ date('Y') }} GeDocs - Sistema de Gestión Documental</p>
+        <p>Este es un correo automático, por favor no responder.</p>
+        <p>&copy; {{ date('Y') }} Sistema de Gestión de PQR</p>
     </div>
 </body>
 </html>
