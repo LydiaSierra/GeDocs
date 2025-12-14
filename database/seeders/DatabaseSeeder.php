@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             'document_number' => 1020304050,
             'name' => 'Julio Alexis',
             'email' => 'julioalexishoyoscolorado@gmail.com',
+            'profile_photo' => '',
             'password' => bcrypt('password'),
             'status' => 'active',
         ]);
@@ -42,6 +43,7 @@ class DatabaseSeeder extends Seeder
             'document_number' => 1094454354,
             'name' => 'Instructor User',
             'email' => 'instructor@gmail.com',
+            'profile_photo' => '',
             'password' => bcrypt('password'),
             'status' => 'active',
         ]);
@@ -54,6 +56,7 @@ class DatabaseSeeder extends Seeder
             'document_number' => 1020304051,
             'name' => 'Carlos Dependent',
             'email' => 'dependent@test.com',
+            'profile_photo' => '',
             'password' => bcrypt('password'),
             'status' => 'pending',
         ]);
@@ -67,6 +70,7 @@ class DatabaseSeeder extends Seeder
             'document_number' => 1020304052,
             'name' => 'Maria User',
             'email' => 'user@test.com',
+            'profile_photo' => '',
             'password' => bcrypt('password'),
             'status' => 'pending',
         ]);
