@@ -35,7 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
-        Route::get("/sheets_number/{idUser}", [SheetUserController::class, 'index']);
+        
+        //Get sheets related with specific user
+        Route::get("/sheets_number", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN

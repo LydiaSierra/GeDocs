@@ -5,29 +5,28 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Sheet_number;
 use App\Models\Sheet_number_user;
-
-use function PHPUnit\Framework\isEmpty;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class SheetUserController extends Controller
 {
     //
-    public function index($user_id){
-        $sheets_id = Sheet_number_user::where('user_id',$user_id);
-        $query = $sheets_id->get();
-        $query = collect($query)->pluck('sheet_number_id');
-        if(!$query){
-            return response()->json([
-                "sucess"=>false,
-                "message"=>"Usuario sin fichas"
-            ],404);
-        }
+    public function index(Request $request){
+        $user = $request->user();
+        if($user && $user->hasRole('Instructor')){
+            $sheets_id = $user->sheetNumbers;
+        };
 
-        $sheets = Sheet_number::whereIn('id',$query);
-        $sheets_query = $sheets->get();
+        if(!$sheets_id){
+            response()->json([
+                "sucess"=>false,
+                "message"=>"El usuario no tiene fichas asignadas",
+            ]);
+        }
         return response()->json([
             "sucess"=>true,
             "message"=>"Fichas encontradas",
-            "fichas"=>$sheets_query,
+            "fichas"=>$sheets_id,
         ],200);
     }
 
