@@ -8,15 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 class Sheet_number extends Model
 {
     use HasFactory;
-    protected $with = ["users"];
 
     protected $fillable = [
         "number",
-        "director",
+        'ventanilla_unica_id',
+        "number",
+        "active",
         "state"
     ];
 
+    //
+
     public function users(){
         return $this->belongsToMany(User::class, "sheet_number_user", "sheet_number_id", "user_id");
+    }
+
+    public function dependencies()
+    {
+        return $this->hasMany(Dependency::class);
     }
 }

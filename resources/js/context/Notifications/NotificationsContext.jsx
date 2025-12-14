@@ -55,9 +55,7 @@ export function NotificationsProvider({ children }) {
         setVisibleDetails(null)
     })
 
-    useEffect(() => {
-        fetchNotifications();
-    }, []);
+    
 
     return (
         <NotificationsContext.Provider
@@ -68,6 +66,7 @@ export function NotificationsProvider({ children }) {
                 visibleDetails,
                 loadingDetailsNotification,
                 closeDetails,
+                fetchNotifications,
                 notificationSeleted
             }}
         >

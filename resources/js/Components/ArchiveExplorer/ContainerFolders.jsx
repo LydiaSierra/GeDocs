@@ -49,7 +49,7 @@ export default function ContainerFolders() {
         );
     }
 
-    
+
 
     return (
         <div className="my-4 relative">
@@ -59,18 +59,18 @@ export default function ContainerFolders() {
                 </div>
             }
             {historyStack.length > 0 &&
-            <div className="flex gap-4 items-center underline">
-                <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
-                    <ArrowLeftIcon className={"w-5 h-5 text-white"} />
+                <div className="flex gap-4 items-center underline">
+                    <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
+                        <ArrowLeftIcon className={"w-5 h-5 text-white"} />
+                    </div>
+                    <div className="cursor-pointer" onClick={() => {
+                        localStorage.removeItem("folder_id")
+                        fetchFolders();
+                        setHistoryStack([]);
+                    }}>
+                        Home
+                    </div>
                 </div>
-                <div className = "cursor-pointer" onClick={()=>{
-                    localStorage.removeItem("folder_id")
-                    fetchFolders();
-                    setHistoryStack([]);
-                }}>
-                    Home
-                </div>
-            </div>
             }
             <div className="flex justify-between px-4 border-b border-gray-400 py-3 my-3">
                 <div>
@@ -82,22 +82,30 @@ export default function ContainerFolders() {
                     <strong>Fecha de creación</strong>
                 </div>
             </div>
-            <div className="max-h-[350px] overflow-auto pb-10">
-
+            <div className="h-[300px] overflow-auto pb-[12vh]">
+                {folders?.length === 0 && files.length === 0 &&
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center text-gray-500  flex justify-center items-center">
+                            No hay carpetas o archivos disponibles.
+                        </div>
+                    </div>
+                }
                 <div
                     className={`${gridView ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3`}>
 
 
+                    <>
+                        {(folders || []).map((folder) => (
+                            <Folder key={folder.id} folder={folder} />
+                        ))}
 
-                    {(folders || []).map((folder) => (
-                        <Folder key={folder.id} folder={folder} />
-                    ))}
+                        {(files || []).map((file) => (
+                            <FileExplorer key={file.id} file={file} />
+                        ))}
+                    </>
 
-                    {(files || []).map((file) => (  
-                        <FileExplorer key={file.id} file={file} />
-                    ))}
 
-                  
+
 
                 </div>
 

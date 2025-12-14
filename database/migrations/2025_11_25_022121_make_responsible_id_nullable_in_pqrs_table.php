@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dependencies', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
+        Schema::table('p_q_r_s', function (Blueprint $table) {
+            $table->unsignedBigInteger('responsible_id')->nullable()->change();
         });
     }
 
@@ -23,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dependences');
+        Schema::table('p_q_r_s', function (Blueprint $table) {
+            $table->unsignedBigInteger('responsible_id')->nullable(false)->change();
+        });
     }
 };

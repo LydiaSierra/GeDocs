@@ -10,6 +10,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\PQRResponseMail;
+use App\Models\Dependency;
+use Carbon\Carbon;
+use Illuminate\Support\Arr;
+use App\Models\Sheet_number as SheetNumber;
 
 class PQRController extends Controller
 {
@@ -18,7 +22,26 @@ class PQRController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports'])->get();
+        $user = $request->user();
+
+        //Filtro de si el usuario esta autenticado y filtgra por dependencia
+
+        if ($user && $user->hasRole('Dependencia')) {
+        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
+            ->where('dependency_id', $user->dependency_id)
+            ->get();
+
+            return response()->json($pqrs);
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+
+        // Si quieres que solo admin vea todas, validaaquí
+        if ($user->hasRole('Admin')) {
+            $pqrs = PQR::all();
+         }
 
         return response()->json([
             'data' => $pqrs,
@@ -31,35 +54,61 @@ class PQRController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        //Validacion de los datos requeridos en la pqr
         $validated = $request->validate([
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
-            'response_time' => 'required|date|after:today',
-            'dependency_id' => 'required|exists:dependencies,id',
+            'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
+            'response_time' => 'nullable|date|after:today',
+            'response_days' => 'sometimes|in:10,15,30',
+            'number' => 'required|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'email'=> 'nullable|email|string|unique:p_q_r_s,email',
+            'document'=> 'nullable|string|max:100|unique:p_q_r_s,document',
         ]);
 
-        $user = $request->user();
+        //Buscar id de la ficha tecnica por el numero en la tabla sheet
+        $sheetNumber = SheetNumber::where('number', $request->number)->first();
 
-
-        // Buscar responsable por rol
-        $responsible = User::role('Dependencia')->first();
-
-        if (!$responsible) {
-            return response()->json(['message' => 'No hay responsables disponibles'], 422);
+        if (!$sheetNumber) {
+            return response()->json(['error' => 'Ficha técnica no encontrada'], 404);
         }
+        //Buscar dependencia de ventanilla unica
+        $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
+
+        if(!$ventanillaUnica){
+            return response()->json(['error' => 'Ventanilla unica no encontrada para esta ficha'],404);
+        }
+
+
+        $user = $request->user();
+        $userId = $user ? $user->id : null;
+
+          // Si envían response_days y no response_time, calcular response_time desde hoy
+        if (isset($validated['response_days']) && empty($validated['response_time'])) {
+            $validated['response_time'] = Carbon::now()->addDays((int)$validated['response_days'])->toDateString();
+        }
+
+        // Asegurar que response_time exista o sea null
+        $responseTime = $validated['response_time'] ?? null;
+
 
         // Crear la PQR
         $pqr = PQR::create([
             'description' => $validated['description'],
             'affair' => $validated['affair'],
-            'response_time' => $validated['response_time'],
+            'response_time' => $responseTime,
+            'response_days' => $validated['response_days'] ?? null,
             'state' => false,
-            'user_id' => $user->id,
-            'responsible_id' => $responsible->id,
-            'dependency_id' => $validated['dependency_id'],
-            'response_status' => 'pending'
+            'user_id' => $userId,
+            'responsible_id' => null,
+            'dependency_id' => $ventanillaUnica->id,
+            'request_type' => $validated['request_type'],
+            'sheet_number_id' => $sheetNumber->id,
+            'response_status' => 'pending',
+            'email'=> $validated['email'] ?? null,
+            'document'=> $validated['document'] ?? null,
         ]);
 
         // Guardar archivos
@@ -77,20 +126,20 @@ class PQRController extends Controller
         }
 
         return response()->json([
-            'data' => $pqr->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
+            'data' => $pqr->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
             'message' => 'PQR creada exitosamente'
         ], 201);
     }
 
     /**
-     * MOSTRAR UNA PQR
+     * MOSTRAR UNA PQR ESPECIFICA
      */
     public function show(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
         $roleName = $user->getRoleNames()->first();
 
-        $pqr = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports'])->find($id);
+        $pqr = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])->find($id);
 
         if (!$pqr) {
             return response()->json(['message' => 'PQR no encontrada'], 404);
@@ -101,7 +150,8 @@ class PQRController extends Controller
             return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
         }
 
-        if ($roleName === 'Dependencia' && $pqr->responsible_id !== $user->id) {
+        //Solo las pqrs con la dependencia asignada las pueden ver
+        if ($roleName === 'Dependencia' && $pqr->dependency_id !== $user->dependency_id) {
             return response()->json(['message' => 'No autorizado para ver esta PQR'], 403);
         }
 
@@ -118,6 +168,7 @@ class PQRController extends Controller
     {
         $validated = $request->validate([
             'response_time' => 'sometimes|date|after:today',
+            'response_days' => 'sometimes|in:10,15,30',
             'state' => 'sometimes|boolean',
             'dependency_id' => 'sometimes|exists:dependencies,id',
             'responsible_id' => 'sometimes|exists:users,id'
@@ -131,42 +182,37 @@ class PQRController extends Controller
             return response()->json(['message' => 'PQR no encontrada'], 404);
         }
 
-        // ADMIN
-        if ($roleName === 'Admin') {
-            $updateData = [];
+        //Permisos para establecer tiempos por dias
+        $canSetDays = $user -> hasRole('Admin') || $user -> hasRole('Instructor') || ((int) $pqr->responsible_id) == $user->id;
 
-            if ($request->has('response_time')) {
-                $updateData['response_time'] = $validated['response_time'];
+        if (isset($validated['response_days'])) {
+            if (!$canSetDays) {
+                return response()->json(['message' => 'No autorizado para establecer tiempo de respuesta'], 403);
             }
-
-            if ($request->has('dependency_id')) {
-                $updateData['dependency_id'] = $validated['dependency_id'];
-
-                // Reasignar responsable
-                $encargado = User::role('Dependencia')->first();
-                if ($encargado) {
-                    $updateData['responsible_id'] = $encargado->id;
-                    $updateData['state'] = false;
-                }
-            }
-
-            $pqr->update($updateData);
+            // asigna y persiste la columna response_days explícitamente
+            $pqr->response_days = (int)$validated['response_days'];
+            $pqr->response_time = Carbon::now()->addDays($pqr->response_days)->toDateString();
+            // removemos para que no lo sobreescriba más abajo
+            unset($validated['response_days']);
         }
-        // DEPENDENT
-        elseif ($roleName === 'Dependencia') {
-            if ($pqr->responsible_id !== $user->id) {
-                return response()->json(['message' => 'No autorizado para actualizar esta PQR'], 403);
+
+        //Permisos para autorizar el update de tiempo de respuesta
+
+        if (isset($validated['response_time'])) {
+            if (!($user->hasRole('Admin') || $user->hasRole('Instructor'))) {
+                return response()->json(['message' => 'No autorizado para modificar el tiempo de respuesta'], 403);
             }
 
-            if ($request->has('state')) {
-                $pqr->update(['state' => $request->boolean('state')]);
-            }
-        } else {
-            return response()->json(['message' => 'No autorizado'], 403);
         }
+
+        // Actualizar el resto de campos (evitar sobrescribir response_days)
+        $data = Arr::except($validated, ['response_days']);
+        $pqr->fill($data);
+        $pqr->save();
+
 
         return response()->json([
-            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
+            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),
             'message' => 'PQR actualizada exitosamente'
         ], 200);
     }
@@ -218,7 +264,7 @@ class PQRController extends Controller
             }
 
             return response()->json([
-                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports']),
+                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
                 'message' => 'Respuesta enviada exitosamente'
             ], 200);
 

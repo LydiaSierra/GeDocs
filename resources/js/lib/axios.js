@@ -11,9 +11,5 @@ const api = axios.create({
 
 
 
-const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-if (token) {
-  api.defaults.headers.common["X-CSRF-TOKEN"] = token;
-}
 
 export default api;

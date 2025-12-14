@@ -96,14 +96,20 @@ export function ArchiveDataProvider({ children }) {
     };
 
     const getAllFolders = async () => {
-        const res = await api.get("/api/folders-all");
-
-        if (!res.data.success) {
-            throw new Error("Error al obtener la API");
+        try{
+            setLoading(true)
+            const res = await api.get("/api/folders-all");
+            
+            if (!res.data.success) {
+                throw new Error("Error al obtener la API");
+            }   
+            setallFolders(res.data.folders)
+        } catch (err) {
+            console.error("Error al hacer la petición: ", err.message || err);
+            throw err;
+        } finally {
+            setLoading(false);
         }
-
-
-        setallFolders(res.data.folders)
     }
 
     const uploadFiles = async (folderId, files) => {
@@ -147,10 +153,7 @@ export function ArchiveDataProvider({ children }) {
     };
 
  
-    // Whenever parentId changes, fetch the corresponding folders and files
-    useEffect(() => {
-        getAllFolders()
-    }, []);
+
 
     // Provide all data and actions to any component that uses this context
     return (
@@ -170,6 +173,7 @@ export function ArchiveDataProvider({ children }) {
                 currentFolder,
                 allFolders,
                 uploadFiles,
+                getAllFolders,
                 deleteFile,
 
             }}

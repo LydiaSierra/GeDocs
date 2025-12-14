@@ -3,7 +3,6 @@
 use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,9 +23,16 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
     ])
     )->name('notifications.index');
 
-    // Gestion de Usuarios
-    Route::get('/users', fn() => Inertia::render('Users')
-    )->name('users');
+    // Gestion de Instructor
+    Route::get('/users/instructor', fn() => Inertia::render('Users')
+    )->name('instructor');
+
+    // Gestion de Aprendices
+    Route::get('/users/aprendiz', fn() => Inertia::render('Users')
+    )->name('aprendiz');
+
+
+    
 
     //Vista de una sola notificacion pasando el id
     Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [
@@ -39,7 +45,19 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
 
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
+    
+    //Direccion a Formulario
+    Route::get('/form', fn() => Inertia::render('Form'))
+        ->name('form');
 
+    //Vistas de Fichas
+    Route::get('/sheets', fn() => Inertia::render('Sheets'))
+        ->name('sheets');
+
+    //Vistas Dependencias
+    Route::get('/dependencies', fn() => Inertia::render('Dependencies'))
+        ->name('dependencies');
+    
     // Vistas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
@@ -47,10 +65,11 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    
 });
 
 
-Route::post('/upload', [FileController::class, 'store'])
-    ->name('files.store');
+
 
 require __DIR__ . '/auth.php';

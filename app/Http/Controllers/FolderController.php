@@ -80,7 +80,7 @@ class FolderController extends Controller
     {
         try {
             // Validar que la carpeta existe primero
-            $folder = Folder::findOrFail($folderId);
+            $folder = Folder::find($folderId);
             
             $request->validate([
                 "files.*" => "required|file|max:51200", // 50MB
@@ -96,10 +96,10 @@ class FolderController extends Controller
             }
 
             foreach ($request->file('files') as $file) {
+                $fileYear = date("Y");
                 $folderCode = $folder->folder_code ?? "000";
-                $timestamp = now()->timestamp;
 
-                $newName = "{$folderCode}_{$timestamp}_{$file->getClientOriginalName()}";
+                $newName = "{$fileYear}-Ex-{$folderCode}-{$file->getClientOriginalName()}";
 
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
 
@@ -109,11 +109,13 @@ class FolderController extends Controller
                     "extension" => $file->getClientOriginalExtension(),
                     "mime_type" => $file->getClientMimeType(),
                     "size" => $file->getSize(),
+                    "folder" => $folder,
                     "folder_id" => $folderId,
                 ]);
 
                 $uploadedFiles[] = [
                     "id" => $newFile->id,
+                    "folder" => $folder,
                     "name" => $newFile->name,
                     "extension" => $newFile->extension,
                     "mime_type" => $newFile->mime_type,
@@ -140,7 +142,6 @@ class FolderController extends Controller
                 "errors" => $e->errors()
             ], 422);
         } catch (Exception $e) {
-            \Log::error('Upload error: ' . $e->getMessage());
             return response()->json([
                 "success" => false,
                 "message" => $e->getMessage()

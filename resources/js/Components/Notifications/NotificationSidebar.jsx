@@ -8,6 +8,8 @@ const NotificationSidebar = () => {
 
     const { notifications, markAsReadNotification, loading, visibleDetails, notificationSeleted} = useContext(NotificationsContext);
 
+  
+
     if(loading){
         return(
             <div className="w-full flex flex-col items-center justify-center h-full"> 
