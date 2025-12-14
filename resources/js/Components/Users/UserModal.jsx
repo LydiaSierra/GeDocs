@@ -15,7 +15,7 @@ function UserModal() {
                         idSelected ? "modal-open" : ""
                     } w-full h-full `}
                 >
-                    <div className="w-[50%] h-[70%] bg-white flex flex-col gap-5 relative rounded-md p-10">
+                    <div className="md:w-[50%] w-[90%] h-[80%] bg-white flex flex-col gap-5 relative rounded-md lg:p-10 p-3">
                         <button
                             className="btn btn-md btn-circle btn-ghost absolute right-2 top-2"
                             onClick={() => setidSelected(null)}
@@ -23,98 +23,115 @@ function UserModal() {
                             ✕
                         </button>
 
-                        <h3 className="font-semibold text-2xl w-full text-start">
+                        <h3 className="font-semibold lg:text-2xl text-lg w-full text-start">
                             {idSelected.roles[0]?.name === "Instructor"
                                 ? "Detalles de Instructor"
                                 : "Detalles de Aprendiz"}
                         </h3>
 
-                        <div className=" w-full h-full flex flex-row items-center justify-between">
-                            <div className="w-[25%] h-full flex flex-col gap-4">
-                                <img
-                                    className="w-full h-41 rounded-md "
-                                    alt="profile pic"
-                                    src="/images/girl-pic.jpg"
-                                />
-                                <div className="w-full flex flex-col justify-start">
-                                    <h1 className="font-medium text-[17px] text-start">
-                                        {idSelected.name}
-                                    </h1>
-                                    <h3 className="font-light text-[13px] text-start">
-                                        {idSelected.roles[0].name}
-                                    </h3>
+                        <div className=" w-full h-full flex flex-row items-start justify-between">
+                            <div className="w-[25%] h-full hidden lg:block">
+                                <div className="w-full h-full flex flex-col gap-4">
+                                    <img
+                                        className="w-full h-41 rounded-md "
+                                        alt="profile pic"
+                                        src="/images/girl-pic.jpg"
+                                    />
+                                    <div className="w-full flex flex-col justify-start">
+                                        <h1 className="font-medium text-[17px] text-start">
+                                            {idSelected.name}
+                                        </h1>
+                                        <h3 className="font-light text-[13px] text-start">
+                                            {idSelected.roles[0].name}
+                                        </h3>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="w-[70%] h-full flex flex-col justify-start gap-5 items-center rounded-lg">
-                                <div className="w-full h-[80%] grid grid-cols-2 grid-rows-4 gap-4 bg-[#F3F3F3] rounded-lg px-2 overflow-y-scroll">
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                            <div
+                                className="lg:w-[70%] w-full h-[90%] lg:bg-none bg-white flex flex-col justify-start
+                             lg:gap-5 gap-3 items-start rounded-lg"
+                            >
+                                <div className="w-full h-auto lg:hidden block">
+                                    <div className="w-full h-auto flex flex-row justify-start items-center p-2 gap-3 border-b-2 border-solid">
+                                        <img
+                                            className="w-7 h-7 rounded-full "
+                                            alt="profile pic"
+                                            src="/images/girl-pic.jpg"
+                                        />
+                                        Lily Martinez
+                                    </div>
+                                </div>
+
+                                <div className="w-full h-[80%] grid grid-cols-2 grid-rows-4 gap-4 bg-[#F3F3F3] rounded-lg px-2 pb-2 overflow-y-scroll">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Nombre
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {idSelected.name}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Tipo de Documento
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {idSelected.type_document === "CC"
                                                 ? "Cedula de Ciudadania"
                                                 : "Tarjeta de Identidad"}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Numero de Documento
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {idSelected.document_number}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Correo Electronico
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {idSelected.email}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Fecha de Creacion
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {new Date(
                                                 idSelected.created_at
                                             ).toLocaleDateString()}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
                                             Estado
                                         </h1>
-                                        <h2 className="font-semibold text-[18px]">
+                                        <h2 className="font-semibold lg:text-md text-sm">
                                             {idSelected.status === "pending"
                                                 ? "Pendiente"
                                                 : "Activo"}
                                         </h2>
                                     </div>
 
-                                    <div className="bg-gray-100 p-4 rounded flex flex-col items-start">
-                                        <h1 className="font-light text-[17px]">
-                                            {idSelected.roles[0].name === "Instructor"
+                                    <div className="bg-gray-100 lg:p-4 p-1 rounded flex flex-col items-start">
+                                        <h1 className="font-light lg:text-md text-sm">
+                                            {idSelected.roles[0].name ===
+                                            "Instructor"
                                                 ? "Fichas Asignadas"
                                                 : "Ficha"}
                                         </h1>
-                                        <h2 className="font-semibold text-[18px] flex flex-col gap-1">
+                                        <h2 className="font-semibold lg:text-md text-sm flex flex-col gap-1">
                                             {idSelected.sheet_numbers.length > 0
                                                 ? idSelected.sheet_numbers.map(
                                                       (item) => (
@@ -128,9 +145,9 @@ function UserModal() {
                                     </div>
                                 </div>
 
-                                <div className="w-full h-[10%] flex flex-row justify-start pl-4 gap-10">
+                                <div className="w-full h-[10%] flex flex-row lg:justify-start justify-center lg:pl-4 pl-0 gap-10">
                                     <button
-                                        className="w-25 h-8 rounded-[5px] bg-primary text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary"
+                                        className="lg:w-25 w-20 lg:h-8 h-7 rounded-[5px] bg-primary text-md cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary"
                                         onClick={() => {
                                             setIsDelete(false);
                                             setEdit(true);
@@ -139,7 +156,7 @@ function UserModal() {
                                         Editar
                                     </button>
                                     <button
-                                        className="w-25 h-8 rounded-[5px] bg-[#EA4649] text-[18px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-[#EA4649] hover:bg-white hover:text-[#EA4649]"
+                                        className="lg:w-25 w-20 lg:h-8 h-7 rounded-[5px] bg-[#EA4649] text-md cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-[#EA4649] hover:bg-white hover:text-[#EA4649]"
                                         onClick={() => {
                                             document
                                                 .getElementById("my_modal_7")

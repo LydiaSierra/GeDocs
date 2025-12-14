@@ -1,39 +1,33 @@
 import Header from "@/Components/Header/Header.jsx";
 import Sidebar from "@/Components/Sidebar/Sidebar.jsx";
 import React from "react";
-import ProfileHeader from '@/Components/Profile/ProfileHeader.jsx'
-import ProfileMenu from '@/Components/Profile/ProfileMenu.jsx'
-import ProfileSidebar from '@/Components/Profile/ProfileSidebar.jsx'
+import ProfileHeader from "@/Components/Profile/ProfileHeader.jsx";
+import ProfileMenu from "@/Components/Profile/ProfileMenu.jsx";
+import SettingsBar from "@/Components/SettingsBar/SettingsBar";
+import ProfileSidebar from "@/Components/Profile/ProfileSidebar";
 
-const ProfileLayaout = ({children}) => {
+
+const ProfileLayaout = ({ children, url }) => {
     return (
         <>
-            <div className='bg-gray-100'>
-                <ProfileHeader/>
+            <div className="bg-gray-100 flex flex-col h-screen w-screen justify-center  ">
+                <ProfileHeader />
 
-                <div className='flex h-screen'>
-
+                <div className="flex h-full pl-3 pb-3 pt-12 rounded-lg gap-10">
                     {/* ProfileMenu oculto en móvil, visible desde md */}
-                    <div className="hidden md:flex w-[26%] p-2">
-                        <ProfileMenu/>
-                    </div>
+                        <SettingsBar url={url}/>
 
-                    <div className='pt-16 pb-2 w-full h-full flex overflow-hidden'>
-                            
-                    
-                       
-                            <ProfileSidebar />
-                       
+                    <div className=" pb-2 w-full h-full flex">
+                        <ProfileSidebar/>
 
-                        <div className="p-2 w-full h-full overflow-y-hidden overflow-x-hidden">
+                        <div className="p-2 w-full h-full flex flex-col gap-5 pr-10">
                             {children}
                         </div>
-
                     </div>
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
 export default ProfileLayaout;
