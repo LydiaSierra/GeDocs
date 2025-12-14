@@ -11,11 +11,10 @@ function ProfileMenu({
     setOpenObject1,
     openObject1,
 }) {
-    // 👉 SOLO visible en profile.edit
     const showEditProfile = route().current("profile.edit");
 
     return (
-        <div className="w-full bg-white mt-18 rounded-lg flex flex-col items-center gap-1 overflow-hidden">
+        <div className="w-90 bg-white mt-18 rounded-lg flex flex-col items-center gap-1 overflow-hidden">
             {/* PERFIL */}
             <div className="w-full flex flex-col items-start gap-5 p-2">
                 <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-lg font-medium hover:underline">
@@ -31,15 +30,19 @@ function ProfileMenu({
                 </h1>
 
                 <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-3 text-lg font-medium hover:underline cursor-pointer">
-                        <AcademicCapIcon className="w-7 h-7 text-[#848484]" />
-                        Aprendices
-                    </div>
+                    <a href={route("aprendiz")}>
+                        <div className="flex items-center gap-3 text-lg font-medium hover:underline cursor-pointer">
+                            <AcademicCapIcon className="w-7 h-7 text-[#848484]" />
+                            Aprendices
+                        </div>
+                    </a>
 
-                    <div className="flex items-center gap-3 text-lg font-medium hover:underline cursor-pointer">
-                        <ListBulletIcon className="w-7 h-7 text-[#848484]" />
-                        Instructores
-                    </div>
+                    <a href={route("instructor")}>
+                        <div className="flex items-center gap-3 text-lg font-medium hover:underline cursor-pointer">
+                            <ListBulletIcon className="w-7 h-7 text-[#848484]" />
+                            Instructores
+                        </div>
+                    </a>
 
                     <a href={route("sheets")}>
                         <div className="flex items-center gap-3 text-lg font-medium hover:underline cursor-pointer">

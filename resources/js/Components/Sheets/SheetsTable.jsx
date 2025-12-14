@@ -3,12 +3,14 @@ import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 import ViewSheets from "./ViewSheets";
 import DeleteSheets from "./DeleteSheets";
 
-export default function SheetsTable() {
-    const { sheets, deleteSheet } = useContext(SheetsContext);
+export default function SheetsTable({ sheets = [] }) {
+    const { deleteSheet } = useContext(SheetsContext);
 
     const [hoveredRow, setHoveredRow] = useState(null);
     const [selectedSheet, setSelectedSheet] = useState(null);
     const [sheetToDelete, setSheetToDelete] = useState(null);
+
+    const isEmpty = !sheets || sheets.length === 0;
 
     const openEditModal = (item) => {
         setSelectedSheet(item);
@@ -21,7 +23,6 @@ export default function SheetsTable() {
         setSheetToDelete(item);
         document.getElementById("delete_modal").showModal();
     };
-
     return (
         <div className="w-full">
             {/* MODAL VER */}
@@ -59,64 +60,72 @@ export default function SheetsTable() {
                     overscroll-contain
                 "
             >
-                {sheets.map((item) => (
-                    <div
-                        key={item.id}
-                        className="
-                            bg-gray-100
-                            border border-gray-200
-                            rounded-lg
-                            p-4
-                            shadow-sm
-                            cursor-pointer
-                        "
-                        onClick={() => openEditModal(item)}
-                    >
-                        <div className="flex justify-between items-center">
-                            <p className="font-semibold">
-                                Ficha #{item.number}
-                            </p>
-                            <span className="text-sm text-gray-500">
-                                {item.state}
-                            </span>
-                        </div>
-
-                        <p className="text-sm mt-2 text-gray-600">
-                            ID: {item.id}
+                {isEmpty ? (
+                    <div className="text-center py-10 text-gray-500">
+                        <p className="text-lg font-semibold">
+                            No hay fichas existentes
                         </p>
-
-                        <div className="flex gap-3 mt-4">
-                            <button
-                                className="flex-1 bg-green-600 text-white py-2 rounded-md"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openEditModal(item);
-                                }}
-                            >
-                                Ver
-                            </button>
-
-                            <button
-                                className="
-                                    flex-1
-                                    border border-red-500
-                                    text-red-500
-                                    bg-white
-                                    py-2
-                                    rounded-md
-                                    hover:bg-red-100
-                                    transition
-                                "
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    openDeleteModal(item);
-                                }}
-                            >
-                                Eliminar
-                            </button>
-                        </div>
                     </div>
-                ))}
+                ) : (
+                    sheets.map((item) => (
+                        <div
+                            key={item.id}
+                            className="
+                                bg-gray-100
+                                border border-gray-200
+                                rounded-lg
+                                p-4
+                                shadow-sm
+                                cursor-pointer
+                            "
+                            onClick={() => openEditModal(item)}
+                        >
+                            <div className="flex justify-between items-center">
+                                <p className="font-semibold">
+                                    Ficha #{item.number}
+                                </p>
+                                <span className="text-sm text-gray-500">
+                                    {item.state}
+                                </span>
+                            </div>
+
+                            <p className="text-sm mt-2 text-gray-600">
+                                ID: {item.id}
+                            </p>
+
+                            <div className="flex gap-3 mt-4">
+                                <button
+                                    className="flex-1 bg-green-600 text-white py-2 rounded-md"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditModal(item);
+                                    }}
+                                >
+                                    Ver
+                                </button>
+
+                                <button
+                                    className="
+                                        flex-1
+                                        border border-red-500
+                                        text-red-500
+                                        bg-white
+                                        py-2
+                                        rounded-md
+                                        hover:bg-red-100
+                                        transition
+                                    "
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        openDeleteModal(item);
+                                    }}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {/* ===== DESKTOP ===== */}
@@ -134,65 +143,76 @@ export default function SheetsTable() {
                         </thead>
 
                         <tbody className="border-separate border-spacing-y-2">
-                            {sheets.map((item, i) => (
-                                <tr
-                                    key={item.id}
-                                    className="odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue"
-                                    onMouseEnter={() => setHoveredRow(i)}
-                                    onMouseLeave={() => setHoveredRow(null)}
-                                >
+                            {isEmpty ? (
+                                <tr>
                                     <td
-                                        onClick={() => openEditModal(item)}
-                                        className="py-3 px-5 cursor-pointer"
+                                        colSpan={5}
+                                        className="py-8 text-center text-gray-500"
                                     >
-                                        {item.id}
-                                    </td>
-                                    <td className="py-3">{item.number}</td>
-                                    <td className="py-3">20</td>
-                                    <td className="py-3">{item.state}</td>
-
-                                    <td className="relative overflow-visible">
-                                        {hoveredRow === i && (
-                                            <div className="dropdown dropdown-end absolute right-2 top-1/2 -translate-y-1/2 z-50">
-                                                <div
-                                                    tabIndex={0}
-                                                    role="button"
-                                                    className="btn btn-sm"
-                                                >
-                                                    ...
-                                                </div>
-
-                                                <ul className="dropdown-content menu bg-base-100 rounded-lg w-40 p-2 shadow-lg">
-                                                    <li>
-                                                        <button
-                                                            onClick={() =>
-                                                                openEditModal(
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            Ver
-                                                        </button>
-                                                    </li>
-
-                                                    <li>
-                                                        <button
-                                                            className="text-red-600"
-                                                            onClick={() =>
-                                                                openDeleteModal(
-                                                                    item
-                                                                )
-                                                            }
-                                                        >
-                                                            Eliminar
-                                                        </button>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        )}
+                                        No hay fichas existentes
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                sheets.map((item, i) => (
+                                    <tr
+                                        key={item.id}
+                                        className="odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue"
+                                        onMouseEnter={() => setHoveredRow(i)}
+                                        onMouseLeave={() => setHoveredRow(null)}
+                                    >
+                                        <td
+                                            onClick={() => openEditModal(item)}
+                                            className="py-3 px-5 cursor-pointer"
+                                        >
+                                            {item.id}
+                                        </td>
+                                        <td className="py-3">{item.number}</td>
+                                        <td className="py-3">20</td>
+                                        <td className="py-3">{item.state}</td>
+
+                                        <td className="relative overflow-visible">
+                                            {hoveredRow === i && (
+                                                <div className="dropdown dropdown-end absolute right-2 top-1/2 -translate-y-1/2 z-9999">
+                                                    <div
+                                                        tabIndex={0}
+                                                        role="button"
+                                                        className="btn btn-sm"
+                                                    >
+                                                        ...
+                                                    </div>
+
+                                                    <ul className="dropdown-content menu bg-base-100 rounded-lg w-40 p-2 shadow-lg">
+                                                        <li>
+                                                            <button
+                                                                onClick={() =>
+                                                                    openEditModal(
+                                                                        item
+                                                                    )
+                                                                }
+                                                            >
+                                                                Ver
+                                                            </button>
+                                                        </li>
+
+                                                        <li>
+                                                            <button
+                                                                className="text-red-600"
+                                                                onClick={() =>
+                                                                    openDeleteModal(
+                                                                        item
+                                                                    )
+                                                                }
+                                                            >
+                                                                Eliminar
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

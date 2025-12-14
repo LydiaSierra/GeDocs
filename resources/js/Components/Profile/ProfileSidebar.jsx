@@ -9,7 +9,7 @@ const ProfileSidebar = ({ className = "" }) => {
 
     return (
         <aside
-            className={`h-full flex flex-col items-center text-gray-800 ${className}`}
+            className={`h-full -ml-5 flex flex-col items-center text-gray-800 ${className}`}
         >
             <h1 className="text-lg font-semibold text-black mb-4 mt-2">
                 Información de Usuario

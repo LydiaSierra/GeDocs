@@ -12,9 +12,6 @@ export default function CreateSheets() {
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
-    // ---------------------------
-    // Handle Change
-    // ---------------------------
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -22,9 +19,6 @@ export default function CreateSheets() {
         });
     };
 
-    // ---------------------------
-    // Submit Handler
-    // ---------------------------
     const handleSubmit = async () => {
         setErrorMsg("");
         setSuccessMsg("");
@@ -39,7 +33,6 @@ export default function CreateSheets() {
                 number: Number(formData.numeroFicha),
             });
 
-            // Backend devuelve directamente la ficha creada, no usa "success"
             if (!res.data?.id) {
                 setErrorMsg("Error al crear la ficha.");
                 return;
@@ -49,11 +42,12 @@ export default function CreateSheets() {
             await fetchSheets();
 
             setFormData({ numeroFicha: "" });
+            //Mensajes de error
         } catch (error) {
             if (error.response?.status === 401) {
                 setErrorMsg("La sesión ha expirado. Inicia sesión nuevamente.");
             } else if (error.response?.status === 500) {
-                setErrorMsg("Error interno del servidor. Verifica el backend.");
+                setErrorMsg("Ya existe una ficha con este número");
             } else {
                 setErrorMsg("Error al comunicarse con el servidor.");
             }
@@ -62,9 +56,6 @@ export default function CreateSheets() {
         }
     };
 
-    // ---------------------------
-    // JSX
-    // ---------------------------
     return (
         <div className="w-full bg-gray-100 p-8 rounded-lg">
             <h2 className="text-3xl font-semibold mb-6">Crear Ficha</h2>

@@ -1,30 +1,31 @@
-import React from "react";
-
 export default function DeleteSheets({ sheetToDelete, deleteSheet }) {
+    const handleDelete = () => {
+        if (!sheetToDelete) return;
+
+        deleteSheet(sheetToDelete.id);
+
+        // Cerrar modal de eliminar
+        document.getElementById("delete_modal")?.close();
+
+        // Asegurar que el modal de VER también esté cerrado
+        document.getElementById("my_modal_3")?.close();
+    };
+
     return (
         <dialog id="delete_modal" className="modal">
             <div className="modal-box">
                 <h3 className="font-bold text-lg">¿Eliminar ficha?</h3>
 
-                <p className="py-4">
-                    Está a punto de eliminar la ficha{" "}
-                    <b>{sheetToDelete?.number}</b>. Esta acción no se puede
-                    deshacer.
+                <p className="py-4 text-gray-600">
+                    Esta acción no se puede deshacer.
                 </p>
 
-                <div className="flex justify-end gap-3 mt-4">
+                <div className="modal-action">
                     <form method="dialog">
-                        <button className="btn btn-neutral">Cancelar</button>
+                        <button className="btn">Cancelar</button>
                     </form>
 
-                    <button
-                        className="btn btn-error"
-                        onClick={async () => {
-                            await deleteSheet(sheetToDelete.id);
-
-                            document.getElementById("delete_modal").close();
-                        }}
-                    >
+                    <button onClick={handleDelete} className="btn btn-error">
                         Eliminar
                     </button>
                 </div>

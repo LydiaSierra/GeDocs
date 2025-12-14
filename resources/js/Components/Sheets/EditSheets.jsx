@@ -35,51 +35,52 @@ export default function EditSheets({ sheet }) {
             });
 
             if (!res.data?.success) {
-                setErrorMessage("❌ No se pudo actualizar la ficha");
+                setErrorMessage("No se pudo actualizar la ficha");
                 setTimeout(() => setErrorMessage(""), 3000);
                 return;
             }
 
             await fetchSheets();
 
-        
-            setSuccessMessage("✔ Ficha actualizada correctamente");
+            setSuccessMessage("Ficha actualizada correctamente");
             setErrorMessage("");
 
-           
             setTimeout(() => {
                 setSuccessMessage("");
-                const modal = document.getElementById("my_modal_3");
-                if (modal) modal.close();
-            }, 1500);
+                document.getElementById("my_modal_4")?.close();
+                document.getElementById("my_modal_3")?.close();
+            }, 1200);
         } catch (error) {
-            console.error("Error al editar ficha:", error);
-
-            setErrorMessage("⚠ Ocurrió un error al actualizar la ficha");
+            console.error(error);
+            setErrorMessage("⚠ Error al actualizar la ficha");
             setTimeout(() => setErrorMessage(""), 3000);
         }
     };
 
     return (
-        <div className="w-full bg-gray-100 p-8 rounded-lg">
-            <h2 className="text-3xl font-semibold mb-6">Editar Ficha</h2>
+        <div className="w-full bg-gray-100 rounded-lg p-4 sm:p-6 md:p-8">
+           
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 md:mb-6 text-center md:text-left">
+                Editar Ficha
+            </h2>
 
-            {/* Mensaje de éxito */}
+            
             {successMessage && (
-                <div className="mb-4 p-3 text-green-700 bg-green-100 border border-green-300 rounded-md animate-fadeIn">
+                <div className="mb-4 p-3 text-sm sm:text-base text-green-700 bg-green-100 border border-green-300 rounded-md">
                     {successMessage}
                 </div>
             )}
 
-            {/* Mensaje de error */}
             {errorMessage && (
-                <div className="mb-4 p-3 text-red-700 bg-red-100 border border-red-300 rounded-md animate-fadeIn">
+                <div className="mb-4 p-3 text-sm sm:text-base text-red-700 bg-red-100 border border-red-300 rounded-md">
                     {errorMessage}
                 </div>
             )}
 
-            <div className="p-8 rounded-lg shadow-sm border">
-                <div className="grid grid-cols-2 gap-6">
+          
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm border">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    {/* Número */}
                     <div className="flex flex-col">
                         <label className="text-gray-700 font-semibold mb-1">
                             Número de Ficha
@@ -89,11 +90,12 @@ export default function EditSheets({ sheet }) {
                             name="numeroFicha"
                             value={formData.numeroFicha}
                             onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm"
+                            className="w-full p-3 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-green-500 outline-none"
                         />
                     </div>
 
-                    <div className="col-span-2 flex flex-col">
+                    {/* Estado */}
+                    <div className="flex flex-col md:col-span-1">
                         <label className="text-gray-700 font-semibold mb-1">
                             Estado
                         </label>
@@ -101,9 +103,9 @@ export default function EditSheets({ sheet }) {
                             name="estado"
                             value={formData.estado}
                             onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm"
+                            className="w-full p-3 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-green-500 outline-none"
                         >
-                            <option>Sin Aprendices</option>
+                    
                             <option>Activa</option>
                             <option>Finalizada</option>
                             <option>Cancelada</option>
@@ -112,12 +114,23 @@ export default function EditSheets({ sheet }) {
                 </div>
             </div>
 
-            <div className="flex justify-center mt-8">
+            {/* BOTÓN */}
+            <div className="flex justify-center mt-6 sm:mt-8">
                 <button
                     onClick={saveChanges}
-                    className="bg-green-600 text-white px-12 py-3 rounded-md text-lg hover:bg-green-700 transition shadow-md"
+                    className="
+                        w-full sm:w-auto
+                        bg-green-600 text-white
+                        px-8 sm:px-12
+                        py-3
+                        rounded-md
+                        text-base sm:text-lg
+                        hover:bg-green-700
+                        transition
+                        shadow-md
+                    "
                 >
-                    Guardar
+                    Guardar cambios
                 </button>
             </div>
         </div>
