@@ -26,12 +26,7 @@ class PQRController extends Controller
     {
         $user = $request->user();
 
-<<<<<<< HEAD
-        //Filtro de si el usuario esta autenticado y filtgra por dependencia
-=======
-        //Filtro de si el usuario esta autenticado y filtra por dependencia
 
->>>>>>> 21a871c7ecf248af8edb5c7e06a9924afe83853b
         if ($user && $user->hasRole('Dependencia')) {
             $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
                 ->where('dependency_id', $user->dependency_id)

@@ -117,20 +117,17 @@ export default function Explorer() {
 
                     {openModalUpload && (
                         <UploadModal onOpen={setopenModalUpload} />
+                    )
                     }
+
                     {selectedItem &&
                         <ModalDetails />
                     }
                         <ModalCreateOrEditFolder />
 
-
-
-                    )}
-                    {selectedItem && <ModalDetails />}
                 </div>
 
 
-                {/* <DependencyScheme /> */}
                 
             </DashboardLayout>
             <ToastPdf
