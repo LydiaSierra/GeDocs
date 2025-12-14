@@ -35,20 +35,21 @@ function UserSearch({ url }) {
 
     return (
         <div className="w-full h-auto flex flex-col gap-5">
-            <h1 className="text-2xl">
+            <h1 className="lg:text-2xl md:text-xl text-md">
                 {url === "/users/instructor"
                     ? "Lista de Instructores"
                     : url === "/users/aprendiz"
                     ? "Lista de Aprendices"
                     : "Lista de Fichas"}
             </h1>
-            <div id="inbox-search" className="flex gap-2 w-[40%]">
+            <div id="inbox-search" className="flex gap-2 lg:w-[40%] md:w-[40%] w-[70%] ">
                 <div className="flex items-center bg-[#E8E8E8] px-2 rounded-md flex-1 min-w-0">
                     <input
                         placeholder="Buscar"
                         type="text"
                         value={inputSearch}
-                        className="input bg-[#E8E8E8] border-none focus:outline-none shadow-none w-full  truncate text-lg"
+                        className="input bg-[#E8E8E8] w-full border-none 
+                        focus:outline-none shadow-none truncate lg:text-text-md"
                         onChange={(e) => {
                             const value = e.target.value;
                             setInputSearch(value);

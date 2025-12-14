@@ -4,10 +4,10 @@ import NotificationsList from "@/Components/Notifications/NotificationsList";
 import NotificationSidebar from "@/Components/Notifications/NotificationSidebar";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard";
 import { useState } from "react";
+import React from "react";
 
 const Notifications = () => {
-
-    
+    const {url}=usePage();
     const [details,setDetails]=useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [selectedNotification, setSelectedNotification] = useState(null);
@@ -28,7 +28,7 @@ const Notifications = () => {
 };
 
     return (
-        <NotificationsLayout>
+        <NotificationsLayout url={url}>
 
             <NotificationSidebar 
                 handleSelectNotification={handleSelectNotification}

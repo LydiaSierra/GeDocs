@@ -10,7 +10,7 @@ export default function Users() {
   
 
   return (
-    <UsersLayout>
+    <UsersLayout url={url}>
       <UserSearch url={url}/>
       <UserList url={url}/>
     </UsersLayout>
