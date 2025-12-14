@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PQRController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
@@ -77,6 +78,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
+
+    // ----------- Editprofile -------------
+
+    // Edit the profile photo
+    Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
+
 });
 
 // ----------- CREAR PQRS -------------

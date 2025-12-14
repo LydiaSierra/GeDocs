@@ -19,7 +19,9 @@ class UserController extends Controller
         $query = User::with('roles', "sheetNumbers");
 
         if ($authUser->hasRole("Instructor")) {
-            $query->role("Aprendiz");
+            $query->whereDoesntHave('roles', function ($q) {
+                $q->where('name', 'Admin');
+            });
         }
 
         $users = $query->get();

@@ -172,8 +172,9 @@ const Folder = ({ folder }) => {
                         <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
                         ADVERTENCIA!
                     </h3>
-                    <p className="py-4 font-bold">
-                        Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.</p>
+                    <p className="py-4 font-bold text-center">
+                        Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
+                    </p>
                     <div className="modal-action">
                         <form method="dialog">
                             <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
