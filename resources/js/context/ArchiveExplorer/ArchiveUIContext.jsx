@@ -10,6 +10,10 @@ export function ArchiveUIProvider({ children }) {
   const [showDropFolders, setShowDropFolders] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null);
 
+  const [selectedFolder, setSelectedFolder] = useState(null);
+
+
+
 
   // Load the grid view prefeence from the local store ge on initial rendering
 
@@ -36,13 +40,12 @@ export function ArchiveUIProvider({ children }) {
   const showDetails = (item) => {
     setSelectedItem(item);
     console.log(item);
-    
+
   };
 
   const toggleDropFolders = useCallback(() => {
     setShowDropFolders(!showDropFolders);
   }, [showDropFolders]);
-
 
 
 
@@ -57,8 +60,10 @@ export function ArchiveUIProvider({ children }) {
         showDetails,
         formatSize,
         setSelectedItem,
-        toggleDropFolders, 
+        toggleDropFolders,
         showDropFolders,
+        selectedFolder,
+        setSelectedFolder
       }}
     >
       {children}

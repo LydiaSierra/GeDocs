@@ -8,11 +8,18 @@ import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
+import CreateFolderModal from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
+import { usePage } from "@inertiajs/react";
+import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
 
 export default function Explorer() {
     const { openFolder, setHistoryStack, fetchFolders, currentFolder, getAllFolders } = useContext(ArchiveDataContext);
     const { selectedItem } = useContext(ArchiveUIContext);
     const [openModalUpload, setopenModalUpload] = useState(false);
+    const role = usePage().props.auth.user.roles[0].name
+    const canEdit = role === "Admin" || role === "Instructor"
+
+
 
 
 
@@ -32,23 +39,31 @@ export default function Explorer() {
     }, [])
 
 
-
     return (
 
         <>
             <DashboardLayout>
-                <div className="bg-white h-full rounded-lg p-2 relative overflow-hidden">
-                    <div className="flex justify-between items-center">
+                <div className="bg-white h-full rounded-lg p-2 relative">
+                    <div className="flex justify-between items-center ">
                         <InputSearch />
-                        {currentFolder &&
-                            <button className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
-                                onClick={() => {
-                                    setopenModalUpload(true)
-                                }}
-                            >
-                                Subir Archivo
-                            </button>
-                        }
+                        <div className="flex items-center gap-2 ">
+
+                            {currentFolder &&
+                                <button className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
+                                    onClick={() => {
+                                        setopenModalUpload(true)
+                                    }}
+                                >
+                                    Subir Archivo
+                                </button>
+                            }
+                            {canEdit &&
+                                <button className="py-2 px-4 rounded-md border border-primary text-primary cursor-pointer" onClick={() => document.getElementById('createFolder').showModal()
+                                }>
+                                    Nueva Carpeta
+                                </button>
+                            }
+                        </div>
                     </div>
                     <ContainerFolders />
 
@@ -59,10 +74,14 @@ export default function Explorer() {
                     {selectedItem &&
                         <ModalDetails />
                     }
+                        <ModalCreateOrEditFolder />
+
+
+
                 </div>
 
 
-                <DependencyScheme/>
+                {/* <DependencyScheme /> */}
             </DashboardLayout>
         </>
 

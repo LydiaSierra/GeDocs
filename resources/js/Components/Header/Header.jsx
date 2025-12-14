@@ -1,24 +1,26 @@
-import {Link, router, usePage} from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import NotificationDropDown from "../Notifications/NotificationDropDown";
 import api from "@/lib/axios.js";
+import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
+import { useContext } from "react";
 
 
 export default function Header() {
-    const {props} = usePage();
+    const { props } = usePage();
     const user = props.auth.user;
-
+    const { setcurrentFolder } = useContext(ArchiveDataContext);
     return (
         <header
             className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
             <div>
                 <a href="/">
-                    <img src="/gedocs-logo.svg" alt="gedocs logo" className="h-8"/>
+                    <img src="/gedocs-logo.svg" alt="gedocs logo" className="h-8" />
                 </a>
             </div>
 
             <div className="flex gap-4 items-center h-full">
-                
-                <NotificationDropDown/>
+
+                <NotificationDropDown />
 
                 <div className="dropdown dropdown-end">
                     <div tabIndex={0} role="button" className="cursor-pointer rounded-md gap-3 flex items-center">
@@ -45,14 +47,15 @@ export default function Header() {
                         </div>
                         <li>
                             <Link href={route('profile.edit')}>
-                                Settings
+                                Configuración
                             </Link>
                         </li>
-
 
                         <li>
                             <button
                                 onClick={() => {
+                                    localStorage.removeItem("folder_id");
+                                    setcurrentFolder(null);
                                     router.post("/logout")
                                 }}
                             >

@@ -8,36 +8,46 @@ use Inertia\Inertia;
 
 
 Route::middleware('auth')->group(function () {
-  
-// routes/web.php
-Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+
+    // routes/web.php
+    Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
 
 
     // Inbox principal
-    Route::get('/', fn() => Inertia::render('Inbox'))
+    Route::middleware("roleCheck")->group(function () {
+        Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
+    });
 
     //Vista de notificaciones pasando el id
-    Route::get('/notifications', fn() => Inertia::render('Notifications', [
-        'notificationId' => null
-    ])
+    Route::get(
+        '/notifications',
+        fn() => Inertia::render('Notifications', [
+            'notificationId' => null
+        ])
     )->name('notifications.index');
 
     // Gestion de Instructor
-    Route::get('/users/instructor', fn() => Inertia::render('Users')
+    Route::get(
+        '/users/instructor',
+        fn() => Inertia::render('Users')
     )->name('instructor');
 
     // Gestion de Aprendices
-    Route::get('/users/aprendiz', fn() => Inertia::render('Users')
+    Route::get(
+        '/users/aprendiz',
+        fn() => Inertia::render('Users')
     )->name('aprendiz');
 
 
-    
+
 
     //Vista de una sola notificacion pasando el id
-    Route::get('/notifications/{id}', fn($id) => Inertia::render('Notifications', [
-        'notificationId' => $id
-    ])
+    Route::get(
+        '/notifications/{id}',
+        fn($id) => Inertia::render('Notifications', [
+            'notificationId' => $id
+        ])
     )->name('notifications.show');
 
     Route::get('/explorer', [ExplorerController::class, 'index'])
@@ -45,7 +55,7 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
 
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
-    
+
     //Direccion a Formulario
     Route::get('/form', fn() => Inertia::render('Form'))
         ->name('form');
@@ -57,7 +67,7 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
     //Vistas Dependencias
     Route::get('/dependencies', fn() => Inertia::render('Dependencies'))
         ->name('dependencies');
-    
+
     // Vistas de perfil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
@@ -65,8 +75,6 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
-
-    
 });
 
 

@@ -30,6 +30,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
 
+        // ============= FOLDERS ==============
+        Route::post("/folders", [FolderController::class, "store"]);
+        Route::delete('/folders/{folderId}', [FolderController::class, 'deleteFolder']);
+        Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder']);
+
+
+
         // ============= SHEETS ==============
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
@@ -41,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
 
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
@@ -69,7 +77,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
-
 });
 
 // ----------- CREAR PQRS -------------
