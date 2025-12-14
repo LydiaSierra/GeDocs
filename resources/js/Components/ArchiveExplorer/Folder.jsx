@@ -176,7 +176,7 @@ const Folder = ({ folder }) => {
                         Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
                     </p>
                     <div className="modal-action">
-                        <form method="dialog">
+                        <form method="dialog" className="flex justify-center items-center w-full">
                             <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
                             <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
                         </form>

@@ -1,7 +1,5 @@
 import { Link, router, usePage } from "@inertiajs/react";
-import { Link, router, usePage } from "@inertiajs/react";
 import NotificationDropDown from "../Notifications/NotificationDropDown";
-import api from "@/lib/axios.js";
 import HamburguerMenu from "../HamburguerMenu/HamburguerMenu";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import { useContext } from "react";
@@ -9,7 +7,6 @@ import { useContext } from "react";
 
 export default function Header() {
     const { url } = usePage();
-    const { props } = usePage();
     const { props } = usePage();
     const user = props.auth.user;
 
@@ -29,14 +26,12 @@ export default function Header() {
                         alt="gedocs logo"
                         className="h-8 lg:block md:hidden block"
                     />
-                    <img src="/gedocs-logo.svg" alt="gedocs logo" className="h-8" />
                 </a>
             </div>
 
             <div className="flex gap-4 items-center h-full">
                 <NotificationDropDown />
 
-                <NotificationDropDown />
 
                 <div className="dropdown dropdown-end">
                     <div
@@ -73,7 +68,6 @@ export default function Header() {
                             </div>
                         </div>
                         <li>
-                            <Link href={route("profile.edit")}>Settings</Link>
                             <Link href={route('profile.edit')}>
                                 Configuración
                             </Link>
@@ -82,7 +76,6 @@ export default function Header() {
                         <li>
                             <button
                                 onClick={() => {
-                                    router.post("/logout");
                                     localStorage.removeItem("folder_id");
                                     setcurrentFolder(null);
                                     router.post("/logout")
