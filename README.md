@@ -243,6 +243,7 @@ Endpoints para la creación y gestión de Peticiones, Quejas, Reclamos y Sugeren
 | `PUT`     | `/pqrs/{id}` | Actualiza una PQR específica.          | No                      |
 | `PATCH`   | `/pqrs/{id}` | Actualiza parcialmente una PQR.        | Sí (Sanctum)            |
 | `DELETE`  | `/pqrs/{id}` | Elimina una PQR específica.            | No                      |
+| `GET`     | `/pqrs/instructor` | Lista las PQRS asociadas a las fichas del instructor | Si (Sanctum)   |
 
 ---
 
