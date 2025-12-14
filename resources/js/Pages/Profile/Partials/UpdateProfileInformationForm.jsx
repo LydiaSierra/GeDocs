@@ -49,7 +49,7 @@ export default function UpdateProfileInformation({
                     <TextInput
                         id="name"
                         className="mt-1 block w-full"
-                        value={data.name}
+                        // value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
                         required
                         isFocused
@@ -66,7 +66,7 @@ export default function UpdateProfileInformation({
                         id="email"
                         type="email"
                         className="mt-1 block w-full"
-                        value={data.email}
+                        // value={data.email}
                         onChange={(e) => setData("email", e.target.value)}
                         required
                         autoComplete="username"

@@ -1,18 +1,13 @@
 import React, { useContext, useState } from "react";
-import EditSheets from "./EditSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 import ViewSheets from "./ViewSheets";
-import DeleteSheets from "./DeleteSheets"; //
+import DeleteSheets from "./DeleteSheets";
 
 export default function SheetsTable() {
     const { sheets, deleteSheet } = useContext(SheetsContext);
 
     const [hoveredRow, setHoveredRow] = useState(null);
-
-    // Ficha seleccionada para ver/editar
     const [selectedSheet, setSelectedSheet] = useState(null);
-
-    // Ficha seleccionada para eliminar
     const [sheetToDelete, setSheetToDelete] = useState(null);
 
     const openEditModal = (item) => {
@@ -28,9 +23,10 @@ export default function SheetsTable() {
     };
 
     return (
-        <div className="w-full overflow-hidden">
+        <div className="w-full">
+            {/* MODAL VER */}
             <dialog id="my_modal_3" className="modal">
-                <div className="modal-box max-w-5xl w-[90%] p-5">
+                <div className="modal-box w-full max-w-5xl p-4 sm:p-6">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
                             ✕
@@ -45,93 +41,161 @@ export default function SheetsTable() {
                 </div>
             </dialog>
 
-            {/* MODAL DE ELIMINAR */}
+            {/* MODAL ELIMINAR */}
             <DeleteSheets
                 sheetToDelete={sheetToDelete}
                 deleteSheet={deleteSheet}
             />
 
-            {/* TABLA */}
-            <div className="max-h-[1200px] overflow-y-auto overflow-x-auto">
-                <table className="w-full">
-                    <thead className="bg-gray-500 text-white text-sm font-semibold">
-                        <tr>
-                            <th className="py-3 text-left px-5">Id</th>
-                            <th className="py-3 text-left">Ficha</th>
-                            <th className="py-3 text-left">Alumnos</th>
-                            <th className="py-3 text-left rounded-r-lg">
-                                Estado
-                            </th>
-                        </tr>
-                    </thead>
+            {/* ===== MOBILE ===== */}
+            <div
+                className="
+                    md:hidden
+                    space-y-3
+                    h-[calc(100vh-220px)]
+                    overflow-y-auto
+                    overflow-x-hidden
+                    px-1
+                    overscroll-contain
+                "
+            >
+                {sheets.map((item) => (
+                    <div
+                        key={item.id}
+                        className="
+                            bg-gray-100
+                            border border-gray-200
+                            rounded-lg
+                            p-4
+                            shadow-sm
+                            cursor-pointer
+                        "
+                        onClick={() => openEditModal(item)}
+                    >
+                        <div className="flex justify-between items-center">
+                            <p className="font-semibold">
+                                Ficha #{item.number}
+                            </p>
+                            <span className="text-sm text-gray-500">
+                                {item.state}
+                            </span>
+                        </div>
 
-                    <tbody className="border-separate border-spacing-y-2">
-                        {sheets.map((item, i) => (
-                            <tr
-                                key={item.id}
-                                className="odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue"
-                                onMouseEnter={() => setHoveredRow(i)}
-                                onMouseLeave={() => setHoveredRow(null)}
+                        <p className="text-sm mt-2 text-gray-600">
+                            ID: {item.id}
+                        </p>
+
+                        <div className="flex gap-3 mt-4">
+                            <button
+                                className="flex-1 bg-green-600 text-white py-2 rounded-md"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditModal(item);
+                                }}
                             >
-                                <td
-                                    onClick={() => openEditModal(item)}
-                                    className="py-3 text-left truncate px-5 cursor-pointer"
-                                >
-                                    {item.id}
-                                </td>
+                                Ver
+                            </button>
 
-                                <td className="py-3 text-left">
-                                    {item.number}
-                                </td>
+                            <button
+                                className="
+                                    flex-1
+                                    border border-red-500
+                                    text-red-500
+                                    bg-white
+                                    py-2
+                                    rounded-md
+                                    hover:bg-red-100
+                                    transition
+                                "
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDeleteModal(item);
+                                }}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
 
-                                <td className="py-3 text-left">20</td>
-
-                                <td className="py-3 text-left rounded-r-lg">
-                                    {item.state}
-                                </td>
-
-                                <td className="py-3 text-left rounded-r-lg relative">
-                                    {hoveredRow === i && (
-                                        <div className="dropdown dropdown-end absolute right-0 -mt-5">
-                                            <div
-                                                tabIndex={0}
-                                                role="button"
-                                                className="btn btn-sm m-1 text-2xl"
-                                            >
-                                                ...
-                                            </div>
-
-                                            <ul className="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow-sm">
-                                                <li>
-                                                    <button
-                                                        onClick={() =>
-                                                            openEditModal(item)
-                                                        }
-                                                    >
-                                                        Ver
-                                                    </button>
-                                                </li>
-
-                                                <li>
-                                                    <button
-                                                        className="text-red-600"
-                                                        onClick={() =>
-                                                            openDeleteModal(
-                                                                item
-                                                            )
-                                                        }
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    )}
-                                </td>
+            {/* ===== DESKTOP ===== */}
+            <div className="hidden md:block">
+                <div className="rounded-lg overflow-hidden border border-gray-200 bg-white">
+                    <table className="w-full border-collapse">
+                        <thead className="bg-gray-500 text-white text-sm font-semibold">
+                            <tr>
+                                <th className="py-3 px-5 text-left">Id</th>
+                                <th className="py-3 text-left">Ficha</th>
+                                <th className="py-3 text-left">Alumnos</th>
+                                <th className="py-3 text-left">Estado</th>
+                                <th className="py-3 text-left"></th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody className="border-separate border-spacing-y-2">
+                            {sheets.map((item, i) => (
+                                <tr
+                                    key={item.id}
+                                    className="odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue"
+                                    onMouseEnter={() => setHoveredRow(i)}
+                                    onMouseLeave={() => setHoveredRow(null)}
+                                >
+                                    <td
+                                        onClick={() => openEditModal(item)}
+                                        className="py-3 px-5 cursor-pointer"
+                                    >
+                                        {item.id}
+                                    </td>
+                                    <td className="py-3">{item.number}</td>
+                                    <td className="py-3">20</td>
+                                    <td className="py-3">{item.state}</td>
+
+                                    <td className="relative overflow-visible">
+                                        {hoveredRow === i && (
+                                            <div className="dropdown dropdown-end absolute right-2 top-1/2 -translate-y-1/2 z-50">
+                                                <div
+                                                    tabIndex={0}
+                                                    role="button"
+                                                    className="btn btn-sm"
+                                                >
+                                                    ...
+                                                </div>
+
+                                                <ul className="dropdown-content menu bg-base-100 rounded-lg w-40 p-2 shadow-lg">
+                                                    <li>
+                                                        <button
+                                                            onClick={() =>
+                                                                openEditModal(
+                                                                    item
+                                                                )
+                                                            }
+                                                        >
+                                                            Ver
+                                                        </button>
+                                                    </li>
+
+                                                    <li>
+                                                        <button
+                                                            className="text-red-600"
+                                                            onClick={() =>
+                                                                openDeleteModal(
+                                                                    item
+                                                                )
+                                                            }
+                                                        >
+                                                            Eliminar
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

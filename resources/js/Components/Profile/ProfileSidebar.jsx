@@ -15,7 +15,7 @@ const ProfileSidebar = ({ className = "" }) => {
                 Información de Usuario
             </h1>
 
-            <div className="w-72 bg-white rounded-2xl p-4 flex flex-col items-center shadow mt-2">
+            <div className="w-72 bg-white rounded-2xl p-4 flex flex-col items-center shadow mt:2">
                 <img
                     src="/images/girl-pic.jpg"
                     alt="Profile picture"
