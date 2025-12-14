@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExplorerController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;

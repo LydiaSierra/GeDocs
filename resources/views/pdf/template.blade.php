@@ -4,28 +4,48 @@
     <meta charset="utf-8">
     <title>Acta</title>
     <style>
+
+        /* contenido general */
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
             line-height: 1.4;
         }
-
-        .line {
-            border-bottom: 1px solid #000;
-            height: 18px;
-            margin: 4px 0;
+        /* contenedor del encabezado */
+        .titleContainer{
+            border: 1px solid black;
+            display: flex;
+            justify-content: start;
             width: 100%;
+            height: 5vh;
+            margin: 0;
+            padding: 0;
         }
 
+        .containerGedocs{
+            background-color: skyblue;
+            text-align: center;
+            height: auto;
+        }
+        .containerSena{
+            height: auto;
+            background-color: skyblue;
+            text-align: center;
+        }
+        .sectionTitle{
+            width: 60%;
+            text-align: center;
+            background-color: orange;
+            height: auto;
+        }
+
+        /* subtitulos */
         .label {
             font-weight: bold;
         }
 
-        .textarea {
-            border: 1px solid #000;
-            min-height: 120px;
-            margin-top: 5px;
-            padding: 5px;
+        /* texto de la información */
+        .line{
+            color: gray;
         }
 
         .section {
@@ -34,10 +54,22 @@
     </style>
 </head>
 <body>
+    <div class="titleContainer">
+        
+        <div class="containerGedocs">
+            <!-- <img src="/gedocs-logo.svg" alt="gedocs logo"> -->
+             <h1> GeDocs </h1>
+        </div>
 
-    <div class="section">
-        <div class="label">Código</div>
-        <div class="line">{{ $data['codigo'] ?? '' }}</div>
+        <div class="sectionTitle">
+            <div class="label">Código de acta:</div>
+            <div class="line">{{ $data['codigo'] ?? '' }}</div>
+        </div>
+
+        <div class="containerSena">
+            <h1> SENA </h1>
+        </div>
+
     </div>
 
     <div class="section">
