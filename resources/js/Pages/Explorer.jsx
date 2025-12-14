@@ -1,4 +1,3 @@
-
 import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
 import { useContext, useEffect, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
@@ -11,9 +10,16 @@ import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import CreateFolderModal from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
 import { usePage } from "@inertiajs/react";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
+import ToastPdf from "@/Components/ToastPdf";
 
 export default function Explorer() {
-    const { openFolder, setHistoryStack, fetchFolders, currentFolder, getAllFolders } = useContext(ArchiveDataContext);
+    const {
+        openFolder,
+        setHistoryStack,
+        fetchFolders,
+        currentFolder,
+        getAllFolders,
+    } = useContext(ArchiveDataContext);
     const { selectedItem } = useContext(ArchiveUIContext);
     const [openModalUpload, setopenModalUpload] = useState(false);
     const role = usePage().props.auth.user.roles[0].name
@@ -23,6 +29,8 @@ export default function Explorer() {
 
 
 
+    const [showPdfToast, setShowPdfToast] = useState(false);
+    
 
     useEffect(() => {
         const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
@@ -32,15 +40,15 @@ export default function Explorer() {
             const lastFolder = savedHistory[savedHistory.length - 1];
             openFolder(lastFolder, false);
         } else {
-            fetchFolders()
+            fetchFolders();
         }
         getAllFolders()
 
     }, [])
 
+    
 
     return (
-
         <>
             <DashboardLayout>
                 <div className="bg-white h-full rounded-lg p-2 relative">
@@ -64,11 +72,50 @@ export default function Explorer() {
                                 </button>
                             }
                         </div>
+                        {currentFolder && (
+                            <button
+                                className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
+                                onClick={() => {
+                                    setopenModalUpload(true);
+                                }}
+                            >
+                                Subir Archivo
+                            </button>
+                        )}
                     </div>
                     <ContainerFolders />
 
+                    {/* Open the modal using document.getElementById('ID').showModal() method */}
+                    <button
+                        className="btn absolute right-12 bg-primary text-white"
+                        onClick={() =>
+                            document.getElementById("my_modal_1").showModal()
+                        }
+                    >
+                        Crear PDF
+                    </button>
+                    <dialog id="my_modal_1" className="modal">
+                        <div className="modal-box">
+                            <h1 className="text-xl text-center">
+                                {" "}
+                                Formulario PDF{" "}
+                            </h1>
+                            <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)}/>
+                            <div className="modal-action">
+                                <div className="modal-action">
+                                    <button
+                                        type="submit"
+                                        form="pdfForm"
+                                        className="btn bg-primary text-white"
+                                    >
+                                        Crear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </dialog>
 
-                    {openModalUpload &&
+                    {openModalUpload && (
                         <UploadModal onOpen={setopenModalUpload} />
                     }
                     {selectedItem &&
@@ -78,15 +125,18 @@ export default function Explorer() {
 
 
 
+                    )}
+                    {selectedItem && <ModalDetails />}
                 </div>
 
 
                 {/* <DependencyScheme /> */}
+                
             </DashboardLayout>
+            <ToastPdf
+                    show={showPdfToast}
+                    onClose={() => setShowPdfToast(false)}
+                />
         </>
-
-
-
-
     );
 }
