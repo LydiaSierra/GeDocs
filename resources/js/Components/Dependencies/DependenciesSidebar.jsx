@@ -7,11 +7,11 @@ export default function DependenciesSidebar() {
             <div>
                 <div className="overflow-x-auto w-300 ">
                    <div className="collapse collapse-arrow bg-base-100 border border-base-300 w-full">
-                    <input type="checkbox" />
-                    <div className="collapse-title font-semibold">Puchamosn</div>
-                    <div className="collapse-content text-sm">
-                        <p>Click the "Sign Up" button in the top right corner and follow the registration process.</p>
-                    </div>
+                        <input type="checkbox" />
+                        <div className="collapse-title font-semibold">Puchamosn</div>
+                        <div className="collapse-content text-sm">
+                            <p>Click the "Sign Up" button in the top right corner and follow the registration process.</p>
+                        </div>
                     </div>
 
                     <div className="collapse collapse-arrow bg-base-100 border border-base-300">

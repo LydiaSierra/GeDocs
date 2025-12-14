@@ -7,6 +7,7 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import {Head, Link, router, useForm} from '@inertiajs/react';
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import PasswordResetModal from "@/Components/PasswordResetModal.jsx";
+import { toast } from 'sonner';
 
 export default function Login({status, canResetPassword}) {
     const {data, setData, post, processing, errors, reset} = useForm({
@@ -28,9 +29,7 @@ export default function Login({status, canResetPassword}) {
             <Head title="Log in"/>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-primary">
-                    {status}
-                </div>
+                toast.info(status)
             )}
 
             <form onSubmit={submit}>

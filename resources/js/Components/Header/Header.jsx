@@ -1,13 +1,16 @@
 import { Link, router, usePage } from "@inertiajs/react";
+
 import NotificationDropDown from "../Notifications/NotificationDropDown";
+import api from "@/lib/axios.js";
 import HamburguerMenu from "../HamburguerMenu/HamburguerMenu";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
-import { useContext } from "react";
-
+import { useContext, useEffect } from "react";
+import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
 
 export default function Header() {
     const { url } = usePage();
     const { props } = usePage();
+
     const user = props.auth.user;
 
     const MobileMenu =
@@ -15,7 +18,13 @@ export default function Header() {
         url === "/users/instructor" ||
         url === "/notifications";
 
+    const { fetchNotifications } = useContext(NotificationsContext);
     const { setcurrentFolder } = useContext(ArchiveDataContext);
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
             {MobileMenu && <HamburguerMenu url={url} />}
@@ -24,7 +33,7 @@ export default function Header() {
                     <img
                         src="/gedocs-logo.svg"
                         alt="gedocs logo"
-                        className="h-8 lg:block md:hidden block"
+                        className="h-8 block"
                     />
                 </a>
             </div>
@@ -68,7 +77,7 @@ export default function Header() {
                             </div>
                         </div>
                         <li>
-                            <Link href={route('profile.edit')}>
+                            <Link href={route("profile.edit")}>
                                 Configuración
                             </Link>
                         </li>
@@ -78,7 +87,7 @@ export default function Header() {
                                 onClick={() => {
                                     localStorage.removeItem("folder_id");
                                     setcurrentFolder(null);
-                                    router.post("/logout")
+                                    router.post("/logout");
                                 }}
                             >
                                 Cerrar sesión

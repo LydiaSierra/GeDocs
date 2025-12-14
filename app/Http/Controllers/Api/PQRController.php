@@ -15,6 +15,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use App\Models\Sheet_number as SheetNumber;
 
+use function PHPUnit\Framework\isEmpty;
+
 class PQRController extends Controller
 {
     /**
@@ -24,11 +26,16 @@ class PQRController extends Controller
     {
         $user = $request->user();
 
+<<<<<<< HEAD
         //Filtro de si el usuario esta autenticado y filtgra por dependencia
+=======
+        //Filtro de si el usuario esta autenticado y filtra por dependencia
+
+>>>>>>> 21a871c7ecf248af8edb5c7e06a9924afe83853b
         if ($user && $user->hasRole('Dependencia')) {
-        $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
-            ->where('dependency_id', $user->dependency_id)
-            ->get();
+            $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
+                ->where('dependency_id', $user->dependency_id)
+                ->get();
 
             return response()->json($pqrs);
         }
@@ -40,7 +47,7 @@ class PQRController extends Controller
         // Si quieres que solo admin vea todas, validaaquí
         if ($user->hasRole('Admin')) {
             $pqrs = PQR::all();
-         }
+        }
 
         return response()->json([
             'data' => $pqrs,
@@ -53,51 +60,59 @@ class PQRController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        //Validacion de los datos requeridos en la pqr
+        // 1. Validate input
         $validated = $request->validate([
+            'sender_name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
             'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
-            'response_time' => 'nullable|date|after:today',
-            'response_days' => 'sometimes|in:10,15,30',
+            'response_time' => 'nullable|date|after_or_equal:today',
+            'response_days' => 'nullable|in:10,15,30',
             'number' => 'required|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'email'=> 'nullable|email|string|unique:p_q_r_s,email',
-            'document'=> 'nullable|string|max:100|unique:p_q_r_s,document',
+            'email' => 'nullable|email|string|unique:p_q_r_s,email',     // adjust if table is p_q_r_s
+            'document_type' => 'required|string|in:CC,TI,CE',
+            'document' => 'nullable|string|max:100|unique:p_q_r_s,document', // adjust if table is p_q_r_s
         ]);
 
-        //Buscar id de la ficha tecnica por el numero en la tabla sheet
-        $sheetNumber = SheetNumber::where('number', $request->number)->first();
+        // 2. Prevent invalid combination of fields
+        if (!empty($validated['response_days']) && !empty($validated['response_time'])) {
+            return response()->json([
+                'error' => 'No se pueden enviar response_days y response_time al mismo tiempo.'
+            ], 422);
+        }
+
+        // 3. Find the sheet number
+        $sheetNumber = SheetNumber::where('number', $validated['number'])->first();
 
         if (!$sheetNumber) {
             return response()->json(['error' => 'Ficha técnica no encontrada'], 404);
         }
-        //Buscar dependencia de ventanilla unica
+
+        // 4. Find dependency from "ventanilla única"
         $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
 
-        if(!$ventanillaUnica){
-            return response()->json(['error' => 'Ventanilla unica no encontrada para esta ficha'],404);
+        if (!$ventanillaUnica) {
+            return response()->json(['error' => 'Ventanilla única no encontrada para esta ficha'], 404);
         }
 
+        // 5. Get authenticated user (optional)
+        $userId = optional($request->user())->id;
 
-        $user = $request->user();
-        $userId = $user ? $user->id : null;
-
-          // Si envían response_days y no response_time, calcular response_time desde hoy
-        if (isset($validated['response_days']) && empty($validated['response_time'])) {
-            $validated['response_time'] = Carbon::now()->addDays((int)$validated['response_days'])->toDateString();
+        // 6. If only response_days is sent, calculate response_time
+        if (!empty($validated['response_days']) && empty($validated['response_time'])) {
+            $validated['response_time'] = Carbon::now()
+                ->addDays((int)$validated['response_days'])
+                ->toDateString();
         }
 
-        // Asegurar que response_time exista o sea null
-        $responseTime = $validated['response_time'] ?? null;
-
-
-        // Crear la PQR
+        // 7. Create PQR record
         $pqr = PQR::create([
+            'sender_name' => $validated['sender_name'],
             'description' => $validated['description'],
             'affair' => $validated['affair'],
-            'response_time' => $responseTime,
+            'response_time' => $validated['response_time'] ?? null,
             'response_days' => $validated['response_days'] ?? null,
             'state' => false,
             'user_id' => $userId,
@@ -106,29 +121,39 @@ class PQRController extends Controller
             'request_type' => $validated['request_type'],
             'sheet_number_id' => $sheetNumber->id,
             'response_status' => 'pending',
-            'email'=> $validated['email'] ?? null,
-            'document'=> $validated['document'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'document' => $validated['document'] ?? null,
+            'document_type' => $validated['document_type'],
         ]);
 
-        // Guardar archivos
+        // 8. Handle attachments
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
+
                 $path = $file->store('pqr_attachments', 'public');
 
                 $pqr->attachedSupports()->create([
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
                     'type' => $file->getClientOriginalExtension(),
-                    'size' => $file->getSize()
+                    'size' => $file->getSize(),
                 ]);
             }
         }
 
+        // 9. Return response with eager-loaded relations
         return response()->json([
-            'data' => $pqr->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
+            'data' => $pqr->load([
+                'creator',
+                'responsible',
+                'dependency',
+                'attachedSupports',
+                'sheetNumber'
+            ]),
             'message' => 'PQR creada exitosamente'
         ], 201);
     }
+
 
     /**
      * MOSTRAR UNA PQR ESPECIFICA
@@ -160,6 +185,39 @@ class PQRController extends Controller
         ], 200);
     }
 
+    /*
+        MOSTAR PQRS DE UNA FICHA (SOLO PARA INSTRUCTORES)
+    */
+    public function sheetShow(Request $request):JsonResponse
+    {
+        $user = $request->user();
+        $pqrs = "";
+        if($user && $user->hasRole('Instructor')){
+
+          $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
+          ->whereIn('sheet_number_id', $user->sheetNumbers->pluck('id')) //Pluck devuelve el array con los datos ingresados, en lugar del objeto completo 
+          ->get();
+
+          if(!$pqrs){
+            return response()->json([
+                "sucess"=>false,
+                "message"=>"No hay PQRs asociadas a la ficha"
+            ]);
+          }
+            return response()->json($pqrs);
+
+        }
+        if(!$user){
+            
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+        return response()->json([
+            'data' => $pqrs,
+            'message' => 'PQRs obtenidas exitosamente',
+        ], 200);
+    }
+    
+
     /**
      * ACTUALIZAR UNA PQR
      */
@@ -182,7 +240,7 @@ class PQRController extends Controller
         }
 
         //Permisos para establecer tiempos por dias
-        $canSetDays = $user -> hasRole('Admin') || $user -> hasRole('Instructor') || ((int) $pqr->responsible_id) == $user->id;
+        $canSetDays = $user->hasRole('Admin') || $user->hasRole('Instructor') || ((int)$pqr->responsible_id) == $user->id;
 
         if (isset($validated['response_days'])) {
             if (!$canSetDays) {
@@ -263,7 +321,7 @@ class PQRController extends Controller
             }
 
             return response()->json([
-                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports','sheetNumber']),
+                'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),
                 'message' => 'Respuesta enviada exitosamente'
             ], 200);
 

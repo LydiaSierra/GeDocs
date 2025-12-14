@@ -10,12 +10,11 @@ import { NotificationsContext } from "@/context/Notifications/NotificationsConte
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
 const NotificationDropDown = () => {
-    const { notifications, markAsReadNotification, loading, visibleDetails } =
+    const { notifications, markAsReadNotification, notificationSeleted, setNotificationSeleted } =
         useContext(NotificationsContext);
 
     const [solicitudAprendiz, setSolicitudAprendiz] = useState(false);
     const [solicitudInstructor, setSolicitudInstructor] = useState(false);
-
     return (
         <>
             <div className="dropdown dropdown-end">
@@ -29,55 +28,73 @@ const NotificationDropDown = () => {
                 </div>
 
                 <ul
-                    className="dropdown-content bg-base-100 rounded-box z-1 p-2 shadow-sm md:w-max w-auto overflow-auto"
+                    className="dropdown-content bg-base-100 rounded-box z-1 p-2 shadow-sm w-max overflow-auto"
+                    tabIndex="-1"
                 >
-                    <li className="flex flex-col md:w-full sm:w-80 w-65 h-[50%] gap-8 hover:bg-none">
-                        <div className="w-[95%] self-center pl-3 h-auto border-b-2 border-black rounded-none">
-                            <h2 className="text-xl text-black font-normal">
+                    <li className="flex flex-col w-max  gap-8 hover:bg-none">
+                        <div className="text-center font-bold h-auto border-b w-full border-gray-300 rounded-none p-3">
+                            <h2 className="text-lg text-black font-normal">
                                 Solicitudes Instructores
                             </h2>
                         </div>
 
-                        <ul className="w-full h-auto">
-                            {notifications
-                                .filter((item) => (item.read_at === null ))
-                                .map((item) => (
-                                    <li
-                                        key={item.id}
-                                        className="flex flex-row py-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
-                                        relative hover:bg-accent cursor-pointer"
-                                    >
-                                        <UserCircleIcon className="md:w-13 md:h-13 w-12 h-12 self-start text-[#404142]" />
+                        {notifications.filter((item) => (item.read_at === null)).length > 0 ? (
 
-                                        <div className="w-[80%] h-full flex flex-col items-start gap-1">
-                                            <h1 className="text-2xs md:text-lg font-semibold">
-                                                Nuevo Instructor
-                                            </h1>
-                                            <p className="text-xs md:text-sm font-medium">
-                                                Solicitud de Acceso:
-                                            </p>
-                                            <p className="text-xs md:text-sm font-medium">{`${item.data.user.name} solicita un nuevo acceso con...`}</p>
-                                        </div>
+                            <div className="w-full h-auto">
+                                {notifications
+                                    .filter((item) => (item.read_at === null))
+                                    .map((item) => (
+                                        <article
+                                            key={item.id}
+                                            className="flex flex-row py-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
+                                        relative hover:bg-accent cursor-pointer transition rounded-md"
+                                            onClick={() => {
 
-                                        <div className="w-[10%] h-full flex justify-end items-start ">
-                                            <p className=" text-[#404142] font-medium text-xs absolute md:top-5 top-[15%] right-3">
-                                                {new Date(
-                                                    item.created_at
-                                                ).toLocaleDateString()}
-                                            </p>
-                                        </div>
+                                                if (item.id !== notificationSeleted && !item.read_at) {
+                                                    markAsReadNotification(item.id);
+                                                }
+                                                setNotificationSeleted(!item.id === notificationSeleted ? null : item.id);
+                                                router.visit(`/notifications`);
+                                          
+                                            }}
+                                        >
+                                            <UserCircleIcon className="md:w-13 md:h-13 w-12 h-12 self-center text-[#404142]" />
 
-                                        <PlusCircleIcon className="md:w-4.5 w-3.5 md:h-4.5 h-3.5 fill-[#3CACBB] text-[#3CACBB] border-none absolute md:-top-3 -top-2 right-1 " />
-                                    </li>
-                                ))}
-                        </ul>
+                                            <div className="w-[80%] h-full flex flex-col items-start gap-1">
+                                                <h1 className="text-2xs md:text-lg font-semibold">
+                                                    Nuevo Instructor
+                                                </h1>
+                                                <p className="text-xs md:text-sm font-medium">
+                                                    Solicitud de Acceso:
+                                                </p>
+                                                <p className="text-xs md:text-sm font-medium">{`${item.data.user.name} solicita un nuevo acceso con...`}</p>
+                                            </div>
+
+                                            <div className="w-[10%] h-full flex justify-end items-start ">
+                                                <p className=" text-[#404142] font-medium text-xs absolute md:top-5 top-[15%] right-3">
+                                                    {new Date(
+                                                        item.created_at
+                                                    ).toLocaleDateString()}
+                                                </p>
+                                            </div>
+
+                                            <PlusCircleIcon className="md:w-4.5 w-3.5 md:h-4.5 h-3.5 fill-[#3CACBB] text-[#3CACBB] 
+                                        border-none absolute md:-top-2.5 -top-2 right-0 " />
+                                        </article>
+                                    ))}
+                            </div>
+
+                        ) : (
+                            <p className="w-full text-center text-xs text-[#848484]">
+                                No hay solicitudes pendientes sin leer
+                            </p>
+                        )}
                         <Link
                             className="w-full flex justify-center"
                             href={route("notifications.index")}
                         >
                             <button
-                                className="self-center font-semibold cursor-pointer md:text-lg text-xs md:w-auto w-40 py-1 md:px-2 bg-none border flex justify-center 
-                                items-center border-solid border-[#848484] rounded-xl hover:border-none hover:bg-[#848484] hover:text-white"
+                                className="btn p-2 rounded-md border border-gray-300 w-full text-center transition"
                                 onClick={() => setSolicitudInstructor(true)}
                             >
                                 Todas las Solicitudes

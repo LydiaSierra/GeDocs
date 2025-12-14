@@ -1,20 +1,19 @@
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
 import React, { useContext, useState } from "react";
+
 import {
     ArrowUturnLeftIcon,
     UserCircleIcon,
     ArrowPathIcon,
 } from "@heroicons/react/24/solid";
+import { toast } from "sonner";
 
 const NotificationCard = () => {
     const {
-        notifications,
-        markAsReadNotification,
-        loading,
-        visibleDetails,
         loadingDetailsNotification,
         closeDetails,
-        updateStatusUser,
+        updateUserStatusFromNotification,
+        visibleDetails
     } = useContext(NotificationsContext);
 
     if (loadingDetailsNotification) {
@@ -26,12 +25,12 @@ const NotificationCard = () => {
         );
     }
     if (!visibleDetails) return null;
+    const isActive = visibleDetails.data.user.status === "active";
+    const isRejected = visibleDetails.data.user.status === "rejected";
 
-    const status = String(visibleDetails?.data?.user?.status || "").toLowerCase().trim();
-    const isActive = status === "active";
     return (
-        <div className=" bg-white flex flex-col w-full h-[70%] gap-5 p-3.5 mt-13 rounded-md col-span-2">
-            <div className="w-full h-auto flex flex-row justify-between">
+        <div className=" bg-white flex flex-col w-full h-full gap-5 p-3 rounded-md col-span-2 overflow-y-auto relative">
+            <div className="w-full h-auto flex flex-row justify-between sticky top-0 bg-white z-1">
                 <button className="h-auto w-auto cursor-pointer rounded-[50%] hover:bg-gray-400 p-1 hover:text-white">
                     <ArrowUturnLeftIcon
                         className="w-7 h-7"
@@ -49,7 +48,7 @@ const NotificationCard = () => {
                 {new Date(visibleDetails.created_at).toLocaleDateString()}
             </p>
 
-            <div className="bg-[#F3F3F3] w-full h-auto mx-auto p-6 rounded-md text-base">
+            <div className="bg-[#F3F3F3] w-full  mx-auto p-6 rounded-md text-base">
                 <h1 className="font-semibold ">
                     {" "}
                     Información del solicitante:{" "}
@@ -88,28 +87,61 @@ const NotificationCard = () => {
                     </div>
                 </div>
             </div>
-            <h1 className="text-center font-medium text-2xl ">
-                {" "}
-                ¿Desea permitir que este usuario ingrese como instructor?
-            </h1>
+            {isRejected ?
+                <div>
+                    <h1 className="text-start font-medium text-xl">
+                        Usuario rechazado
+                    </h1>
+                    <p>
+                        Este usuario ha sido rechazado, su registro se eliminara en 2 horas. <strong> ¿Desea darle ingreso?</strong>
+                    </p>
+                </div>
+                :
+                <h1 className="text-center font-medium text-2xl ">
+                    ¿Desea permitir que este usuario ingrese como instructor?
+                </h1>
+            }
+
             {isActive ? (
                 <p className="text-green-500 text-center"> El usuario ya fue aceptado! </p>
             ) : (
                 <div className="flex gap-[20%] w-full flex-row justify-center">
                     <button
-                        onClick={() => updateStatusUser("active")}
                         className="cursor-pointer border border-green-400 p-1.5 hover:bg-green-300 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs "
+                        onClick={async () => {
+                            try {
+                                let toastId = toast.loading("Otorgando Permiso a " + visibleDetails?.data?.user?.name)
+                                await updateUserStatusFromNotification(visibleDetails?.id, "active");
+                                toast.success("Usuario aceptado con éxito");
+                                toast.dismiss(toastId)
+                            } catch (err) {
+                                toast.error(err.response?.data?.message || "Error al aceptar usuario");
+                                toast.dismiss(toastId);
+                            }
+                        }}
                     >
-                        {" "}
                         Aceptar
                     </button>
-                    <button
-                        onClick={() => updateStatusUser("pending")}
-                        className="cursor-pointer border border-red-500 p-1.5 hover:bg-red-400 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs"
-                    >
-                        {" "}
-                        Rechazar
-                    </button>
+                    {!isRejected &&
+                        <button
+                            onClick={async () => {
+                                try {
+                                    let toastId = toast.loading("Rechazando a " + visibleDetails?.data?.user?.name);
+                                    await updateUserStatusFromNotification(visibleDetails?.id, "rejected");
+                                    toast.success("Usuario rechazado");
+                                    toast.dismiss(toastId)
+                                } catch (err) {
+                                    toast.error(err.response?.data?.message || "Error al rechazar usuario");
+                                    toast.dismiss(toastId);
+                                }
+                            }}
+                            className="cursor-pointer border border-red-500 p-1.5 hover:bg-red-400 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs"
+                        >
+                            {" "}
+                            Rechazar
+                        </button>
+                    }
+
                 </div>
             )}
         </div>

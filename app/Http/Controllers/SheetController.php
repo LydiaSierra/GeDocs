@@ -88,36 +88,36 @@ class SheetController extends Controller
      * Update the specified resource in storage.
      * Updates the sheet number if the sheet exists.
      */
-    public function update(Request $request, string $numberSheet)
-    {
-        $sheet = Sheet_number::where("number", $numberSheet)->first();
+   public function update(Request $request, $id)
+{
+    $sheet = Sheet_number::find($id);
 
-        if (!$sheet) {
-            return response()->json([
-                "success" => false,
-                "message" => "Ficha no encontrada"
-            ], 404);
-        }
-
-        $validate = $request->validate([
-            "number" => "sometimes|numeric",
-            "active" => "sometimes|boolean",
-            "state" => "sometimes|string"
-        ]);
-
-        if (isset($validate["active"]) && $validate["active"] == true) {
-            Sheet_number::where("id", "!=", $sheet->id)
-                ->update(["active" => false]);
-        }
-
-
-        $sheet->update($validate);
-
+    if (!$sheet) {
         return response()->json([
-            "success" => true,
-            "message" => "Ficha actualizada con exito"
-        ], 200);
+            "success" => false,
+            "message" => "Ficha no encontrada"
+        ], 404);
     }
+
+    $validate = $request->validate([
+        "number" => "sometimes|numeric",
+        "active" => "sometimes|boolean",
+        "state" => "sometimes|string"
+    ]);
+
+    // Si esta ficha se activa, desactivar las demás
+    if (isset($validate["active"]) && $validate["active"] == true) {
+        Sheet_number::where("id", "!=", $sheet->id)
+            ->update(["active" => false]);
+    }
+
+    $sheet->update($validate);
+
+    return response()->json([
+        "success" => true,
+        "message" => "Ficha actualizada con éxito"
+    ], 200);
+}
 
     /**
      * Remove the specified resource from storage.

@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
+use App\Http\Controllers\SheetUserController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -24,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/filter/unread', [NotificationController::class, 'unread']);
     Route::get('/notifications/filter/read', [NotificationController::class, 'read']);
     Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
+    Route::put("/notifications/update/{idNotification}/{state}", [NotificationController::class, 'updateUserOfNotification']);
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {
@@ -42,6 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+
+        //Get sheets related with specific user
+        Route::get("/sheetsNumber", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN
@@ -53,8 +58,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
-        Route::put('/sheets/{numberSheet}', [SheetController::class, 'update']);
-        Route::delete('/sheets', [SheetController::class, 'destroy']);
+        Route::put('/sheets/{id}', [SheetController::class, 'update']);
+        Route::delete('/sheets/{id}', [SheetController::class, 'destroy']);
         Route::delete('/sheets/delete/user/{numberSheet}/{idUser}', [SheetController::class, 'deleteUserFromSheet']);
     });
 
@@ -76,6 +81,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch('pqrs/{id}', [PQRController::class, 'update']);
 
+    //Listar PQRS INSTRUCTOR
+    Route::get('pqrs/instructor', [PQRController::class, 'sheetShow']);
+
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
 
@@ -83,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Edit the profile photo
     Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
-
 });
 
 // ----------- CREAR PQRS -------------

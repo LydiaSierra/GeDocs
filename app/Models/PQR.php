@@ -12,6 +12,7 @@ class PQR extends Model
 
     protected $table = 'p_q_r_s';
     protected $fillable = [
+        'sender_name',
         'description',
         'affair',
         'response_time',
@@ -26,6 +27,7 @@ class PQR extends Model
         'request_type',
         'sheet_number_id',
         'email',
+        'document_type',
         'document'
     ];
 

@@ -26,7 +26,8 @@ Route::middleware('auth')->group(function () {
             'notificationId' => null
         ])
     )->name('notifications.index');
-
+    //Gestion Admin General
+    
     // Gestion de Instructor
     Route::get(
         '/users/instructor',

@@ -1,18 +1,16 @@
-import { createContext, useState, useEffect, useCallback } from "react";
+import { createContext, useState, useEffect, useCallback, useMemo } from "react";
 import api from "@/lib/axios";
-import { router, usePage } from "@inertiajs/react";
+
 
 export const NotificationsContext = createContext();
 
 export function NotificationsProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
-    const [filter, setFilter] = useState(null);
     const [loading, setLoading] = useState(false);
     const [loadingDetailsNotification, setLoadingDetailsNotification] =
         useState(false);
-    const [visibleDetails, setVisibleDetails] = useState(null);
     const [notificationSeleted, setNotificationSeleted] = useState(null);
-    const [userState, setUserState] = useState("");
+
 
     const fetchNotifications = useCallback(async () => {
         setLoading(true);
@@ -35,9 +33,12 @@ export function NotificationsProvider({ children }) {
         }
     }, []);
 
+    const visibleDetails = useMemo(()=>{
+        if(!notificationSeleted) return null
+        return notifications.find(n => n.id === notificationSeleted);
+    })
     const markAsReadNotification = useCallback(
         async (id) => {
-            setNotificationSeleted(id);
             setLoadingDetailsNotification(true);
             setNotifications((prev) =>
                 prev.map((notification) =>
@@ -61,52 +62,37 @@ export function NotificationsProvider({ children }) {
         [notificationSeleted]
     );
 
-    const closeDetails = useCallback(() => {
-        setVisibleDetails(null);
-    });
+    const updateUserStatusFromNotification = async (notificationId, status) => {
+        const notification = notifications.find(n => n.id === notificationId);
+        if (!notification) return;
 
-    const updateStatusUser = async (status) => {
-        if (!visibleDetails || !visibleDetails.data || !visibleDetails.data.user) return;
-        const userId = visibleDetails.data.user.id;
         try {
-            const res = await api.put(`/api/users/${userId}`, {
-                status: status,
-            });
+            await api.put(`/api/notifications/update/${notificationId}/${status}`);
 
-            console.debug("PUT /api/users response:", res.status, res.data);
-
-            if (!res.data || res.data.success === false) {
-                console.error("error al actualizar estado de la petición", res.data?.message || "");
-                return;
-            }
-
-            console.log(res.data.message || "Usuario actualizado");
-
-            // Actualizar el estado dentro de visibleDetails.data.user
-            setVisibleDetails((prev) => ({
-                ...prev,
-                data: {
-                    ...prev.data,
-                    user: {
-                        ...prev.data.user,
-                        status,
-                    },
-                },
-            }));
-
-            closeDetails();
-        } catch (error) {
-            const statusCode = error?.response?.status;
-            const serverMessage = error?.response?.data?.message || error.message;
-            if (statusCode === 401 || statusCode === 403) {
-                console.error("No autorizado para actualizar usuario:", statusCode, serverMessage);
-            } else if (statusCode === 422) {
-                console.error("Validación inválida:", error.response.data.errors || serverMessage);
-            } else {
-                console.error("error al hacer la petición:", serverMessage);
-            }
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    n.id === notificationId
+                        ? {
+                            ...n, 
+                            data: {
+                                ...n.data,
+                                user: {
+                                    ...n.data.user,
+                                    status
+                                }
+                            }
+                        }
+                        : n
+                )
+            );
+        } catch (err) {
+            console.error(err?.response?.data || err.message || err || "Error actualizando estado del usuario");
         }
-    };
+    }
+
+    const closeDetails = () => setNotificationSeleted(null);
+
+
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
@@ -117,13 +103,13 @@ export function NotificationsProvider({ children }) {
                 notifications,
                 markAsReadNotification,
                 loading,
-                visibleDetails,
-                setVisibleDetails,
                 loadingDetailsNotification,
                 closeDetails,
+                visibleDetails,
                 fetchNotifications,
                 notificationSeleted,
-                updateStatusUser,
+                setNotificationSeleted,
+                updateUserStatusFromNotification,
             }}
         >
             {children}
