@@ -12,24 +12,26 @@ class Folder extends Model
     protected $fillable = [
         'name',
         'parent_id',
-        'type',
+
         'folder_code',
-        'path',
-        'departament',
+
+        'department',
     ];
 
-    public function parent(){
-        return $this->belongsTo(Folder::class,'parent_id');
-
+    public function parent()
+    {
+        return $this->belongsTo(Folder::class, 'parent_id');
     }
-    public function children(){
-        return $this->hasMany(Folder::class,'parent_id','id');
+    public function children()
+    {
+        return $this->hasMany(Folder::class, 'parent_id', 'id');
     }
-    public function files(){
+    public function files()
+    {
         return $this->hasMany(File::class);
     }
 
-     public function folder()
+    public function folder()
     {
         return $this->belongsTo(Folder::class);
     }

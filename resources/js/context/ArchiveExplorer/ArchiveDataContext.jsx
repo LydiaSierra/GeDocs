@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { router } from "@inertiajs/react";
+import { toast } from "sonner";
 
 // Create a context to share folder and file data across components
 export const ArchiveDataContext = createContext();
@@ -96,19 +97,16 @@ export function ArchiveDataProvider({ children }) {
     };
 
     const getAllFolders = async () => {
-        try{
-            setLoading(true)
+        try {
             const res = await api.get("/api/folders-all");
-            
+
             if (!res.data.success) {
                 throw new Error("Error al obtener la API");
-            }   
+            }
             setallFolders(res.data.folders)
         } catch (err) {
             console.error("Error al hacer la petición: ", err.message || err);
             throw err;
-        } finally {
-            setLoading(false);
         }
     }
 
@@ -139,6 +137,71 @@ export function ArchiveDataProvider({ children }) {
         }
     };
 
+    const createFolder = async ({ data }) => {
+        let toastId;
+        try {
+            toastId = toast.loading("Creando Carpeta");
+            const res = await api.post(`/api/folders`, data);
+
+            if (!res.data.success) {
+                toast.error(res.data?.message || "Error")
+                toast.dismiss(toastId);
+                throw new Error("Error: " + res.data?.message || "Error");
+            }
+            folders.unshift(res.data.folder);
+            toast.dismiss(toastId);
+            toast.success("Carpeta creada con éxito");
+            getAllFolders()
+
+        } catch (err) {
+            toast.dismiss(toastId);
+            throw new Error(err.response?.data?.message || "Error");
+        }
+    };
+
+    const updateFolder = async ({ data, folderId }) => {
+        let toastId;
+
+        try {
+            toastId = toast.loading("Editando carpeta");
+
+            await api.put(`/api/folders/${folderId}`, data);
+
+            setFolders(prev =>
+                prev.map(f => f.id === folderId ? { ...f, ...data } : f)
+            );
+
+            toast.success("Carpeta editada con éxito");
+            toast.dismiss(toastId);
+            getAllFolders()
+
+        } catch (err) {
+            toast.dismiss(toastId);
+            throw new Error(err.response?.data?.message || "Error");
+        }
+    };
+
+
+    const deleteFolder = async ($idFolder) => {
+        let toastId;
+        try {
+            toastId = toast.loading("Eliminando carpeta");
+            await api.delete(`/api/folders/${$idFolder}`);
+
+            setFolders(prev => prev.filter(f => f.id !== $idFolder));
+            toast.dismiss(toastId);
+            toast.success("Carpeta eliminada con éxito");
+            getAllFolders()
+
+        } catch (error) {
+            console.error("Error eliminando carpeta:", error);
+            toast.dismiss(toastId);
+            toast.error(error.response.data.message || "Error eliminando carpeta");
+        }
+    }
+
+
+
 
     const deleteFile = async (fileId) => {
         try {
@@ -146,13 +209,14 @@ export function ArchiveDataProvider({ children }) {
 
             // Actualizar estado local instantáneamente
             setFiles(prev => prev.filter(f => f.id !== fileId));
-
         } catch (error) {
             console.error("Error eliminando archivo:", error);
         }
     };
 
- 
+
+
+
 
 
     // Provide all data and actions to any component that uses this context
@@ -175,6 +239,10 @@ export function ArchiveDataProvider({ children }) {
                 uploadFiles,
                 getAllFolders,
                 deleteFile,
+                deleteFolder,
+                createFolder,
+                updateFolder,
+                setcurrentFolder
 
             }}
         >

@@ -15,6 +15,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use App\Models\Sheet_number as SheetNumber;
 
+use function PHPUnit\Framework\isEmpty;
+
 class PQRController extends Controller
 {
     /**
@@ -24,7 +26,6 @@ class PQRController extends Controller
     {
         $user = $request->user();
 
-        //Filtro de si el usuario esta autenticado y filtgra por dependencia
 
         if ($user && $user->hasRole('Dependencia')) {
             $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
@@ -178,6 +179,39 @@ class PQRController extends Controller
             'message' => 'PQR obtenida exitosamente'
         ], 200);
     }
+
+    /*
+        MOSTAR PQRS DE UNA FICHA (SOLO PARA INSTRUCTORES)
+    */
+    public function sheetShow(Request $request):JsonResponse
+    {
+        $user = $request->user();
+        $pqrs = "";
+        if($user && $user->hasRole('Instructor')){
+
+          $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
+          ->whereIn('sheet_number_id', $user->sheetNumbers->pluck('id')) //Pluck devuelve el array con los datos ingresados, en lugar del objeto completo 
+          ->get();
+
+          if(!$pqrs){
+            return response()->json([
+                "sucess"=>false,
+                "message"=>"No hay PQRs asociadas a la ficha"
+            ]);
+          }
+            return response()->json($pqrs);
+
+        }
+        if(!$user){
+            
+            return response()->json(['message' => 'No autenticado'], 401);
+        }
+        return response()->json([
+            'data' => $pqrs,
+            'message' => 'PQRs obtenidas exitosamente',
+        ], 200);
+    }
+    
 
     /**
      * ACTUALIZAR UNA PQR

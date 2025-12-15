@@ -44,15 +44,15 @@ export const UserList = ({ url }) => {
         );
     } else {
         return (
-            <div>
-                <table className="w-full border-separate border-spacing-y-4 overflow-y-scroll">
-                    <thead className="sticky top-0">
-                        <tr className="bg-[#E8E8E8] h-10 ">
-                            <th className="rounded-l-[7px]">Nombre</th>
-                            <th>Identificacion</th>
-                            <th>Email</th>
-                            <th>Fecha de cración</th>
-                            <th className="rounded-r-[7px]">Estado</th>
+            <div className="overflow-y-scroll w-full">
+                <table className="w-full lg:border-separate lg:border-spacing-y-4 ">
+                    <thead className="sticky top-0 h-auto">
+                        <tr className="lg:bg-[#E8E8E8] bg-none lg:h-10 md:h-7 ">
+                            <th className="md:rounded-l-[7px] rounded-tl-[7px] text-sm lg:text-lg md:w-auto">Nombre</th>
+                            <th className="text-sm lg:text-lg md:w-auto">Identificacion</th>
+                            <th className="hidden lg:table-cell">Email</th>
+                            <th className="hidden lg:table-cell">Fecha de cración</th>
+                            <th className="md:rounded-r-[7px] rounded-tr-[7px] text-sm lg:text-lg md:w-auto">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -75,31 +75,32 @@ export const UserList = ({ url }) => {
                                         onClick={() => {
                                             ShowInformation(item.id);
                                         }}
-                                        className=" bg-white hover:bg-accent text-center cursor-pointer h-15 rounded-[7px]"
+                                        className=" lg:bg-white bg-none lg:border-none border-y border-solid border-[#DBDBDB]
+                                        hover:bg-accent text-center cursor-pointer h-15 "
                                     >
-                                        <td className="rounded-l-[7px] pl-5 font-medium text-xl text-neutral">
-                                            <div className="h-full flex flex-row items-center justify-start gap-5">
+                                        <td className="lg:pl-5 pl-2 lg:text-xl text-xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
+                                            <div className="h-full flex flex-row items-center justify-start lg:gap-5 gap-2">
                                                 <img
-                                                    className="w-10 rounded-full"
+                                                    className="lg:w-10 w-8 rounded-full"
                                                     alt="profile pic"
                                                     src="/images/girl-pic.jpg"
                                                 />
                                                 {item.name}
                                             </div>
                                         </td>
-                                        <td className="text-[#606164] font-normal">
+                                        <td className="text-[#606164] lg:text-lg text-xs font-normal">
                                             {item.document_number}
                                         </td>
-                                        <td className="text-[#606164] font-normal">
+                                        <td className="text-[#606164] hidden lg:table-cell font-normal">
                                             {item.email}
                                         </td>
-                                        <td className="text-[#606164] font-normal">
+                                        <td className="text-[#606164] hidden lg:table-cell font-normal">
                                             {new Date(
                                                 item.created_at
                                             ).toLocaleDateString()}
                                         </td>
-                                        <td className=" text-[#606164] h-full font-normal rounded-r-[7px]">
-                                            <div className="bg-[#E8E8E8] rounded-md w-[90%] h-auto">
+                                        <td className=" text-[#606164] h-full font-normal md:rounded-r-[7px] rounded-tr-[7px]yy">
+                                            <div className="bg-[#E8E8E8] rounded-md lg:w-[90%] md:w-[70%] w-auto text-xs lg:text-lg h-auto">
                                                 {item.status === "pending"
                                                     ? "Pendiente"
                                                     : "Activo"}

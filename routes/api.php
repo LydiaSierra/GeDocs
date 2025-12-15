@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\PQRController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
+use App\Http\Controllers\SheetUserController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -23,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/filter/unread', [NotificationController::class, 'unread']);
     Route::get('/notifications/filter/read', [NotificationController::class, 'read']);
     Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'markAsRead']);
+    Route::put("/notifications/update/{idNotification}/{state}", [NotificationController::class, 'updateUserOfNotification']);
 
     // ============= USERS API (Admin e Instructor) ==============
     Route::middleware('role:Admin|Instructor')->group(function () {
@@ -30,10 +33,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
 
+        // ============= FOLDERS ==============
+        Route::post("/folders", [FolderController::class, "store"]);
+        Route::delete('/folders/{folderId}', [FolderController::class, 'deleteFolder']);
+        Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder']);
+
+
+
         // ============= SHEETS ==============
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+
+        //Get sheets related with specific user
+        Route::get("/sheetsNumber", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN
@@ -41,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
 
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
@@ -67,9 +81,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch('pqrs/{id}', [PQRController::class, 'update']);
 
+    //Listar PQRS INSTRUCTOR
+    Route::get('pqrs/instructor', [PQRController::class, 'sheetShow']);
+
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
 
+    // ----------- Editprofile -------------
+
+    // Edit the profile photo
+    Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
 });
 
 // ----------- CREAR PQRS -------------

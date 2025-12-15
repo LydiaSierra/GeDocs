@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -59,5 +61,41 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function updateProfilePhoto(Request $request)
+    {
+
+        //validate the file submitted to be a photo
+        $request->validate([
+            'profile_photo' => 'required|image|max:2048',
+        ]);
+
+        $user = $request->user();
+        $file = $request->file('profile_photo');
+
+
+
+        // delete the previous photo
+        if ($user->profile_photo) {
+            Storage::disk('public')->delete($user->profile_photo);
+        }
+        // Only name
+        $fileName = Str::uuid() . "." . $file->getClientOriginalExtension();
+
+        // store the new photo an relate it to the user
+        $path = $file->storeAs(
+            "profile/picture/user-$user->id",
+            $fileName,
+            'public'
+        );
+
+        $user->update([
+            'profile_photo' => $path,
+        ]);
+
+        return response()->json([
+            'image' => Storage::disk('public')->url($path),
+        ]);
     }
 }

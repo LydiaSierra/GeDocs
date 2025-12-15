@@ -3,20 +3,12 @@ import React, { useContext, useState, useEffect } from "react";
 import { ArrowUturnLeftIcon, CameraIcon } from "@heroicons/react/24/solid";
 
 function UserEdit() {
-    const {
-        idSelected,
-        setidSelected,
-        edit,
-        setEdit,
-        isDelete,
-        setIsDelete,
-        UpdateInfo,
-        loadingEdit,
-    } = useContext(UserContext);
+    const { idSelected, setEdit, UpdateInfo, loadingEdit } =
+        useContext(UserContext);
 
     const [nombre, setNombre] = useState("");
     const [documento, setDocumento] = useState("");
-    const [numero_documento, setnumero_Documento] = useState("");
+    const [numero_documento, setNumeroDocumento] = useState("");
     const [email, setEmail] = useState("");
     const [estado, setEstado] = useState("");
 
@@ -24,7 +16,7 @@ function UserEdit() {
         if (idSelected) {
             setNombre(idSelected.name);
             setDocumento(idSelected.type_document);
-            setnumero_Documento(idSelected.document_number);
+            setNumeroDocumento(idSelected.document_number);
             setEmail(idSelected.email);
             setEstado(idSelected.status);
         }
@@ -36,108 +28,118 @@ function UserEdit() {
                 loadingEdit ? "cursor-not-allowed" : ""
             }`}
         >
-            <div className="w-[50%] h-[70%] bg-white flex flex-col gap-5 relative rounded-md px-5 py-12 ">
+            <div className="w-[90%] md:w-[70%] lg:w-[50%] h-[90%] md:h-[90%] lg:h-[75%] bg-white flex flex-col gap-6 relative rounded-md px-6 py-10">
+                {/* BOTÓN VOLVER */}
                 <button
-                    className="btn btn-md btn-circle btn-ghost absolute left-2 top-2"
+                    className="btn btn-circle btn-ghost absolute left-3 top-2"
                     onClick={() => setEdit(false)}
                 >
                     <ArrowUturnLeftIcon className="w-5 h-5" />
                 </button>
 
-                <h3 className="font-semibold text-2xl w-full text-start">
-                    {idSelected.roles[0]?.name === "Instructor"
+                {/* TÍTULO */}
+                <h3 className="font-semibold text-xl lg:text-2xl">
+                    {idSelected?.roles[0]?.name === "Instructor"
                         ? "Editar Instructor"
                         : "Editar Aprendiz"}
                 </h3>
 
-                <div className=" w-full h-[95%] rounded-lg flex bg-[#F3F3F3] flex-col items-center justify-center gap-4">
-                    <div className="w-full h-auto flex flex-row justify-center items-center gap-4 relative">
-                        <img
-                            className="w-18 h-18 rounded-full "
-                            alt="profile pic"
-                            src="/images/girl-pic.jpg"
-                        />
-                        <div className="w-auto flex justify-start">
-                            <h1 className="font-semibold w-full text-[20px] text-start">
-                                {idSelected.name}
-                            </h1>
+                {/* CONTENIDO */}
+                <div className="w-full lg:h-[90%] h-[92%] flex flex-col items-center lg:gap-5 gap-2 bg-[#F3F3F3] rounded-lg py-4">
+                    {/* PERFIL */}
+                    <div className="flex flex-col lg:flex-row items-center lg:gap-4 gap-2 relative">
+                        <div className="relative">
+                            <img
+                                className="lg:w-15 w-14 lg:h-15 h-14 rounded-full"
+                                alt="profile pic"
+                                src="/images/girl-pic.jpg"
+                            />
+                            <CameraIcon className="lg:w-6 w-5 lg:h-6 h-6 absolute bottom-0 right-0 text-primary cursor-pointer" />
                         </div>
-                        <CameraIcon className="w-6 h-6 absolute fill-primary z-1 top-12 left-74 cursor-pointer" />
+                        <h1 className="font-semibold text-lg">
+                            {idSelected?.name}
+                        </h1>
                     </div>
 
-                    <div className="w-full h-[57%] grid grid-cols-2 grid-rows-3 gap-3 rounded-lg px-4 pb-4">
-                        <div className="rounded flex flex-col items-start justify-start">
-                            <h1 className="font-light text-[17px]">Nombres</h1>
+                    {/* FORMULARIO */}
+                    <div className="w-full h-[70%] grid grid-cols-1 lg:grid-cols-2 lg:gap-4 gap-2 px-4">
+                        {/* NOMBRE */}
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm text-center md:text-start font-light">
+                                Nombres
+                            </label>
                             <input
                                 type="text"
-                                className="w-[85%] h-[60%] border-solid focus:outline-none  border border-[#D9D9D9] rounded-lg p-1 text-[] bg-white"
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none"
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
-                            ></input>
+                            />
                         </div>
 
-                        <div className="rounded flex flex-col justify-start">
-                            <h1 className="font-light text-[17px]">
+                        {/* TIPO DOCUMENTO */}
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm font-light">
                                 Tipo de Documento
-                            </h1>
+                            </label>
                             <select
-                                className="w-[85%] outline-none h-[60%] border-solid cursor-pointer hover:outline-none border 
-                            border-[#D9D9D9] rounded-lg p-1 text-[] bg-white"
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none cursor-pointer"
                                 value={documento}
                                 onChange={(e) => setDocumento(e.target.value)}
                             >
-                                <option value="1">Seleccione Una Opcion</option>
-                                <option value="CC">Cedula de Ciudadania</option>
+                                <option value="">Seleccione una opción</option>
+                                <option value="CC">Cédula de Ciudadanía</option>
                                 <option value="TI">Tarjeta de Identidad</option>
                             </select>
                         </div>
 
-                        <div className="rounded flex flex-col justify-start">
-                            <h1 className="font-light text-[17px]">
-                                Numero de Documento
-                            </h1>
+                        {/* NÚMERO DOCUMENTO */}
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm font-light">
+                                Número de Documento
+                            </label>
                             <input
                                 type="text"
-                                className="w-[85%] h-[60%] border-solid focus:outline-none  border border-[#D9D9D9] rounded-lg p-1 text-[] bg-white"
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none"
                                 value={numero_documento}
                                 onChange={(e) =>
-                                    setnumero_Documento(e.target.value)
+                                    setNumeroDocumento(e.target.value)
                                 }
-                            ></input>
+                            />
                         </div>
 
-                        <div className="rounded flex flex-col justify-start">
-                            <h1 className="font-light text-[17px]">
-                                Correo Electronico
-                            </h1>
+                        {/* EMAIL */}
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm font-light">
+                                Correo Electrónico
+                            </label>
                             <input
-                                type="text"
-                                className="w-[85%] h-[60%] border-solid focus:outline-none  border border-[#D9D9D9] rounded-lg p-1 text-[] bg-white"
+                                type="email"
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                            ></input>
+                            />
                         </div>
 
-                        <div className="rounded flex flex-col justify-start">
-                            <h1 className="font-light text-[17px]">Estado</h1>
+                        {/* ESTADO */}
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm font-light">Estado</label>
                             <select
-                                className="w-[85%] outline-none h-[60%]  border-solid cursor-pointer hover:outline-none border
-                                 border-[#D9D9D9] rounded-lg p-1 text-[] bg-white"
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none cursor-pointer"
                                 value={estado}
                                 onChange={(e) => setEstado(e.target.value)}
                             >
-                                <option value="1">Seleccione un Estado</option>
+                                <option value="">Seleccione un estado</option>
                                 <option value="pending">Pendiente</option>
                                 <option value="active">Activo</option>
                             </select>
                         </div>
                     </div>
 
-                    <div className="w-full h-auto flex flex-row justify-center">
+                    {/* BOTÓN */}
+                    <div className="w-full flex justify-center mt-4">
                         <button
-                            className={`w-25 h-8 rounded-[5px] bg-primary text-[18px] cursor-pointer
-                                 text-white border-none font-semibold text-center hover:border-solid
-                                  border-2 hover:border-primary hover:bg-white hover:text-primary`}
+                            className="lg:px-4 px-2  lg:h-8 h-7 lg:text-md text-sm rounded-md bg-primary 
+                            text-white font-semibold hover:bg-white hover:text-primary border-2 border-primary transition"
                             onClick={() => {
                                 UpdateInfo(
                                     nombre,
@@ -155,12 +157,11 @@ function UserEdit() {
                 </div>
             </div>
 
+            {/* LOADING */}
             {loadingEdit && (
-                <>
-                    <div className="fixed left-[32.5%] text-xl -translate-x-1/2 top-10 text-primary z-50 bg bg-white rounded-md p-4 border-2 border-solid border-primary">
-                        Actualizando usuario...
-                    </div>
-                </>
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-white border-2 border-primary text-primary px-4 py-2 rounded-md z-50">
+                    Actualizando usuario...
+                </div>
             )}
         </div>
     );

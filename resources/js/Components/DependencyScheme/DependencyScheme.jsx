@@ -6,7 +6,7 @@ import api from "@/lib/axios";
 import React, { useState } from "react";
 
 // Componente principal
-const DependencyScheme = () => {
+const DependencyScheme = ({ onPdfGenerated }) => {
 
     // ------------------------------
     // Función que maneja la generación del PDF
@@ -38,6 +38,10 @@ const DependencyScheme = () => {
             a.download = "acta.pdf";  // Nombre del archivo descargado
             a.click();                // Simula el click para descargar
 
+            onPdfGenerated();
+            
+            document.getElementById("my_modal_1").close();
+
         } catch (error) {
             console.error("Error generando el PDF:", error.message);
         }
@@ -47,8 +51,8 @@ const DependencyScheme = () => {
     // Render del formulario
     // ------------------------------
     return (
-        <form onSubmit={handleGeneratePdf}>
-            <div className="p-6 gap-2 items-center flex flex-wrap justify-between bg-gray-200">
+        <form id="pdfForm" onSubmit={handleGeneratePdf}>
+            <div className="rounded-sm p-6 gap-2 items-center flex flex-wrap justify-between bg-gray-200">
                 
                 {/* Campo: Código */}
                 <div>
@@ -166,12 +170,12 @@ const DependencyScheme = () => {
                 </div>
 
                 {/* Botón del formulario */}
-                <button
+                {/* <button
                     type="submit"
                     className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
                 >
                     Generar PDF
-                </button>
+                </button> */}
             </div>
         </form>
     );

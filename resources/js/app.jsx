@@ -9,7 +9,8 @@ import { ArchiveUIProvider } from "./context/ArchiveExplorer/ArchiveUIContext";
 import { RightClickProvider } from "./context/ArchiveExplorer/RightClickContext";
 import { NotificationsProvider } from "@/context/Notifications/NotificationsContext.jsx";
 import { UserProvider } from "./context/UserContext/UserContext";
-import { SheetsProvider } from "./context/SheetsContext/SheetsContext";
+import { Toaster } from "sonner";
+import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
@@ -29,6 +30,7 @@ createInertiaApp({
                         <NotificationsProvider>
                             <UserProvider>
                                 <SheetsProvider>
+                                    <Toaster position="top-center" richColors />
                                     <App {...props} />
                                 </SheetsProvider>
                             </UserProvider>
