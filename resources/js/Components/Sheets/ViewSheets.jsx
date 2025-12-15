@@ -8,17 +8,14 @@ export default function ViewSheets({ sheet }) {
     const [sheetToDelete, setSheetToDelete] = useState(null);
 
     const openEditModal = () => {
-     
         document.getElementById("my_modal_3")?.close();
 
-        
         setTimeout(() => {
             document.getElementById("my_modal_4")?.showModal();
         }, 100);
     };
 
     const openDeleteModal = () => {
-      
         document.getElementById("my_modal_3")?.close();
 
         setSheetToDelete(sheet);
@@ -29,7 +26,6 @@ export default function ViewSheets({ sheet }) {
 
     return (
         <div className="w-full bg-gray-100 p-6 rounded-lg">
-            {/* MODAL EDITAR */}
             <dialog id="my_modal_4" className="modal">
                 <div className="modal-box max-w-5xl w-[90%] p-8">
                     <form method="dialog">
@@ -42,7 +38,6 @@ export default function ViewSheets({ sheet }) {
                 </div>
             </dialog>
 
-            {/* MODAL ELIMINAR */}
             <DeleteSheets
                 sheetToDelete={sheetToDelete}
                 deleteSheet={deleteSheet}
@@ -50,7 +45,7 @@ export default function ViewSheets({ sheet }) {
 
             <h2 className="text-2xl font-semibold mb-4">Detalles de Ficha</h2>
 
-            <div className="bg-gray-200 p-6 rounded-lg">
+            <div className="bg-gray-100 p-6 rounded-lg">
                 <div className="grid grid-cols-2 gap-6">
                     <div>
                         <p className="text-gray-700 font-medium">

@@ -23,7 +23,7 @@ export default function Header() {
 
     useEffect(() => {
         fetchNotifications();
-    },[]);
+    }, []);
 
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">

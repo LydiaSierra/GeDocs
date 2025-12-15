@@ -29,14 +29,13 @@ const ProfileLayout = ({
                     />
                 </aside>
 
-                <main className="flex-1 pt-16 px-4 overflow-y-auto md:h-[calc(100vh-4rem)]">
+                <main className="flex-1 pt-16 px-4 overflow-y-auto md:h-[calc(100vh-4rem)] -ml-2">
                     <div className="flex flex-col md:flex-row items-center md:items-start md:gap-6">
-                        
+                        {/* PROFILE SIDEBAR */}
                         <div className="w-full md:w-auto flex justify-center md:justify-start">
                             <ProfileSidebar />
                         </div>
 
-                        {/* MAIN CONTENT */}
                         <div className="w-full max-w-5xl">{children}</div>
                     </div>
                 </main>
