@@ -8,6 +8,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
+use App\Http\Controllers\SheetUserController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -42,6 +43,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+        
+        //Get sheets related with specific user
+        Route::get("/sheets_number", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN
@@ -75,6 +79,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::patch('pqrs/{id}', [PQRController::class, 'update']);
+
+    //Listar PQRS INSTRUCTOR
+    Route::get('pqrs/instructor',[PQRController::class,'sheetShow']);
 
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
