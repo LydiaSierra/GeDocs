@@ -18,7 +18,6 @@ function SettingsBar({ url }) {
     const { auth } = usePage().props;
 
     const rol = auth.user.roles[0].name;
-    console.log(rol);
 
     if (url === "/profile") {
         return (

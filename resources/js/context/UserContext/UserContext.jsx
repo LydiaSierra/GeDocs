@@ -31,9 +31,10 @@ export function UserProvider({ children }) {
         }
         setUser(res.data.data);
         setLoading(false);
-
         return res.data.data;
     }, []);
+
+
 
     const ShowInformation = async (id) => {
         const newArray = user.find((item) => item.id === id);

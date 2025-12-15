@@ -15,7 +15,7 @@ class FolderController extends Controller
      */
     public function index()
     {
-        $folders = Folder::whereNull('parent_id')->get();
+        $folders = Folder::whereNull('parent_id')->orderBy('created_at', 'desc')->get();
         return response()->json(["success" => true, "folders" => $folders], 200);
     }
 
@@ -61,14 +61,17 @@ class FolderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            "name" => "required",
+            "name" => "required|string",
             "parent_id" => "nullable|exists:folders,id",
+            "folder_code" => "nullable|string",
+            "department" => "required|string"
         ]);
 
         $folder = Folder::create([
             "name" => $validated["name"],
             "parent_id" => $validated["parent_id"] ?? null,
-            "type" => "folder",
+            "folder_code" => $validated["folder_code"] ?? null,
+            "department" => $validated["department"],
         ]);
 
         return response()->json(["success" => true, "folder" => $folder]);
@@ -81,7 +84,7 @@ class FolderController extends Controller
         try {
             // Validar que la carpeta existe primero
             $folder = Folder::find($folderId);
-            
+
             $request->validate([
                 "files.*" => "required|file|max:51200", // 50MB
             ]);
@@ -129,7 +132,6 @@ class FolderController extends Controller
                 "success" => true,
                 "files" => $uploadedFiles
             ], 200);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 "success" => false,
@@ -172,5 +174,39 @@ class FolderController extends Controller
         return response()->json(["success" => true]);
     }
 
+    public function deleteFolder($folderId)
+    {
+        $folder = Folder::find($folderId);
 
+        $folder->files()->delete();
+
+        $folder->children()->delete();
+
+        $folder->delete();
+
+        return response()->json(["success" => true]);
+    }
+
+    public function updateFolder(Request $request, $folderId)
+    {
+        $folder = Folder::find($folderId);
+        if (!$folder) {
+            return response()->json([
+                "message" => "Carpeta no encontrada",
+                "success" => false,
+
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            "name" => "sometimes|required|string",
+            "parent_id" => "sometimes|nullable|exists:folders,id",
+            "folder_code" => "sometimes|nullable|string",
+            "department" => "sometimes|required|string"
+        ]);
+
+        $folder->update($validated);
+
+        return response()->json(["success" => true, "folder" => $folder]);
+    }
 }

@@ -52,7 +52,7 @@ export default function ContainerFolders() {
 
 
     return (
-        <div className="my-4 relative">
+        <div className="my-4 h-[calc(100%-100px)] overflow-hidden">
             {currentFolder &&
                 <div>
                     <h1 className="font-bold text-xl my-2">{currentFolder?.name}</h1>
@@ -82,7 +82,7 @@ export default function ContainerFolders() {
                     <strong>Fecha de creación</strong>
                 </div>
             </div>
-            <div className="h-[300px] overflow-auto pb-[12vh]">
+            <div className="h-[calc(100%-180px)] overflow-y-auto">
                 {folders?.length === 0 && files.length === 0 &&
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500  flex justify-center items-center">
@@ -91,7 +91,7 @@ export default function ContainerFolders() {
                     </div>
                 }
                 <div
-                    className={`${gridView ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3`}>
+                    className={`${gridView ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3 h-full`}>
 
 
                     <>

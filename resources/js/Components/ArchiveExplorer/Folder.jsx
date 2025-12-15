@@ -3,19 +3,28 @@ import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext.jsx
 import { RightClickContext } from "@/context/ArchiveExplorer/RightClickContext.jsx";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
 import { ArrowDownTrayIcon, EllipsisVerticalIcon, FolderIcon, InformationCircleIcon } from "@heroicons/react/24/solid";
+import { BellAlertIcon, ExclamationTriangleIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { usePage } from "@inertiajs/react";
+import { toast } from "sonner";
+import Modal from "../Modal";
 
 
 const Folder = ({ folder }) => {
-    const { gridView, showDetails } = useContext(ArchiveUIContext);
-    const { openFolder } = useContext(ArchiveDataContext);
+    const { gridView, showDetails, setSelectedFolder } = useContext(ArchiveUIContext);
+    const { openFolder, deleteFolder } = useContext(ArchiveDataContext);
+    const role = usePage().props.auth.user.roles[0].name
+    const canEdit = role === "Admin" || role === "Instructor"
 
     return (
         <>
             {gridView ?
                 <div
                     key={folder.id}
-                    onContextMenu={(e) => { showContextMenu(e, "folder") }}
-                    className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col text-center select-none items-center justify-between"
+                    onDoubleClick={() => {
+                        openFolder(folder.id, true)
+
+                    }}
+                    className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col text-center select-none items-center justify-between h-max"
                 >
                     <div className={'flex lg:flex-col items-center gap-3'}>
                         <FolderIcon className="w-12 h-12 text-gray-500 lg:mb-2" />
@@ -31,23 +40,52 @@ const Folder = ({ folder }) => {
                         >
                             <EllipsisVerticalIcon className="size-8 fill-gray-700" />
                         </div>
-                        <ul className="dropdown-content menu bg-base-100 rounded-box w-40 p-2 shadow-sm">
-                            <li>
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-2 cursor-pointer"
-                                    onClick={() => handleModalDetails("folder", folder)}
+                        <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+                            <li onClick={() => {
+                                toast.info("Aun no se ha implementado la descarga de carpetas")
+                            }}>
+                                <a
+                                    className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer"
                                 >
-                                    <InformationCircleIcon className="size-4 fill-gray-700" />
-                                    Detalles
-                                </button>
-                            </li>
-                            <li>
-                                <a>
-                                    <ArrowDownTrayIcon className="size-4 fill-gray-700" />
-                                    Descargar
+                                    <ArrowDownTrayIcon className="w-5 h-5 text-gray-600" />
+                                    <span>Descargar</span>
                                 </a>
                             </li>
+                            <li>
+                                <button
+                                    onClick={() => showDetails(folder)}
+                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                                >
+                                    <InformationCircleIcon className="w-5 h-5 text-gray-600" />
+                                    <span>Detalles</span>
+                                </button>
+                            </li>
+
+                            {canEdit &&
+                                <>
+                                    <li>
+                                        <button
+                                            onClick={() => document.getElementById('createFolder').showModal()}
+                                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                                        >
+                                            <PencilSquareIcon className="w-5 h-5 text-gray-600" />
+                                            <span>Editar</span>
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            onClick={() => {
+                                                document.getElementById('confirmDeleteFolder').showModal()
+                                            }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded"
+                                        >
+                                            <TrashIcon className="w-5 h-5" />
+                                            <span>Eliminar</span>
+                                        </button>
+                                    </li>
+                                </>
+                            }
                         </ul>
                     </div>
                 </div>
@@ -70,14 +108,81 @@ const Folder = ({ folder }) => {
                                     <EllipsisVerticalIcon className="w-6" />
                                 </button>
                                 <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                                    <li><a>Descargar</a></li>
-                                    <li><button onClick={() => showDetails(folder)}>Detalles</button></li>
+                                    <li onClick={() => {
+                                        toast.info("Aun no se ha implementado la descarga de carpetas")
+                                    }}>
+                                        <a
+                                            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer"
+                                        >
+                                            <ArrowDownTrayIcon className="w-5 h-5 text-gray-600" />
+                                            <span>Descargar</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button
+                                            onClick={() => showDetails(folder)}
+                                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                                        >
+                                            <InformationCircleIcon className="w-5 h-5 text-gray-600" />
+                                            <span>Detalles</span>
+                                        </button>
+                                    </li>
+
+                                    {canEdit &&
+                                        <>
+                                            <li>
+                                                <button
+                                                    onClick={() => {
+                                                        document.getElementById('createFolder').showModal();
+                                                        setSelectedFolder(folder);
+                                                    }
+                                                    }
+                                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded"
+                                                >
+                                                    <PencilSquareIcon className="w-5 h-5 text-gray-600" />
+                                                    <span>Editar</span>
+                                                </button>
+                                            </li>
+
+                                            <li>
+                                                <button
+                                                    onClick={() =>
+                                                        document.getElementById('confirmDeleteFolder').showModal()
+                                                    }
+                                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-red-50 text-red-600 rounded"
+                                                >
+                                                    <TrashIcon className="w-5 h-5" />
+                                                    <span>Eliminar</span>
+                                                </button>
+                                            </li>
+                                        </>
+                                    }
+
                                 </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             }
+
+            <dialog id="confirmDeleteFolder" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-xl text-red-600  text-center">
+                        {/* ICON OF ALERT */}
+                        <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
+                        ADVERTENCIA!
+                    </h3>
+                    <p className="py-4 font-bold text-center">
+                        Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
+                    </p>
+                    <div className="modal-action">
+                        <form method="dialog">
+                            <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
+                            <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
         </>
     )
 }

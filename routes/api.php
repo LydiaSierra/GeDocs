@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\PQRController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
@@ -30,6 +31,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
 
+        // ============= FOLDERS ==============
+        Route::post("/folders", [FolderController::class, "store"]);
+        Route::delete('/folders/{folderId}', [FolderController::class, 'deleteFolder']);
+        Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder']);
+
+
+
         // ============= SHEETS ==============
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
@@ -41,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
+
 
         // ============= SHEETS ==============
         Route::post('/sheets', [SheetController::class, 'store']);
@@ -69,6 +78,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Listar todas las PQRs
     Route::get('/pqrs', [PQRController::class, 'index']);
+
+    // ----------- Editprofile -------------
+
+    // Edit the profile photo
+    Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
 
 });
 

@@ -15,7 +15,6 @@ const NotificationDropDown = () => {
 
     const [solicitudAprendiz, setSolicitudAprendiz] = useState(false);
     const [solicitudInstructor, setSolicitudInstructor] = useState(false);
-
     return (
         <>
             <div className="dropdown dropdown-end">
