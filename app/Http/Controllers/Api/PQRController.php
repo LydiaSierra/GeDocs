@@ -65,9 +65,9 @@ class PQRController extends Controller
             'number' => 'required|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
-            'email' => 'nullable|email|string|unique:p_q_r_s,email',     // adjust if table is p_q_r_s
+            'email' => 'nullable|email|string|unique:p_q_r_s,email',
             'document_type' => 'required|string|in:CC,TI,CE',
-            'document' => 'nullable|string|max:100|unique:p_q_r_s,document', // adjust if table is p_q_r_s
+            'document' => 'nullable|string|max:100|unique:p_q_r_s,document',
         ]);
 
         // 2. Prevent invalid combination of fields

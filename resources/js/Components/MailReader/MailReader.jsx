@@ -1,6 +1,7 @@
 import SenderInformationCard from "@/components/SenderInformationCard/SenderInformationCard";
 import { MailContext } from "@/Pages/Inbox.jsx";
 import { useContext, useEffect, useState } from "react";
+import card from "daisyui/components/card/index.js";
 
 export function MailReader() {
 
@@ -26,7 +27,7 @@ export function MailReader() {
         if (currentMail?.id !== mailCards[index].id) {
             setCurrentMail(mailCards[index]);
         }
-        
+
     }, [selectedMail, mailCards]);
 
     if (!currentMail) {
@@ -42,11 +43,8 @@ export function MailReader() {
         <div className="h-full w-full shadow-xl rounded-lg p-6 overflow-y-auto hidden lg:block bg-white">
 
             <div id="tag-container" className="flex flex-wrap gap-2">
-                <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-black">
+                <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white bg-primary">
                     {currentMail.request_type}
-                </div>
-                <div className="px-4 py-0.5 bg-senaGray rounded-md font-bold">
-                    Primer Contacto
                 </div>
             </div>
 
@@ -62,7 +60,7 @@ export function MailReader() {
             </div>
 
 
-            <SenderInformationCard />
+            <SenderInformationCard currentMail={currentMail}/>
 
 
             <div id="email-description" className="mt-4">

@@ -44,7 +44,7 @@ export default function InboxMailCard({card}) {
                 </div>
                 <div className="text-right text-sm shrink-0">
                     <div>Límite</div>
-                    <div>jueputa</div>
+                    <div> {card.response_time ? new Date(card.response_time).toLocaleDateString() : "Sin asignar"}</div>
                 </div>
             </div>
 
