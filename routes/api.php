@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\CommunicationController;
 use App\Http\Controllers\Api\PQRController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DependencyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
@@ -44,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
         Route::get('/sheets', [SheetController::class, 'index']);
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
+        Route::post('/dependency', [DependencyController::class, 'store']);
+        Route::get('/dependency', [DependencyController::class, 'index']);
+        Route::get('/dependency/{id}', [DependencyController::class, 'show']);
+        Route::put('/dependency/{id}', [DependencyController::class, 'update']);
+        Route::delete('/dependency/{id}', [DependencyController::class, 'destroy']);
 
         //Get sheets related with specific user
         Route::get("/sheetsNumber", [SheetUserController::class, 'index']);
@@ -108,6 +115,27 @@ Route::put('pqrs/{id}', [PQRController::class, 'update']);
 
 // Eliminar una PQR
 Route::delete('pqrs/{id}', [PQRController::class, 'destroy']);
+
+//Ruta para finalizar y cerrar PQR
+Route::post('pqr/{id}/finalize', [PQRController::class, 'finalizeResponse'])->middleware('auth:sanctum');
+
+// ----------- RESPUESTAS PQR -------------
+Route::prefix('pqr')->group(function () {
+    // Ruta para mostrar el formulario de respuesta (GET)
+    Route::get('responder/{uuid}', [CommunicationController::class, 'showResponseForm'])->name('pqr.show-response-form');
+
+    // Ruta para procesar la respuesta con archivos (POST)
+    Route::post('responder/{uuid}', [CommunicationController::class, 'processResponse'])->name('pqr.upload-response');
+
+    // Ruta para crear comunicaciones (para admins autenticados)
+    Route::post('{id}/comunicaciones', [CommunicationController::class, 'createCommunication'])
+        ->middleware('auth:sanctum')
+        ->name('pqr.create-communication');
+
+    //Ruta para archivar y desarchivar comunicaciones
+    Route::patch('comunicaciones/{communicationId}/archive',  [CommunicationController::class, 'archiveCommunication'])
+        ->middleware('auth:sanctum');
+});
 
 // ----------- LOGIN -------------
 Route::middleware("api")->post('/login', function (Request $request) {

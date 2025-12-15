@@ -78,4 +78,8 @@ class PQR extends Model
     public function sheetNumber(){
         return $this->belongsTo(Sheet_number::class);
     }
+
+    public function comunications(){
+        return $this->hasMany(comunication::class, 'pqr_id');
+    }
 }

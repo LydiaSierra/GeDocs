@@ -17,7 +17,8 @@ class AttachedSupport extends Model
         'path',
         'type',
         'size',
-        'pqr_id'
+        'pqr_id',
+        'comunication_id'
     ];
 
     public function pqr()
@@ -30,6 +31,10 @@ class AttachedSupport extends Model
     public function getUrlAttribute()
     {
         return Storage::url($this->path);
+    }
+
+    public function comunication(){
+        return $this->belongsTo(comunication::class, 'comunication_id');
     }
 
 }
