@@ -27,7 +27,6 @@ export default function TableSheets() {
 
     return (
         <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-90% mt-4">
-            {/* MODAL */}
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box max-w-5xl w-[95%] sm:w-[90%] p-6 sm:p-8">
                     <form method="dialog">
@@ -45,16 +44,25 @@ export default function TableSheets() {
 
             {/* SEARCH */}
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <div className="flex items-center bg-gray-200 px-2 rounded-md">
+                <div className="flex items-center w-full sm:w-auto bg-gray-200 px-3 py-1 rounded-md gap-2">
                     <input
                         placeholder="Buscar por número o estado"
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="input bg-gray-200 border-none focus:outline-none shadow-none pr-10 w-70 "
+                        className="
+                            flex-1
+                            bg-gray-200
+                            border-none
+                            focus:outline-none
+                            shadow-none
+                            text-sm
+                            min-w-0
+                        "
                     />
+
                     <MagnifyingGlassIcon
-                        className="size-4 mr-2 shrink-0 text-[#404142] cursor-pointer"
+                        className="w-4 h-4 shrink-0 text-[#404142] cursor-pointer"
                         onClick={() => {
                             searchUser(inputSearch, filterSelected);
                         }}

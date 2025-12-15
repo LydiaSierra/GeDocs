@@ -42,13 +42,11 @@ export default function SheetsTable({ sheets = [] }) {
                 </div>
             </dialog>
 
-            {/* MODAL ELIMINAR */}
             <DeleteSheets
                 sheetToDelete={sheetToDelete}
                 deleteSheet={deleteSheet}
             />
 
-            {/* ===== MOBILE ===== */}
             <div
                 className="
                     md:hidden

@@ -1,4 +1,4 @@
-import { Link, router, usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import {
     UserCircleIcon,
     AcademicCapIcon,
@@ -10,27 +10,28 @@ import NotificationDropDown from "../Notifications/NotificationDropDown";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
 import { useContext, useEffect } from "react";
 
-export default function ProfileHeader({
-    setOpenObject,
-    openObject,
-    setOpenObject1,
-    openObject1,
-}) {
-    const { props } = usePage();
+export default function ProfileHeader({ setOpenObject, setOpenObject1 }) {
+    const { props, url } = usePage();
     const user = props.auth.user;
-    const showEditProfile = route().current("profile.edit");
+    const rol = user.roles[0].name;
 
+    const showEditProfile = route().current("profile.edit");
     const { fetchNotifications } = useContext(NotificationsContext);
 
     useEffect(() => {
         fetchNotifications();
-    }, []);
+    }, [fetchNotifications]);
+
+    const itemClass = (active) =>
+        `flex items-center gap-2 text-sm font-medium ${
+            active ? "underline" : "hover:underline"
+        }`;
 
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
-            {/* LEFT SIDE */}
+            
             <div className="flex items-center gap-3">
-                {/* MENU HAMBURGUESA - SOLO MOVIL */}
+                {/* HAMBURGUESA  */}
                 <div className="dropdown lg:hidden">
                     <div
                         tabIndex={0}
@@ -41,7 +42,7 @@ export default function ProfileHeader({
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
-                            className="inline-block h-5 w-5 stroke-current"
+                            className="h-5 w-5 stroke-current"
                         >
                             <path
                                 strokeLinecap="round"
@@ -53,79 +54,152 @@ export default function ProfileHeader({
                     </div>
 
                     <ul
-                        tabIndex={-1}
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-56 p-2 shadow"
+                        tabIndex={0}
+                        className="menu menu-sm dropdown-content bg-white rounded-box mt-3 w-64 p-3 shadow z-50"
                     >
-                        {/* PERFIL */}
+                       
                         <li>
                             <Link href={route("profile.edit")}>
-                                <div className="flex items-center gap-2 text-sm font-medium">
+                                <div className={itemClass(url === "/profile")}>
                                     <UserCircleIcon className="w-5 h-5 text-[#848484]" />
                                     Información de Perfil
                                 </div>
                             </Link>
                         </li>
 
-                        {/* USUARIOS */}
-                        <li className="mt-2 mb-1 text-[14px] font-semibold text-[#848484]">
-                            Usuarios
+                       
+                        {rol === "Admin" && (
+                            <>
+                                <li className="mt-3 text-xs font-semibold text-[#848484]">
+                                    Usuarios
+                                </li>
+
+                                <li>
+                                    <Link href={route("aprendiz")}>
+                                        <div
+                                            className={itemClass(
+                                                url === "/users/aprendiz"
+                                            )}
+                                        >
+                                            <AcademicCapIcon className="w-5 h-5 text-[#848484]" />
+                                            Aprendices
+                                        </div>
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link href={route("instructor")}>
+                                        <div
+                                            className={itemClass(
+                                                url === "/users/instructor"
+                                            )}
+                                        >
+                                            <ListBulletIcon className="w-5 h-5 text-[#848484]" />
+                                            Instructores
+                                        </div>
+                                    </Link>
+                                </li>
+
+                                <li>
+                                    <Link href={route("sheets")}>
+                                        <div
+                                            className={itemClass(
+                                                url === "/sheets"
+                                            )}
+                                        >
+                                            <UserCircleIcon className="w-5 h-5 text-[#848484]" />
+                                            Fichas
+                                        </div>
+                                    </Link>
+                                </li>
+                            </>
+                        )}
+
+                        {/* SOLICITUDES */}
+                        <li className="mt-3 text-xs font-semibold text-[#848484]">
+                            Solicitudes
+                        </li>
+
+                        {rol !== "Dependencia" && (
+                            <li>
+                                <Link href={route("notifications.index")}>
+                                    <div
+                                        className={itemClass(
+                                            url === "/notifications"
+                                        )}
+                                    >
+                                        <UserCircleIcon className="w-5 h-5 text-[#848484]" />
+                                        Aprendices
+                                    </div>
+                                </Link>
+                            </li>
+                        )}
+
+                        {rol === "Admin" && (
+                            <li>
+                                <Link href={route("notifications.index")}>
+                                    <div className={itemClass(false)}>
+                                        <UserCircleIcon className="w-5 h-5 text-[#848484]" />
+                                        Instructores
+                                    </div>
+                                </Link>
+                            </li>
+                        )}
+
+                        {/* GESTIÓN DOCUMENTAL */}
+                        <li className="mt-3 text-xs font-semibold text-[#848484]">
+                            Gestión Documental
                         </li>
 
                         <li>
-                            <Link href={route("aprendiz")}>
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <AcademicCapIcon className="w-5 h-5 text-[#848484]" />
-                                    Aprendices
-                                </div>
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link href={route("instructor")}>
-                                <div className="flex items-center gap-2 text-sm font-medium">
-                                    <ListBulletIcon className="w-5 h-5 text-[#848484]" />
-                                    Instructores
-                                </div>
-                            </Link>
-                        </li>
-
-                        <li>
-                            <Link href={route("sheets")}>
-                                <div className="flex items-center gap-2 text-sm font-medium">
+                            <Link href={route("dependencies")}>
+                                <div
+                                    className={itemClass(
+                                        url === "/dependencies"
+                                    )}
+                                >
                                     <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                    Fichas
+                                    Dependencias
                                 </div>
                             </Link>
+                        </li>
+
+                        <li>
+                            <div className={itemClass(false)}>
+                                <UserCircleIcon className="w-5 h-5 text-[#848484]" />
+                                Series y Subseries
+                            </div>
+                        </li>
+
+                        <li>
+                            <div className={itemClass(false)}>
+                                <UserCircleIcon className="w-5 h-5 text-[#848484]" />
+                                Secciones y Subsecciones
+                            </div>
                         </li>
 
                         {/* EDITAR PERFIL */}
                         {showEditProfile && (
                             <>
-                                <li className="mt-3 mb-1 text-[14px] font-semibold text-[#848484]">
+                                <li className="mt-3 text-xs font-semibold text-[#848484]">
                                     Editar Perfil
                                 </li>
 
-                                <li
-                                    onClick={() =>
-                                        setOpenObject((prev) => !prev)
-                                    }
-                                >
-                                    <div className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                <li onClick={() => setOpenObject(true)}>
+                                    <div className="flex items-center gap-2 text-sm font-medium cursor-pointer hover:underline">
                                         <PencilSquareIcon className="w-5 h-5 text-[#848484]" />
                                         Cambiar Contraseña
                                     </div>
                                 </li>
 
-                                <li
-                                    onClick={() =>
-                                        setOpenObject1((prev) => !prev)
-                                    }
-                                >
-                                    <div className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-                                        <TrashIcon className="w-5 h-5 text-[#848484]" />
-                                        Eliminar Cuenta
-                                    </div>
-                                </li>
+                                {rol === "Admin" && (
+                                    <li onClick={() => setOpenObject1(true)}>
+                                        <div className="flex items-center gap-2 text-sm font-medium cursor-pointer hover:underline">
+                                            <TrashIcon className="w-5 h-5 text-[#848484]" />
+                                            Eliminar Cuenta
+                                        </div>
+                                    </li>
+                                )}
                             </>
                         )}
                     </ul>

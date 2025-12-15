@@ -18,8 +18,7 @@ function ProfileMenu({
     const showEditProfile = route().current("profile.edit");
 
     return (
-        <div className="w-90 bg-white mt-18 rounded-lg flex flex-col items-center gap-1 overflow-hidden">
-            {/* PERFIL */}
+        <div className="w-80 bg-white mt-18 rounded-lg flex flex-col items-center gap-1 overflow-hidden">
             <div className="w-full flex flex-col items-start gap-5 p-2">
                 <a href={route("profile.edit")}>
                     <div
@@ -33,7 +32,6 @@ function ProfileMenu({
                 </a>
             </div>
 
-            {/* USUARIOS (SOLO ADMIN) */}
             {rol === "Admin" && (
                 <div className="w-full flex flex-col items-start gap-5 p-2">
                     <h1 className="self-start text-[20px] text-[#848484]">

@@ -9,13 +9,13 @@ const ProfileSidebar = ({ className = "" }) => {
 
     return (
         <aside
-            className={`h-full -ml-5 flex flex-col items-center text-gray-800 ${className}`}
+            className={`h-full  flex flex-col items-center text-gray-800 ${className}`}
         >
             <h1 className="text-lg font-semibold text-black mb-4 mt-2">
                 Información de Usuario
             </h1>
 
-            <div className="w-72 bg-white rounded-2xl p-4 flex flex-col items-center shadow mt:2">
+            <div className="w-70 bg-white rounded-2xl p-4 flex flex-col items-center shadow mt:2">
                 <img
                     src="/images/girl-pic.jpg"
                     alt="Profile picture"
