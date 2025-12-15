@@ -4,19 +4,31 @@ import {
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import InboxMailCard from "@/components/InboxMailCard/InboxMailCard";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
-export default function InboxSidebar({children}) {
+export default function InboxSidebar({ children }) {
+    const [sheets, setSheets] = useState([]);
 
+    const loadSheets = () => {
+        axios
+            .get("/api/sheetsNumber")
+            .then((response) => {
+                setSheets(response.data.fichas);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    };
+
+    useEffect(() => {
+        loadSheets();
+    }, []);
     return (
-        <div
-            className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-full md:ml-1 justify-between items-center md:p-3 ">
-
+        <div className="w-full md:min-w-[450px] lg:w-1/3 flex-wrap md:flex-nowrap bg-white flex flex-col rounded-lg h-full md:ml-1 justify-between items-center md:p-3 ">
             <div className="w-full flex flex-col">
                 <h2 className="font-bold text-2xl mb-2 text-center">
                     Bandeja de Entrada
                 </h2>
-
 
                 <div id="inbox-search" className="flex gap-2 w-full">
                     <div className="flex items-center bg-gray-100 px-2 rounded-md flex-1 min-w-0">
@@ -25,38 +37,65 @@ export default function InboxSidebar({children}) {
                             type="text"
                             className="input bg-gray-100 border-none focus:outline-none shadow-none w-full truncate"
                         />
-                        <MagnifyingGlassIcon className="size-5 mr-2 shrink-0"/>
+                        <MagnifyingGlassIcon className="size-5 mr-2 shrink-0" />
                     </div>
                     <button className="p-3 bg-gray-100 rounded-md shrink-0">
-                        <FunnelIcon className="size-5"/>
+                        <FunnelIcon className="size-5" />
                     </button>
                 </div>
-
 
                 <div
                     id="inbox-categories"
                     className="flex my-2 w-full justify-between items-center"
                 >
                     <form className="flex gap-2 w-full overflow-x-auto p-1">
-                        <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                               type="checkbox" aria-label="Preguntas"/>
-                        <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                               type="checkbox" aria-label="Quejas"/>
-                        <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                               type="checkbox" aria-label="Reclamos"/>
-                        <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                               type="checkbox" aria-label="Sugerencias"/>
+                        <input
+                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
+                            type="checkbox"
+                            aria-label="Preguntas"
+                        />
+                        <input
+                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
+                            type="checkbox"
+                            aria-label="Quejas"
+                        />
+                        <input
+                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
+                            type="checkbox"
+                            aria-label="Reclamos"
+                        />
+                        <input
+                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
+                            type="checkbox"
+                            aria-label="Sugerencias"
+                        />
                     </form>
                     <button className="p-3 bg-gray-100 rounded-md ml-2 shrink-0">
-                        <BarsArrowUpIcon className="size-5"/>
+                        <BarsArrowUpIcon className="size-5" />
                     </button>
                 </div>
 
-                <h3 id="inbox-date" className="text-start w-full px-2 my-4 font-bold">
-                    Agosto, 2025
-                </h3>
+                <div className="text-start w-full ">
+                    <h3 id="inbox-date" className="px-2 my-4 font-bold">
+                        Agosto, 2025
+                    </h3>
+                    <div className="px-2 my-4 font-bold">
+                        <label htmlFor="sheets">Fichas: </label>
+                        <select name="sheets" id="sheets">
+                            {!sheets.length ? (
+                                <option value={0}>All</option>
+                            ) : (
+                                sheets.map((sheet) => {
+                                    return(
+                                    <option key={sheet.id} value={sheet.number}>
+                                        {sheet.number}
+                                    </option>)
+                                })
+                            )}
+                        </select>
+                    </div>
+                </div>
             </div>
-
 
             <div
                 id="mail-card-scrollarea"
@@ -67,5 +106,3 @@ export default function InboxSidebar({children}) {
         </div>
     );
 }
-
-

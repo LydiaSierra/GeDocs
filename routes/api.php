@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get("/sheets/{id}", [SheetController::class, 'show']);
         
         //Get sheets related with specific user
-        Route::get("/sheets_number", [SheetUserController::class, 'index']);
+        Route::get("/sheetsNumber", [SheetUserController::class, 'index']);
     });
 
     // ONLY ADMIN
