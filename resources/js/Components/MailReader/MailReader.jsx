@@ -2,13 +2,39 @@ import SenderInformationCard from "@/components/SenderInformationCard/SenderInfo
 import { MailContext } from "@/context/MailContext/MailContext";
 import { useContext, useEffect, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import axios from "axios";
+import { ArchiveBoxIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/outline";
 import card from "daisyui/components/card/index.js";
 
 export function MailReader() {
 
-    const { mailCards, selectedMail, setSelectedMail } = useContext(MailContext);
+    const {
+        mailCards,
+        selectedMail,
+        setSelectedMail,
+        setMailCards,
+        isArchiveView // boolean you pass from Inbox / Archive
+    } = useContext(MailContext);
+
     const [currentMail, setCurrentMail] = useState(mailCards[0]);
     const [currentIndex, setCurrentIndex] = useState(0);
+
+    const getThumbnail = (type) => {
+        switch (type.toLowerCase()) {
+            case "pdf":
+                return "/images/attached-pdf.png";
+            case "jpg":
+            case "jpeg":
+            case "png":
+                return null;
+            case "doc":
+            case "docx":
+                return "/images/attached-doc.png";
+            default:
+                return "/images/attached-file.png";
+        }
+    };
+
 
     useEffect(() => {
         if (mailCards.length > 0 && currentMail?.id !== mailCards[0].id) {
@@ -39,6 +65,26 @@ export function MailReader() {
         );
     }
 
+    const handleArchiveToggle = async () => {
+        try {
+            await axios.patch(`/api/pqrs/${currentMail.id}`, {
+                archived: !isArchiveView
+            });
+
+            // Remove mail from current list
+            setMailCards(prev =>
+                prev.filter(mail => mail.id !== currentMail.id)
+            );
+
+            setSelectedMail(null);
+        } catch (error) {
+            console.error("Error updating archive state:", error);
+            alert("No se pudo actualizar el estado del correo");
+        }
+    };
+
+
+    console.log("attachments:", currentMail.attached_supports);
 
     return (
         <div className={`
@@ -54,18 +100,57 @@ export function MailReader() {
     lg:block
   `}>
 
-            <button
-                className="flex items-center gap-2 mb-4 lg:hidden text-gray-600"
-                onClick={() => setSelectedMail(null)}
-            >
-                <ArrowLeftIcon className="w-5" />
-                Volver
-            </button>
+            <div className="flex items-center justify-between mb-4 lg:hidden">
+                <button
+                    className="flex items-center gap-2 text-gray-600"
+                    onClick={() => setSelectedMail(null)}
+                >
+                    <ArrowLeftIcon className="w-5" />
+                    Volver
+                </button>
+
+                <button
+                    onClick={handleArchiveToggle}
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary"
+                >
+                    {isArchiveView ? (
+                        <>
+                            <ArrowUturnLeftIcon className="w-5" />
+                            Desarchivar
+                        </>
+                    ) : (
+                        <>
+                            <ArchiveBoxIcon className="w-5" />
+                            Archivar
+                        </>
+                    )}
+                </button>
+            </div>
+
 
             <div id="tag-container" className="flex flex-wrap gap-2">
                 <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white bg-primary">
                     {currentMail.request_type}
                 </div>
+            </div>
+
+            <div className="hidden lg:flex justify-end mb-2">
+                <button
+                    onClick={handleArchiveToggle}
+                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary cursor-pointer"
+                >
+                    {isArchiveView ? (
+                        <>
+                            <ArrowUturnLeftIcon className="w-7" />
+                            Desarchivar
+                        </>
+                    ) : (
+                        <>
+                            <ArchiveBoxIcon className="w-7" />
+                            Archivar
+                        </>
+                    )}
+                </button>
             </div>
 
 
@@ -93,7 +178,38 @@ export function MailReader() {
 
             <div className="my-3">
                 <div className="font-bold text-lg mb-2">Soportes Adjuntos</div>
-                <img className="w-40" src="/images/attached-pdf.png" alt="" />
+
+                {currentMail.attached_supports?.length === 0 && (
+                    <p className="text-gray-400 text-sm">No hay archivos adjuntos</p>
+                )}
+
+                <div className="flex flex-wrap gap-4">
+                    {currentMail.attached_supports?.map((file) => (
+                        <a
+                            key={file.id}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-32 p-2 border rounded-lg hover:shadow-md transition text-center"
+                        >
+                            {["jpg", "jpeg", "png"].includes(file.type) ? (
+                                <img
+                                    src={file.url}
+                                    alt={file.name}
+                                    className="w-full h-24 object-cover rounded"
+                                />
+                            ) : (
+                                <img
+                                    src={getThumbnail(file.type)}
+                                    alt={file.name}
+                                    className="w-full h-24 object-contain"
+                                />
+                            )}
+
+                            <p className="text-xs mt-2 truncate">{file.name}</p>
+                        </a>
+                    ))}
+                </div>
             </div>
 
 
@@ -102,7 +218,7 @@ export function MailReader() {
                     className="textarea w-full rounded-lg focus:outline-gray-200 my-2"
                     placeholder="Escribe tu respuesta..."
                 />
-                <button className="btn bg-senaGreen p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end">
+                <button className="btn bg-primary p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end">
                     Enviar respuesta
                 </button>
             </div>

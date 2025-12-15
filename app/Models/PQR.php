@@ -18,6 +18,7 @@ class PQR extends Model
         'response_time',
         'response_days',
         'state',
+        'archived',
         'user_id',
         'responsible_id',
         'dependency_id',
@@ -34,6 +35,7 @@ class PQR extends Model
 
     protected $casts = [
         'state' => 'boolean',
+        'archived' => 'boolean',
         'response_time' => 'date',
         'response_date' => 'datetime',
     ];

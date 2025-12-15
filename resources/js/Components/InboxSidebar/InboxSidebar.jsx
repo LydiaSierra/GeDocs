@@ -52,7 +52,7 @@ export default function InboxSidebar() {
             >
                 <form className="flex gap-2 w-full overflow-x-auto p-1">
                     <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                           type="checkbox" aria-label="Preguntas"/>
+                           type="checkbox" aria-label="Peticiones"/>
                     <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
                            type="checkbox" aria-label="Quejas"/>
                     <input className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
