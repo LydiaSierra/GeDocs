@@ -90,12 +90,14 @@ class ProfileController extends Controller
             'public'
         );
 
+        $url =  Storage::disk('public')->url($path);
         $user->update([
-            'profile_photo' => $path,
+            'profile_photo' => $url
         ]);
 
         return response()->json([
-            'image' => Storage::disk('public')->url($path),
+            "success" => true,
+            'image' => $url,
         ]);
     }
 }

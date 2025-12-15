@@ -14,10 +14,10 @@ Route::middleware('auth')->group(function () {
 
 
     // Inbox principal
-    Route::middleware("roleCheck")->group(function () {
+    
         Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
-    });
+   
 
     //Vista de notificaciones pasando el id
     Route::get(
@@ -63,7 +63,7 @@ Route::middleware('auth')->group(function () {
 
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))
-        ->name('sheets');
+        ->name('sheets')->middleware("roleCheck");
 
     //Vistas Dependencias
     Route::get('/dependencies', fn() => Inertia::render('Dependencies'))

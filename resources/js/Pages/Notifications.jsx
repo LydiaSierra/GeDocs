@@ -7,7 +7,6 @@ import { useState } from "react";
 import React from "react";
 
 const Notifications = () => {
-    const {url}=usePage();
     const [details,setDetails]=useState(false);
     const [selectedId, setSelectedId] = useState(null);
     const [selectedNotification, setSelectedNotification] = useState(null);
@@ -28,7 +27,7 @@ const Notifications = () => {
 };
 
     return (
-        <NotificationsLayout url={url}>
+        <NotificationsLayout>
 
             <NotificationSidebar 
                 handleSelectNotification={handleSelectNotification}

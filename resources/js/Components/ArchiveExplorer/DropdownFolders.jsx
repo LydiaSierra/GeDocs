@@ -97,7 +97,7 @@ const DropdownFolders = () => {
                 <div
                     className={`${
                         showDropFolders ? "w-full" : "w-0"
-                    } transition-all origin-left pt-16 pb-2 max-w-[400px] duration-300 h-screen`}
+                    } transition-all origin-left pt-16 pb-2 max-w-[400px] duration-300 h-screen hidden lg:inline-block`}
                 >
                     <div
                         className={`bg-white p-2 rounded-lg h-full ${

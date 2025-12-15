@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Maria User',
             'email' => 'user@test.com',
             'password' => bcrypt('password'),
-            'status' => 'pending',
+            'status' => 'active',
         ]);
         $aprendiz->assignRole('Aprendiz');
 

@@ -4,6 +4,7 @@ import api from "@/lib/axios";
 
 // Importa React y el hook useState (aunque en este componente no se está usando)
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 // Componente principal
 const DependencyScheme = ({ onPdfGenerated }) => {
@@ -12,7 +13,11 @@ const DependencyScheme = ({ onPdfGenerated }) => {
     // Función que maneja la generación del PDF
     // ------------------------------
     const handleGeneratePdf = async (e) => {
-        e.preventDefault();          // Evita que el formulario recargue la página
+        e.preventDefault();
+        document.getElementById("my_modal_1").close();
+
+        let toastId;         // Evita que el formulario recargue la página
+        toastId = toast.loading("Generando PDF")
 
         try {
             // Toma todos los datos del formulario que disparó el evento
@@ -39,8 +44,9 @@ const DependencyScheme = ({ onPdfGenerated }) => {
             a.click();                // Simula el click para descargar
 
             onPdfGenerated();
-            
-            document.getElementById("my_modal_1").close();
+
+            toast.dismiss(toastId);
+            toast.success("PDF Generado correctamente");
 
         } catch (error) {
             console.error("Error generando el PDF:", error.message);
@@ -52,8 +58,8 @@ const DependencyScheme = ({ onPdfGenerated }) => {
     // ------------------------------
     return (
         <form id="pdfForm" onSubmit={handleGeneratePdf}>
-            <div className="rounded-sm p-6 gap-2 items-center flex flex-wrap justify-between bg-gray-200">
-                
+            <div className="rounded-sm p-6 gap-3 items-center grid grid-cols-3 justify-between bg-gray-200 w-full">
+
                 {/* Campo: Código */}
                 <div>
                     <label>Código</label>

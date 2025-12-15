@@ -52,7 +52,7 @@ export default function ContainerFolders() {
 
 
     return (
-        <div className="my-4 h-[calc(100%-100px)] overflow-hidden">
+        <div className="my-4 flex flex-col h-full">
             {currentFolder &&
                 <div>
                     <h1 className="font-bold text-xl my-2">{currentFolder?.name}</h1>
@@ -82,7 +82,7 @@ export default function ContainerFolders() {
                     <strong>Fecha de creación</strong>
                 </div>
             </div>
-            <div className="h-[calc(100%-180px)] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto h-full    overflow-x-hidden">
                 {folders?.length === 0 && files.length === 0 &&
                     <div className="flex items-center justify-center h-full">
                         <div className="text-center text-gray-500  flex justify-center items-center">
@@ -91,7 +91,7 @@ export default function ContainerFolders() {
                     </div>
                 }
                 <div
-                    className={`${gridView ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3 h-full`}>
+                    className={`${gridView ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3 min-w-0 max-h-0`}>
 
 
                     <>
@@ -110,6 +110,17 @@ export default function ContainerFolders() {
                 </div>
 
             </div>
+
+            <div className = "flex justify-end my-4">
+            <button
+                className="btn right-12 bg-primary text-white w-max"
+                onClick={() =>
+                    document.getElementById("my_modal_1").showModal()
+                }
+                >
+                Crear PDF
+            </button>
+                </div>
         </div>
 
 

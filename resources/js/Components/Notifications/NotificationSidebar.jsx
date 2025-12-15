@@ -23,14 +23,9 @@ const NotificationSidebar = () => {
                     </h1>
                 </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center text-gray-500 gap-2 h-50">
-                        <ArrowPathIcon className="size-6 animate-spin" />
-                        <p>Cargando notificaciones</p>
-                    </div>
-
-                ) : (
-                    <ul className="flex flex-col  gap-3 pr-2 mt-1 rounded-lg h-auto">
+         
+                    {notifications.length > 0 ? (
+                         <ul className="flex flex-col  gap-3 pr-2 mt-1 rounded-lg h-auto">
 
                         {/* condicionales para estilos dependiendo el estado de la notificacion */}
                         {notifications.map((item) => {
@@ -83,7 +78,12 @@ const NotificationSidebar = () => {
                         })}
 
                     </ul>
-                )}
+                    ) : (
+                        <div className="text-ray-500 flex items-center justify-center ">
+                            <p>No hay notificaciones</p>
+                        </div>
+                    )}
+            
 
             </div>
 
