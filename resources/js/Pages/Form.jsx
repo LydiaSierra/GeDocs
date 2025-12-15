@@ -9,9 +9,6 @@ export default function Form() {
 
         <div className="bg-senaGray min-h-screen flex flex-col">
 
-
-
-
             <div className="flex flex-1 justify-center">
                 <div className="flex flex-col items-center bg-white m-5 rounded-lg p-5 w-full max-w-6xl">
                     <h1 className="font-bold text-2xl text-senaDarkGreen text-center mb-4">
@@ -37,9 +34,9 @@ export default function Form() {
                                     className="select w-full"
                                 >
                                     <option disabled> </option>
-                                    <option>Crimson</option>
-                                    <option>Amber</option>
-                                    <option>Velvet</option>
+                                    <option>CC</option>
+                                    <option>TI</option>
+                                    <option>CE</option>
                                 </select>
                             </div>
                             <div>
@@ -71,19 +68,6 @@ export default function Form() {
                             <div>
                                 <label
                                     className="text-md font-light text-gray-600"
-                                    htmlFor="address"
-                                >
-                                    Dirección
-                                </label>
-                                <input
-                                    id="address"
-                                    type="text"
-                                    className="input w-full"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    className="text-md font-light text-gray-600"
                                     htmlFor="email-address"
                                 >
                                     Correo Electrónico
@@ -93,55 +77,6 @@ export default function Form() {
                                     type="text"
                                     className="input w-full"
                                 />
-                            </div>
-                            <div>
-                                <label
-                                    className="text-md font-light text-gray-600"
-                                    htmlFor="phone-number"
-                                >
-                                    Teléfono
-                                </label>
-                                <input
-                                    id="phone-number"
-                                    type="text"
-                                    className="input w-full"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    className="text-md font-light text-gray-600"
-                                    htmlFor="serie"
-                                >
-                                    Serie
-                                </label>
-                                <select
-                                    id="serie"
-                                    defaultValue=" "
-                                    className="select w-full"
-                                >
-                                    <option disabled> </option>
-                                    <option>Crimson</option>
-                                    <option>Amber</option>
-                                    <option>Velvet</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label
-                                    className="text-md font-light text-gray-600"
-                                    htmlFor="subserie"
-                                >
-                                    Sub Serie
-                                </label>
-                                <select
-                                    id="subserie"
-                                    defaultValue=" "
-                                    className="select w-full"
-                                >
-                                    <option disabled> </option>
-                                    <option>Crimson</option>
-                                    <option>Amber</option>
-                                    <option>Velvet</option>
-                                </select>
                             </div>
                         </div>
 
@@ -167,6 +102,7 @@ export default function Form() {
                                 id="request-description"
                                 className="textarea w-full my-2"
                                 placeholder="Escribe aquí tu solicitud"
+                                rows='15'
                             ></textarea>
                         </div>
 

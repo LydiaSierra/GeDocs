@@ -22,7 +22,8 @@ Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.gene
         'notificationId' => null
     ])
     )->name('notifications.index');
-
+    //Gestion Admin General
+    
     // Gestion de Instructor
     Route::get('/users/instructor', fn() => Inertia::render('Users')
     )->name('instructor');
