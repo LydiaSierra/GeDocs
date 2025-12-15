@@ -6,12 +6,13 @@ import HamburguerMenu from "../HamburguerMenu/HamburguerMenu";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import { useContext, useEffect, useState } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
+import { UserIcon } from "@heroicons/react/24/outline";
 
 export default function Header() {
     const { url } = usePage();
     const { props } = usePage();
-    
-    
+
+
     const user = props.auth.user;
     const rol = user.roles[0].name;
 
@@ -25,6 +26,11 @@ export default function Header() {
     const [loadingPhoto, setLoadingPhoto] = useState(true);
 
     useEffect(() => {
+        if(user.profile_photo){
+            setLoadingPhoto(true);
+        }else{
+            setLoadingPhoto(false)
+        }
         fetchNotifications();
     }, []);
 
@@ -49,7 +55,7 @@ export default function Header() {
                     <div
                         tabIndex={0}
                         role="button"
-                        className="cursor-pointer rounded-md gap-3 flex items-center"
+                        className="cursor-pointer gap-3 flex items-center rounded-full bg-gray-200 "
                     >
                         {loadingPhoto && (
                             <div className="skeleton h-10 w-10 rounded-full  absolute inset-0" />
@@ -66,7 +72,8 @@ export default function Header() {
                                 />
                             </div>
                         ) : (
-                            <UserIcon className="h-40 w-40 text-gray-400 rounded-full" />
+
+                            <UserIcon className="h-10 w-10 text-gray-400 rounded-full p-1" />
                         )}
                     </div>
 
@@ -74,7 +81,7 @@ export default function Header() {
                         tabIndex={0}
                         className="menu w-xl max-w-sm  dropdown-content bg-base-100 rounded-box z-50 mt-3 p-2 shadow overflow-hidden"
                     >
-                        <div className="border-b border-gray-500 p-2 mb-2 flex items-center justify-start gap-3">
+                        <div className="border-b border-gray-500 p-2 mb-2 flex items-center justify-start gap-3 ">
 
                             {loadingPhoto && (
                                 <div className="skeleton h-10 w-10 rounded-full  absolute inset-0" />
@@ -91,7 +98,7 @@ export default function Header() {
                                     />
                                 </div>
                             ) : (
-                                <UserIcon className="h-40 w-40 text-gray-400 rounded-full" />
+                                <UserIcon className="w-10 text-gray-400 rounded-full p-1 bg-gray-200" />
                             )}
                             <div className="flex flex-col flex-1">
 
