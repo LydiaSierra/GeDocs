@@ -8,7 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import NotificationDropDown from "../Notifications/NotificationDropDown";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function ProfileHeader({ setOpenObject, setOpenObject1 }) {
     const { props, url } = usePage();
@@ -17,14 +17,14 @@ export default function ProfileHeader({ setOpenObject, setOpenObject1 }) {
 
     const showEditProfile = route().current("profile.edit");
     const { fetchNotifications } = useContext(NotificationsContext);
+    const [loadingPhoto, setLoadingPhoto] = useState(true)
 
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
 
     const itemClass = (active) =>
-        `flex items-center gap-2 text-sm font-medium ${
-            active ? "underline" : "hover:underline"
+        `flex items-center gap-2 text-sm font-medium ${active ? "underline" : "hover:underline"
         }`;
 
     return (
@@ -205,6 +205,7 @@ export default function ProfileHeader({ setOpenObject, setOpenObject1 }) {
                     </ul>
                 </div>
             </div>
+
             <div className="flex flex-1 justify-center lg:justify-start">
                 <Link href="/">
                     <img
@@ -224,28 +225,62 @@ export default function ProfileHeader({ setOpenObject, setOpenObject1 }) {
                         role="button"
                         className="cursor-pointer rounded-md gap-3 flex items-center"
                     >
-                        <img
-                            className="w-10 rounded-full"
-                            alt="profile pic"
-                            src="/images/girl-pic.jpg"
-                        />
+                        {loadingPhoto && (
+                            <div className="skeleton h-10 w-10 rounded-full  absolute inset-0" />
+                        )}
+
+                        {user.profile_photo ? (
+                            <div className="rounded-full w-10 h-10 bg-gray-200 flex items-center justify-center ">
+                                <img
+                                    src={user.profile_photo}
+                                    className={` ${loadingPhoto ? "opacity-0 w-10 h-10" : "opacity-100  object-cover w-full h-full rounded-full"
+                                        }`}
+                                    onLoad={() => setLoadingPhoto(false)}
+                                    onError={() => setLoadingPhoto(false)}
+                                />
+                            </div>
+                        ) : (
+                            <UserIcon className="h-40 w-40 text-gray-400 rounded-full" />
+                        )}
                     </div>
 
                     <ul
                         tabIndex={0}
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-max p-2 shadow overflow-hidden"
+                        className="menu w-xl max-w-sm  dropdown-content bg-base-100 rounded-box z-50 mt-3 p-2 shadow overflow-hidden"
                     >
-                        <div className="border-b border-gray-500 p-2 mb-2">
-                            <div className="flex justify-between items-center mb-2 gap-8">
-                                <p>{user?.name}</p>
-                                <p className="text-gray-500 text-xs">
-                                    {user?.role}
+                        <div className="border-b border-gray-500 p-2 mb-2 flex items-center justify-start gap-3">
+
+                            {loadingPhoto && (
+                                <div className="skeleton h-10 w-10 rounded-full  absolute inset-0" />
+                            )}
+
+                            {user.profile_photo ? (
+                                <div className="rounded-full w-14 h-14 bg-gray-200 flex items-center justify-center ">
+                                    <img
+                                        src={user.profile_photo}
+                                        className={` ${loadingPhoto ? "opacity-0 w-14 h-14 " : "opacity-100  object-cover w-full h-full rounded-full"
+                                            }`}
+                                        onLoad={() => setLoadingPhoto(false)}
+                                        onError={() => setLoadingPhoto(false)}
+                                    />
+                                </div>
+                            ) : (
+                                <UserIcon className="h-40 w-40 text-gray-400 rounded-full" />
+                            )}
+                            <div className="flex flex-col flex-1">
+
+                                <div className="mb-2 gap-8 flex justify-between item-center">
+                                    <p>{user?.name}</p>
+                                    <p>
+                                        {rol}
+                                    </p>
+                                </div>
+
+                                <p className="text-xs text-gray-500">
+                                    {user?.email}
                                 </p>
                             </div>
 
-                            <p className="text-xs text-gray-500">
-                                {user?.email}
-                            </p>
                         </div>
 
                         <li>

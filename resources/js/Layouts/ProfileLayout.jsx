@@ -20,7 +20,7 @@ const ProfileLayout = ({
             />
 
             <div className="flex flex-col md:flex-row min-h-screen">
-                <aside className="hidden md:flex w-[26%] p-2">
+                <aside className="hidden lg:flex w-max p-2 pt-18 ">
                     <ProfileMenu
                         setOpenObject={setOpenObject}
                         openObject={openObject}

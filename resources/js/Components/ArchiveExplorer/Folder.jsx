@@ -24,11 +24,11 @@ const Folder = ({ folder }) => {
                         openFolder(folder.id, true)
 
                     }}
-                    className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col text-center select-none items-center justify-between h-max"
+                    className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col items-center justify-between h-max w-full"
                 >
-                    <div className={'flex lg:flex-col items-center gap-3'}>
-                        <FolderIcon className="w-12 h-12 text-gray-500 lg:mb-2" />
-                        <p className="font-medium line-clamp-1 text-gray-700">{folder.name}</p>
+                    <div className={'flex lg:flex-col items-center gap-3 w-full min-w-0'}>
+                        <FolderIcon className="w-10 h-10 md:w-12 md:h-12 text-gray-500 lg:mb-2 shrink-0" />
+                        <p className="font-medium text-gray-700 truncate w-full">{folder.name}</p>
                     </div>
 
                     {/* Button of options*/}
@@ -94,13 +94,15 @@ const Folder = ({ folder }) => {
                     <div key={folder.id} className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100" onDoubleClick={() => {
                         openFolder(folder.id, true)
                     }}>
-                        <div className="flex gap-2 items-center font-medium">
-                            <FolderIcon className="w-8 text-gray-800" />
-                            <p><span className="text-gray-600">{folder.folder_code}</span> - {folder.name}</p>
+                        <div className="flex gap-2 items-center font-medium min-w-0">
+                            <FolderIcon className="w-6 h-6 md:w-8 md:h-8 text-gray-800 shrink-0" />
+                            <span className="text-gray-600 shrink-0">{folder.folder_code}</span>
+                            <span className="shrink-0">-</span>
+                            <span className="truncate max-w-[50vw] md:max-w-[60%]">{folder.name}</span>
                         </div>
 
                         <div className="flex gap-5 items-center">
-                            <p className="w-26">{folder.departament}</p>
+                            <p className="w-26">{folder.department}</p>
                             <p>{new Date(folder.created_at).toLocaleDateString()}</p>
                             {/* OPTIONS BUTTON */}
                             <div className={`dropdown dropdown-bottom dropdown-end ${gridView ? "absolute right-2 left-2" : "relative"}`}>
@@ -165,27 +167,9 @@ const Folder = ({ folder }) => {
                 </div>
             }
 
-            <dialog id="confirmDeleteFolder" className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-xl text-red-600  text-center">
-                        {/* ICON OF ALERT */}
-                        <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
-                        ADVERTENCIA!
-                    </h3>
-                    <p className="py-4 font-bold text-center">
-                        Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
-                    </p>
-                    <div className="modal-action">
-                        <form method="dialog" className="flex justify-center items-center w-full">
-                            <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
-                            <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
-                        </form>
-                    </div>
-                </div>
-            </dialog>
+
         </>
     )
 }
 
 export default Folder;
-

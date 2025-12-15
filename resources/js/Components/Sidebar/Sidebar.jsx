@@ -14,7 +14,7 @@ export default function Sidebar() {
     const isAprendiz = user.roles?.some(role => role.name === "Aprendiz");
 
     const links = [
-        { id: "inbox", href: "inbox", icon: InboxIcon, roles: ["Admin", "Instructor"] },
+        { id: "inbox", href: "inbox", icon: InboxIcon},
         { id: "archive", href: "archive", icon: ArchiveBoxIcon },
         { id: "explorer", href: "explorer", icon: FolderIcon },
     ];
