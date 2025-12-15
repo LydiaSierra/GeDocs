@@ -1,7 +1,5 @@
 import Header from "@/Components/Header/Header.jsx";
-import Sidebar from "@/Components/Sidebar/Sidebar.jsx";
 import React from "react";
-import ProfileHeader from '@/Components/Profile/ProfileHeader.jsx'
 import ProfileMenu from '@/Components/Profile/ProfileMenu.jsx'
 import DependenciesSidebar from '@/Components/Dependencies/DependenciesSidebar.jsx'
 
@@ -9,7 +7,7 @@ const ProfileLayaout = ({children}) => {
     return (
         <>
             <div className='bg-gray-100'>
-                <ProfileHeader/>
+                <Header/>
 
                 <div className='flex h-screen'>
 

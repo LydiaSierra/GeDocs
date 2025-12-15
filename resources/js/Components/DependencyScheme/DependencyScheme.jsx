@@ -58,7 +58,7 @@ const DependencyScheme = ({ onPdfGenerated }) => {
     // ------------------------------
     return (
         <form id="pdfForm" onSubmit={handleGeneratePdf}>
-            <div className="rounded-sm p-6 gap-3 items-center grid grid-cols-3 justify-between bg-gray-200 w-full">
+            <div className="rounded-sm p-6 gap-3 items-center grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-between bg-gray-200 w-full">
 
                 {/* Campo: Código */}
                 <div>

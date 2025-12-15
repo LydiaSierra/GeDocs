@@ -27,7 +27,7 @@ export default function SheetsTable({ sheets = [] }) {
         <div className="w-full">
             {/* MODAL VER */}
             <dialog id="my_modal_3" className="modal">
-                <div className="modal-box w-full max-w-5xl p-4 sm:p-6">
+                <div className="modal-box max-w-5xl p-4 sm:p-6">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
                             ✕
@@ -93,7 +93,7 @@ export default function SheetsTable({ sheets = [] }) {
 
                             <div className="flex gap-3 mt-4">
                                 <button
-                                    className="flex-1 bg-green-600 text-white py-2 rounded-md"
+                                    className="flex-1 bg-primary text-white py-2 rounded-md"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         openEditModal(item);

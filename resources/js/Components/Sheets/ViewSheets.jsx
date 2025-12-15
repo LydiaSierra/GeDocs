@@ -25,9 +25,9 @@ export default function ViewSheets({ sheet }) {
     };
 
     return (
-        <div className="w-full bg-gray-100 p-6 rounded-lg">
-            <dialog id="my_modal_4" className="modal">
-                <div className="modal-box max-w-5xl w-[90%] p-8">
+        <div className="bg-gray-100 p-6 rounded-lg">
+            <dialog id="my_modal_4" className="modal p-2">
+                <div className="modal-box  p-8">
                     <form method="dialog">
                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
                             ✕

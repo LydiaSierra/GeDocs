@@ -3,9 +3,9 @@ import { ArchiveUIContext } from '@/context/ArchiveExplorer/ArchiveUIContext';
 import React, { useContext, useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner';
 
-const ModalCreateOrEditFolder = () => {
+const  ModalCreateOrEditFolder = () => {
     const { currentFolder, createFolder, updateFolder } = useContext(ArchiveDataContext);
-    const { selectedFolder, toogleShowModalFolder, setSelectedFolder } = useContext(ArchiveUIContext);
+    const { selectedFolder, setSelectedFolder } = useContext(ArchiveUIContext);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: "",

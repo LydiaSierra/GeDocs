@@ -20,7 +20,6 @@ export default function Explorer() {
         getAllFolders,
     } = useContext(ArchiveDataContext);
     const { selectedItem } = useContext(ArchiveUIContext);
-    const [openModalUpload, setopenModalUpload] = useState(false);
     const role = usePage().props.auth.user.roles[0].name
     const canEdit = role === "Admin" || role === "Instructor"
 
@@ -53,11 +52,11 @@ export default function Explorer() {
                 <div className="bg-white h-full rounded-lg p-2 relative flex flex-col min-h-0 overflow-x-hidden">
                     <div className="flex justify-between items-center flex-wrap gap-4 ">
                         <InputSearch />
-                        <div className="flex flex-wrap items-center gap-2 ">
+                        <div className="flex w-full md:w-max justify-center flex-wrap items-center gap-2 ">
                             {currentFolder &&
                                 <button className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
                                     onClick={() => {
-                                        setopenModalUpload(true)
+                                        document.getElementById("uploadFile").showModal();
                                     }}
                                 >
                                     Subir Archivo
@@ -104,35 +103,15 @@ export default function Explorer() {
 
                     </dialog>
 
-                    {openModalUpload && (
-                        <UploadModal onOpen={setopenModalUpload} />
-                    )
-                    }
+                        <UploadModal />
+                  
 
                     {selectedItem &&
                         <ModalDetails />
                     }
                     <ModalCreateOrEditFolder />
 
-                    <dialog id="confirmDeleteFolder" className="modal">
-                        <div className="modal-box">
-                            <h3 className="font-bold text-xl text-red-600  text-center">
-                                {/* ICON OF ALERT */}
-                                <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
-                                ADVERTENCIA!
-                            </h3>
-                            <p className="py-4 font-bold text-center">
-                                Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
-                            </p>
-                            <div className="modal-action">
-                                <form method="dialog" className="flex justify-center items-center w-full">
-                                    <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
-                                    <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
-                                </form>
-                            </div>
-                        </div>
-                    </dialog>
-
+                    
                 </div>
 
 

@@ -13,6 +13,7 @@ export const ModalDetails = () => {
   if (!selectedItem) return null;
   // Destructure selectedItem and data from the selected item
 
+console.log(selectedItem);
 
   // Render the modal with item details
   return (
