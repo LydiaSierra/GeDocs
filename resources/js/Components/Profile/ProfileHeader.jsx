@@ -19,7 +19,6 @@ export default function ProfileHeader({
 
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
-            {/* LEFT SIDE */}
             <div className="flex items-center gap-3">
                 {/* MENU HAMBURGUESA - SOLO MOVIL */}
                 <div className="dropdown lg:hidden">
@@ -65,7 +64,7 @@ export default function ProfileHeader({
                         </li>
 
                         <li>
-                            <a>
+                            <a href={route("aprendiz")}>
                                 <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
                                     <AcademicCapIcon className="text-[#848484] w-5 h-5" />
                                     Aprendices
@@ -74,7 +73,7 @@ export default function ProfileHeader({
                         </li>
 
                         <li>
-                            <a>
+                            <a href={route("instructor")}>
                                 <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
                                     <ListBulletIcon className="text-[#848484] w-5 h-5" />
                                     Instructores
