@@ -12,7 +12,6 @@ export default function TableSheets() {
         document.getElementById("my_modal_2")?.showModal();
     };
 
-    // FILTRADO
     const filteredSheets = useMemo(() => {
         if (!search.trim()) return sheets;
 
@@ -27,7 +26,7 @@ export default function TableSheets() {
     }, [search, sheets]);
 
     return (
-        <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-full">
+        <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-90% mt-4">
             {/* MODAL */}
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box max-w-5xl w-[95%] sm:w-[90%] p-6 sm:p-8">
@@ -70,7 +69,6 @@ export default function TableSheets() {
                 </button>
             </div>
 
-            {/* TABLA */}
             <div className="w-full border rounded-lg mt-6 overflow-visible">
                 <SheetsTable sheets={filteredSheets} />
             </div>

@@ -1,12 +1,15 @@
-import { BellIcon } from "@heroicons/react/24/outline";
 import { Link, router, usePage } from "@inertiajs/react";
 import {
     UserCircleIcon,
     AcademicCapIcon,
     ListBulletIcon,
+    PencilSquareIcon,
+    TrashIcon,
 } from "@heroicons/react/24/outline";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import NotificationDropDown from "../Notifications/NotificationDropDown";
+import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
+import { useContext, useEffect } from "react";
+
 export default function ProfileHeader({
     setOpenObject,
     openObject,
@@ -16,6 +19,12 @@ export default function ProfileHeader({
     const { props } = usePage();
     const user = props.auth.user;
     const showEditProfile = route().current("profile.edit");
+
+    const { fetchNotifications } = useContext(NotificationsContext);
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
 
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
@@ -39,147 +48,81 @@ export default function ProfileHeader({
                                 strokeLinejoin="round"
                                 strokeWidth="2"
                                 d="M4 6h16M4 12h16M4 18h16"
-                            ></path>{" "}
+                            />
                         </svg>
                     </div>
 
                     <ul
-                        tabIndex="-1"
+                        tabIndex={-1}
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-56 p-2 shadow"
                     >
-                        {/* Perfil */}
+                        {/* PERFIL */}
                         <li>
-                            <a href={route("profile.edit")}>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
+                            <Link href={route("profile.edit")}>
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <UserCircleIcon className="w-5 h-5 text-[#848484]" />
                                     Información de Perfil
                                 </div>
-                            </a>
+                            </Link>
                         </li>
 
-                        {/* Usuarios */}
-                        <li className="mt-1 mb-1">
-                            <h1 className="self-start text-[14px] font-semibold text-[#848484]">
-                                Usuarios
-                            </h1>
+                        {/* USUARIOS */}
+                        <li className="mt-2 mb-1 text-[14px] font-semibold text-[#848484]">
+                            Usuarios
                         </li>
 
                         <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <AcademicCapIcon className="text-[#848484] w-5 h-5" />
+                            <Link href={route("aprendiz")}>
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <AcademicCapIcon className="w-5 h-5 text-[#848484]" />
                                     Aprendices
                                 </div>
-                            </a>
+                            </Link>
                         </li>
 
                         <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <ListBulletIcon className="text-[#848484] w-5 h-5" />
+                            <Link href={route("instructor")}>
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <ListBulletIcon className="w-5 h-5 text-[#848484]" />
                                     Instructores
                                 </div>
-                            </a>
+                            </Link>
                         </li>
+
                         <li>
-                            <a href={route("sheets")}>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text- font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
+                            <Link href={route("sheets")}>
+                                <div className="flex items-center gap-2 text-sm font-medium">
+                                    <UserCircleIcon className="w-5 h-5 text-[#848484]" />
                                     Fichas
                                 </div>
-                            </a>
-                        </li>
-                        {/* Solicitudes */}
-                        <li className="mt-2 mb-1">
-                            <h1 className="self-start text-[14px] font-semibold text-[#848484]">
-                                Solicitudes
-                            </h1>
+                            </Link>
                         </li>
 
-                        <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
-                                    Aprendices
-                                </div>
-                            </a>
-                        </li>
-
-                        <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
-                                    Instructores
-                                </div>
-                            </a>
-                        </li>
-
-                        {/* Gestión Documental */}
-                        <li className="mt-2 mb-1">
-                            <h1 className="self-start text-[14px] font-semibold text-[#848484]">
-                                Gestión Documental
-                            </h1>
-                        </li>
-
-                        <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
-                                    Dependencias
-                                </div>
-                            </a>
-                        </li>
-
-                        <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
-                                    Series y Subseries
-                                </div>
-                            </a>
-                        </li>
-
-                        <li>
-                            <a>
-                                <div className="flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-sm font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] w-5 h-5" />
-                                    Secciones y Subsecciones
-                                </div>
-                            </a>
-                        </li>
-
-                        {/* Editar Perfil */}
-
+                        {/* EDITAR PERFIL */}
                         {showEditProfile && (
                             <>
-                                <li className="mt-2 mb-1">
-                                    <h1 className="self-start text-[14px] font-semibold text-[#848484]">
-                                        Editar Perfil
-                                    </h1>
+                                <li className="mt-3 mb-1 text-[14px] font-semibold text-[#848484]">
+                                    Editar Perfil
                                 </li>
 
-                                <li>
-                                    <div
-                                        className="flex flex-row items-center cursor-pointer gap-2 w-full
-                           text-[#010515] text-sm font-medium hover:underline"
-                                        onClick={() =>
-                                            setOpenObject((prev) => !prev)
-                                        }
-                                    >
-                                        <PencilSquareIcon className="text-[#848484] w-5 h-5" />
+                                <li
+                                    onClick={() =>
+                                        setOpenObject((prev) => !prev)
+                                    }
+                                >
+                                    <div className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                        <PencilSquareIcon className="w-5 h-5 text-[#848484]" />
                                         Cambiar Contraseña
                                     </div>
                                 </li>
 
-                                <li>
-                                    <div
-                                        className="flex flex-row items-center cursor-pointer gap-2 w-full
-                           text-[#010515] text-sm font-medium hover:underline"
-                                        onClick={() =>
-                                            setOpenObject1((prev) => !prev)
-                                        }
-                                    >
-                                        <TrashIcon className="text-[#848484] w-5 h-5" />
+                                <li
+                                    onClick={() =>
+                                        setOpenObject1((prev) => !prev)
+                                    }
+                                >
+                                    <div className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                        <TrashIcon className="w-5 h-5 text-[#848484]" />
                                         Eliminar Cuenta
                                     </div>
                                 </li>
@@ -187,25 +130,20 @@ export default function ProfileHeader({
                         )}
                     </ul>
                 </div>
-
-                {/* LOGO */}
-                <a href="/">
+            </div>
+            <div className="flex flex-1 justify-center lg:justify-start">
+                <Link href="/">
                     <img
                         src="/gedocs-logo.svg"
                         alt="gedocs logo"
                         className="h-8"
                     />
-                </a>
+                </Link>
             </div>
 
-            {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center h-full">
-                {/* NOTIFICATION ICON */}
-                <Link href={route("notifications.index")}>
-                    <BellIcon className="w-8 cursor-pointer" />
-                </Link>
+                <NotificationDropDown />
 
-                {/* USER DROPDOWN */}
                 <div className="dropdown dropdown-end">
                     <div
                         tabIndex={0}
@@ -231,15 +169,15 @@ export default function ProfileHeader({
                                 </p>
                             </div>
 
-                            <div>
-                                <p className="text-xs text-gray-500">
-                                    {user?.email}
-                                </p>
-                            </div>
+                            <p className="text-xs text-gray-500">
+                                {user?.email}
+                            </p>
                         </div>
 
                         <li>
-                            <Link href={route("profile.edit")}>Settings</Link>
+                            <Link href={route("profile.edit")}>
+                                Configuración
+                            </Link>
                         </li>
 
                         <li>
