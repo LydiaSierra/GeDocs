@@ -182,16 +182,26 @@ class PQRController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $validated = $request->validate([
-            'response_time' => 'sometimes|date|after:today',
-            'response_days' => 'sometimes|in:10,15,30',
-            'state' => 'sometimes|boolean',
-            'archived' => 'sometimes|boolean', // 🔸 ARCHIVE
-            'dependency_id' => 'sometimes|exists:dependencies,id',
-            'responsible_id' => 'sometimes|exists:users,id'
+        Log::info('Archive payload', $request->all());
+
+        $input = $request->only([
+            'response_time',
+            'response_days',
+            'state',
+            'archived',
+            'dependency_id',
+            'responsible_id'
         ]);
 
-        $user = $request->user();
+        $validated = validator($input, [
+            'response_time' => 'nullable|date|after:today',
+            'response_days' => 'nullable|in:10,15,30',
+            'state' => 'boolean',
+            'archived' => 'boolean',
+            'dependency_id' => 'exists:dependencies,id',
+            'responsible_id' => 'exists:users,id'
+        ])->validate();
+
         $pqr = PQR::find($id);
 
         if (!$pqr) {
@@ -200,7 +210,10 @@ class PQRController extends Controller
 
         if (isset($validated['response_days'])) {
             $pqr->response_days = (int)$validated['response_days'];
-            $pqr->response_time = Carbon::now()->addDays($pqr->response_days)->toDateString();
+            $pqr->response_time = Carbon::now()
+                ->addDays($pqr->response_days)
+                ->toDateString();
+
             unset($validated['response_days']);
         }
 
@@ -208,8 +221,15 @@ class PQRController extends Controller
         $pqr->save();
 
         return response()->json([
-            'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),
-            'message' => 'PQR actualizada exitosamente'
+            'message' => 'PQR actualizada exitosamente',
+            'data' => $pqr->fresh()->load([
+                'creator',
+                'responsible',
+                'dependency',
+                'attachedSupports',
+                'sheetNumber'
+            ])
         ], 200);
     }
+
 }

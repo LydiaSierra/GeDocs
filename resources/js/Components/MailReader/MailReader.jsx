@@ -16,8 +16,9 @@ export function MailReader() {
         isArchiveView // boolean you pass from Inbox / Archive
     } = useContext(MailContext);
 
-    const [currentMail, setCurrentMail] = useState(mailCards[0]);
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const currentMail = mailCards.find(
+        mail => mail.id === selectedMail
+    );
 
     const getThumbnail = (type) => {
         switch (type.toLowerCase()) {
@@ -36,31 +37,10 @@ export function MailReader() {
     };
 
 
-    useEffect(() => {
-        if (mailCards.length > 0 && currentMail?.id !== mailCards[0].id) {
-            setCurrentMail(mailCards[0]);
-        }
-    }, [mailCards]);
-
-    useEffect(() => {
-        if (!mailCards.length || !selectedMail) return;
-
-        const index = mailCards.findIndex(item => item.id === selectedMail);
-        if (index === -1) return;
-
-        setCurrentIndex(index);
-
-        // Evita re-render innecesario
-        if (currentMail?.id !== mailCards[index].id) {
-            setCurrentMail(mailCards[index]);
-        }
-
-    }, [selectedMail, mailCards]);
-
     if (!currentMail) {
         return (
             <div className="h-full w-full flex items-center justify-center text-gray-500">
-                Cargando correo...
+                Selecciona un correo
             </div>
         );
     }
@@ -71,17 +51,25 @@ export function MailReader() {
                 archived: !isArchiveView
             });
 
-            // Remove mail from current list
             setMailCards(prev =>
                 prev.filter(mail => mail.id !== currentMail.id)
             );
 
-            setSelectedMail(null);
+            setSelectedMail(null); // triggers clean UI reset
         } catch (error) {
-            console.error("Error updating archive state:", error);
-            alert("No se pudo actualizar el estado del correo");
+            console.error('Archive error FULL:', error);
+
+            if (error.response) {
+                console.error('Status:', error.response.status);
+                console.error('Data:', error.response.data);
+            } else if (error.request) {
+                console.error('No response received:', error.request);
+            } else {
+                console.error('Request setup error:', error.message);
+            }
         }
     };
+
 
 
     console.log("attachments:", currentMail.attached_supports);

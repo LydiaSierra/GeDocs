@@ -20,7 +20,7 @@ export default function ArchiveMailModal({ mail, onClose, onUnarchive }) {
 
                     <button
                         onClick={() => onUnarchive(mail.id)}
-                        className="btn btn-primary"
+                        className="btn btn-primary font-bold text-white"
                     >
                         Desarchivar
                     </button>

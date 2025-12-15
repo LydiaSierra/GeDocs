@@ -7,8 +7,9 @@ import {MailContext} from "@/context/MailContext/MailContext.jsx";
 
 export default function InboxSidebar() {
 
-    const {mailCards, selectedMail} = useContext(MailContext);
+    const {mailCards, selectedMail, loading} = useContext(MailContext);
 
+    console.log(mailCards)
     return (<div
         className={`
         w-full
@@ -75,9 +76,21 @@ export default function InboxSidebar() {
             id="mail-card-scrollarea"
             className="p-2 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full"
         >
-            {mailCards.map((card) => {
-                return (<InboxMailCard key={card.id} card={card}/>)
-            })}
+            {loading ?
+                <div className={"flex flex-col gap-2"}>
+                    <div className={"skeleton w-full h-40"}></div>
+                    <div className={"skeleton w-full h-40"}></div>
+                    <div className={"skeleton w-full h-40"}></div>
+
+                </div>
+                :
+                <>
+                    {mailCards.map((card) => {
+                        return (<InboxMailCard key={card.id} card={card}/>)
+                    })}
+                </>
+            }
+
         </div>
     </div>);
 }

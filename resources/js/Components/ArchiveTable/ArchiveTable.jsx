@@ -25,12 +25,12 @@ export default function ArchiveTable() {
                 <table className="w-full table-auto border-separate border-spacing-y-2">
                     <thead className="sticky top-0">
                     <tr className="bg-gray-500 text-white">
-                        <th>ID</th>
+                        <th className="py-3 rounded-l-md">ID</th>
                         <th>Título</th>
                         <th>Solicitante</th>
                         <th>Tipo</th>
                         <th>Estado</th>
-                        <th>Fecha</th>
+                        <th className="rounded-r-md">Fecha</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -38,14 +38,14 @@ export default function ArchiveTable() {
                         <tr
                             key={mail.id}
                             onClick={() => setSelectedMail(mail)}
-                            className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue text-center"
+                            className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue text-center hover:bg-accent"
                         >
-                            <td>{mail.id}</td>
+                            <td className="py-3 rounded-l-md">{mail.id}</td>
                             <td className="truncate max-w-[200px]">{mail.affair}</td>
                             <td>{mail.sender_name}</td>
                             <td>{mail.request_type}</td>
                             <td>{mail.response_status}</td>
-                            <td>{new Date(mail.created_at).toLocaleDateString()}</td>
+                            <td className="rounded-r-md">{new Date(mail.created_at).toLocaleDateString()}</td>
                         </tr>
                     ))}
                     </tbody>
