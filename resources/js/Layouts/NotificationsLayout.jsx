@@ -6,10 +6,7 @@ import NotificationSidebar from "@/Components/Notifications/NotificationSidebar.
 import SettingsBar from "../Components/SettingsBar/SettingsBar"
 
 const NotificationsLayout = ({children,url}) => {
-    const {fetchNotifications} = useContext(NotificationsContext)
-      useEffect(() => {
-        fetchNotifications();
-    }, []);
+    
 
     return (
         <>

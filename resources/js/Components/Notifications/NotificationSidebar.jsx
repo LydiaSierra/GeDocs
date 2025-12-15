@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext.jsx";
 import {UserCircleIcon,PlusCircleIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
@@ -6,10 +6,9 @@ import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx"
 
 const NotificationSidebar = () => {
 
-    const { notifications, markAsReadNotification, loading, visibleDetails, notificationSeleted} = useContext(NotificationsContext);
+    const { notifications, markAsReadNotification, loading, visibleDetails, setVisibleDetails, notificationSeleted,updateStatusUser} = useContext(NotificationsContext);
 
-  
-
+     
     if(loading){
         return(
             <div className="w-full flex flex-col items-center justify-center h-full"> 
@@ -25,7 +24,8 @@ const NotificationSidebar = () => {
             <div className="col-span-1">
                 <h1 className="font-bold text-2xl text-black"> Solicitudes de instructores </h1>
 
-                <ul className="flex flex-col gap-3 overflow-y-scroll pr-2 mt-1 rounded-lg h-auto">
+                
+                    <ul className="flex flex-col gap-3 overflow-y-scroll pr-2 mt-1 rounded-lg h-auto">
 
                     {/* condicionales para estilos dependiendo el estado de la notificacion */}
                     {notifications.map((item) => {
@@ -38,11 +38,12 @@ const NotificationSidebar = () => {
 
                                         markAsReadNotification(item.id);
                                     }
+                                    setVisibleDetails(item)
                                 }}
                                 className={`flex flex-row w-full h-auto border-y border-x-none cursor-pointer relative p-2 mt-1.5 rounded-xl
                                 ${item.read_at ? "text-[#848484]" : "text-black font-bold "} 
                                 hover:bg-[#6CF1F5]
-                                ${notificationSeleted === item.id ? "bg-[#6CF1F5]" : "bg-white" }`}
+                                ${notificationSeleted === item.id ? "bg-[#6CF1F5]" : "bg-white" } ${item.data?.user?.status === "active" ? "text-green-800" : ""}`}
                             >
 
                             <div className={`"w-full flex flex-col items-start gap-1" }`}>
