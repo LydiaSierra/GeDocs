@@ -1,6 +1,6 @@
 import {DocumentTextIcon, UserCircleIcon} from "@heroicons/react/24/solid";
 import {useContext} from "react";
-import {MailContext} from "@/Pages/Inbox.jsx";
+import { MailContext } from "@/context/MailContext/MailContext";
 
 export default function InboxMailCard({card}) {
 

@@ -1,11 +1,12 @@
 import SenderInformationCard from "@/components/SenderInformationCard/SenderInformationCard";
-import { MailContext } from "@/Pages/Inbox.jsx";
+import { MailContext } from "@/context/MailContext/MailContext";
 import { useContext, useEffect, useState } from "react";
+import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import card from "daisyui/components/card/index.js";
 
 export function MailReader() {
 
-    const { mailCards, selectedMail } = useContext(MailContext);
+    const { mailCards, selectedMail, setSelectedMail } = useContext(MailContext);
     const [currentMail, setCurrentMail] = useState(mailCards[0]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -40,7 +41,26 @@ export function MailReader() {
 
 
     return (
-        <div className="h-full w-full shadow-xl rounded-lg p-6 overflow-y-auto hidden lg:block bg-white">
+        <div className={`
+    h-full
+    w-full
+    shadow-xl
+    rounded-lg
+    p-6
+    overflow-y-auto
+    bg-white
+    transition-all duration-300 ease-in-out
+    ${selectedMail ? "block" : "hidden"}
+    lg:block
+  `}>
+
+            <button
+                className="flex items-center gap-2 mb-4 lg:hidden text-gray-600"
+                onClick={() => setSelectedMail(null)}
+            >
+                <ArrowLeftIcon className="w-5" />
+                Volver
+            </button>
 
             <div id="tag-container" className="flex flex-wrap gap-2">
                 <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white bg-primary">
