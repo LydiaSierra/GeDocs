@@ -21,7 +21,7 @@ const ProfileSidebar = ({ className = "" }) => {
                     alt="Profile picture"
                     className="w-48 h-48 object-cover rounded-2xl mb-4"
                 />
-
+                
                 <h2 className="text-md font-medium">{user.name}</h2>
 
                 <p className="text-sm text-gray-500">{user.email}</p>
