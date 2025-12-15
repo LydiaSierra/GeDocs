@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\CommunicationController;
 use App\Http\Controllers\Api\PQRController;
 use App\Http\Controllers\DependencyController;
 use Illuminate\Http\Request;
@@ -95,18 +96,18 @@ Route::post('pqr/{id}/finalize', [PQRController::class, 'finalizeResponse'])->mi
 // ----------- RESPUESTAS PQR -------------
 Route::prefix('pqr')->group(function () {
     // Ruta para mostrar el formulario de respuesta (GET)
-    Route::get('responder/{uuid}', [PQRController::class, 'showResponseForm'])->name('pqr.show-response-form');
+    Route::get('responder/{uuid}', [CommunicationController::class, 'showResponseForm'])->name('pqr.show-response-form');
 
     // Ruta para procesar la respuesta con archivos (POST)
-    Route::post('responder/{uuid}', [PQRController::class, 'processResponse'])->name('pqr.upload-response');
+    Route::post('responder/{uuid}', [CommunicationController::class, 'processResponse'])->name('pqr.upload-response');
 
     // Ruta para crear comunicaciones (para admins autenticados)
-    Route::post('{id}/comunicaciones', [PQRController::class, 'createCommunication'])
+    Route::post('{id}/comunicaciones', [CommunicationController::class, 'createCommunication'])
         ->middleware('auth:sanctum')
         ->name('pqr.create-communication');
 
     //Ruta para archivar y desarchivar comunicaciones
-    Route::patch('comunicaciones/{communicationId}/archive',  [PQRController::class, 'archiveCommunication'])
+    Route::patch('comunicaciones/{communicationId}/archive',  [CommunicationController::class, 'archiveCommunication'])
         ->middleware('auth:sanctum');
 });
 
