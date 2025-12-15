@@ -46,7 +46,7 @@ const NotificationDropDown = () => {
                                         className="flex flex-row py-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
                                         relative hover:bg-accent cursor-pointer"
                                     >
-                                        <UserCircleIcon className="md:w-13 md:h-13 w-12 h-12 self-start text-[#404142]" />
+                                        <UserCircleIcon className="md:w-13 md:h-13 w-12 h-12 self-center text-[#404142]" />
 
                                         <div className="w-[80%] h-full flex flex-col items-start gap-1">
                                             <h1 className="text-2xs md:text-lg font-semibold">
@@ -66,7 +66,8 @@ const NotificationDropDown = () => {
                                             </p>
                                         </div>
 
-                                        <PlusCircleIcon className="md:w-4.5 w-3.5 md:h-4.5 h-3.5 fill-[#3CACBB] text-[#3CACBB] border-none absolute md:-top-3 -top-2 right-1 " />
+                                        <PlusCircleIcon className="md:w-4.5 w-3.5 md:h-4.5 h-3.5 fill-[#3CACBB] text-[#3CACBB] 
+                                        border-none absolute md:-top-2.5 -top-2 right-0 " />
                                     </li>
                                 ))}
                         </ul>

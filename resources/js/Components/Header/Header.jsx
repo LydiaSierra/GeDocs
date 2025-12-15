@@ -33,7 +33,7 @@ export default function Header() {
                     <img
                         src="/gedocs-logo.svg"
                         alt="gedocs logo"
-                        className="h-8 lg:block md:hidden block"
+                        className="h-8 block"
                     />
                 </a>
             </div>

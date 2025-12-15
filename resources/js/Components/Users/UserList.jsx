@@ -48,11 +48,11 @@ export const UserList = ({ url }) => {
                 <table className="w-full lg:border-separate lg:border-spacing-y-4 ">
                     <thead className="sticky top-0 h-auto">
                         <tr className="lg:bg-[#E8E8E8] bg-none lg:h-10 md:h-7 ">
-                            <th className="rounded-tl-[7px] text-sm lg:text-lg md:w-auto">Nombre</th>
+                            <th className="md:rounded-l-[7px] rounded-tl-[7px] text-sm lg:text-lg md:w-auto">Nombre</th>
                             <th className="text-sm lg:text-lg md:w-auto">Identificacion</th>
                             <th className="hidden lg:table-cell">Email</th>
                             <th className="hidden lg:table-cell">Fecha de cración</th>
-                            <th className="rounded-tr-[7px] text-sm lg:text-lg md:w-auto">Estado</th>
+                            <th className="md:rounded-r-[7px] rounded-tr-[7px] text-sm lg:text-lg md:w-auto">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,7 +78,7 @@ export const UserList = ({ url }) => {
                                         className=" lg:bg-white bg-none lg:border-none border-y border-solid border-[#DBDBDB]
                                         hover:bg-accent text-center cursor-pointer h-15 "
                                     >
-                                        <td className="lg:pl-5 pl-2 lg:text-xl text-xs font-normal">
+                                        <td className="lg:pl-5 pl-2 lg:text-xl text-xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
                                             <div className="h-full flex flex-row items-center justify-start lg:gap-5 gap-2">
                                                 <img
                                                     className="lg:w-10 w-8 rounded-full"
@@ -99,7 +99,7 @@ export const UserList = ({ url }) => {
                                                 item.created_at
                                             ).toLocaleDateString()}
                                         </td>
-                                        <td className=" text-[#606164] h-full font-normal">
+                                        <td className=" text-[#606164] h-full font-normal md:rounded-r-[7px] rounded-tr-[7px]yy">
                                             <div className="bg-[#E8E8E8] rounded-md lg:w-[90%] md:w-[70%] w-auto text-xs lg:text-lg h-auto">
                                                 {item.status === "pending"
                                                     ? "Pendiente"
