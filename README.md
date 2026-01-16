@@ -74,7 +74,7 @@ Asegúrese de tener instalado lo siguiente:
 1. Clonar el repositorio 
 ``` 
 git clone https://github.com/LydiaSierra/GeDocs.git 
-cd GecDosc 
+cd GecDocs 
 ``` 
 2. Instalar dependencias backend 
 ``` 
