@@ -27,8 +27,7 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
 - Tecnologías utilizadas.
 - Herramientas de desarrollo (DevDependencies) .
 - Scripts principales.
-- Api EndPoints. 
-- Notas finales. 
+- Api EndPoints.  
 
 ## Descripción del proyecto 
 
