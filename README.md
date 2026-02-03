@@ -352,49 +352,31 @@ Esta sección describe el funcionamiento de la API de Carpetas, incluyendo los e
 | Folder puede tener carpetas hijas |
 
 - Endpoints
+|Listar Todas las Fichas Asociadas |
+|----------------------------------|
+ 
 
-| Listar fichas |
-|---------------|
-| GET /api/sheets | 
+| Método | Endpoint    | Descripción                                                                            | Permisos |
+|--------|-------------|----------------------------------------------------------------------------------------|----------|
+|GET     |/sheetsNumber|Obtiene una lista de todas las dependencias existentes asociadas al usuario autenticado.|Rol Admin o Instructor.|
 
 Devuelve todas las fichas con los usuarios asignados. 
 
--  Respuesta 200 (Éxito)
+-  Respuesta Exitosa (200 OK)
 
 ``` 
-{ 
-
-  "success": true, 
-
-  "sheets": [ 
-
-    { 
-
-      "id": 1, 
-
-      "number": "2690123", 
-
-      "active": true, 
-
-      "state": "active", 
-
-      "users": [ 
-
-        { 
-
-          "id": 5, 
-
-          "name": "Juan Pérez" 
-
-        } 
-
-      ] 
-
-    } 
-
-  ] 
-
-}  
+{
+"message": "Fichas encontradas",
+"fichas": [
+    {
+      "id": 1,
+      "number": "3002085",
+      "active": 1,
+      "state": "active",
+      "created_at": "2025-12-15T10:00:00.000000Z"
+    }
+]
+} 
 ``` 
 |  Buscar ficha por número |
 |--------------------------|
@@ -430,92 +412,78 @@ Busca fichas por coincidencia parcial del número.
   ]}
 ``` 
 
-- Respuesta 404 
+- Respuesta de Error (404 Not Found)
 
 ``` 
-{ 
-  "success": false, 
-  "message": "Ficha no encontrada" 
-} 
+{
+"status": "error",
+"message": "El usuario no tiene fichas asignadas"
+}
 ``` 
 |  Crear ficha  |
 |---------------|
-| Rol permitido: Admin | 
-| POST /api/sheets |
+
+
+| Método | Endpoint    | Descripción          | Permisos |
+|--------|-------------|----------------------|----------|
+|POST    |/sheets      |Crea una nueva ficha. |Rol Admin.|
 
 Crea una nueva ficha y su dependencia Ventanilla Única. 
 
 - Request Body
   
 ``` 
-{ 
-  "number": "2690123" 
-} 
+     {
+"number": "3002085",
+    }
 ```
 
-- Respuesta 201
+- Respuesta Exitosa (200 OK)
   
-``` 
-{ 
-
-    "number": "234234", 
-
-    "updated_at": "2025-12-15T20:46:43.000000Z", 
-
-    "created_at": "2025-12-15T20:46:43.000000Z", 
-
-    "id": 5, 
-
-    "ventanilla_unica_id": 7, 
-
-    "dependencies": [ 
-
-        { 
-
-            "id": 7, 
-
-            "name": "Ventanilla Unica", 
-
-            "sheet_number_id": 5, 
-
-            "created_at": "2025-12-15T20:46:43.000000Z", 
-
-            "updated_at": "2025-12-15T20:46:43.000000Z" 
-
-        } 
-
-    ] 
-
-} 
+```
+    {
+"number": "3002085",
+"dependencies": {
+    "name": "Ventanilla unica",
+    "id": 2
+    }
+}
 ``` 
 
 |  Actualizar ficha |
 |-------------------|
-| Rol permitido: Admin | 
-| PUT /api/sheets/{id} |
 
-Actualiza el número, estado o activa la ficha. 
+
+| Método | Endpoint    | Descripción                                | Permisos |
+|--------|-------------|--------------------------------------------|----------|
+|PUT     |/sheets/{id} |Actualiza el nombre de una ficha existente. |Rol Admin.|
+
 
 - Request Body 
 
 ``` 
-{ 
-  "active": true, 
-  "state": "active" 
-} 
-``` 
- 
- Al activar una ficha, las demás se desactivan automáticamente. 
-
-
-- Respuesta 200
+    {
+"name": "3002086",
+     “Active”:1,
+     “state”: “active”
+}
+```  
+- Respuesta Exitosa (200 OK)
 
 ``` 
 { 
   "success": true, 
   "message": "Ficha actualizada con éxito" 
 } 
+```
+-  Respuesta de Error (404 not found)
 ``` 
+{ 
+  "success": true, 
+  "message": "Ficha no encontrada" 
+} 
+```
+
 
 |  Agregar usuario a ficha |
 |-------------------|
@@ -551,20 +519,27 @@ Asigna un usuario a una ficha.
 ``` 
 
 |  Eliminar usuario de ficha |
-|-------------------|
-| Roles permitidos: Admin | 
-| DELETE /api/sheets/delete/user/{numberSheet}/{idUser}  |
+|----------------------------|
 
-Elimina la relación entre un usuario y una ficha. 
+| Método | Endpoint    | Descripción                   | Permisos |
+|--------|-------------|-------------------------------|----------|
+|DELETE  |/sheets/{id} |Elimina una ficha del sistema. |Rol Admin.|
 
-- Respuesta 200
+- Respuesta Exitosa (200 OK)
 
 ``` 
 { 
   "success": true, 
-  "message": "Usuario eliminado de la ficha con exito" 
+  "message": "Ficha eliminada con exito" 
 } 
+```
+- Respuesta de Error (404 not found)
 ``` 
+{ 
+  "success": false, 
+  "message": "Ficha no encontrada" 
+} 
+```
 
 | Notas finales |
 |---------------|
