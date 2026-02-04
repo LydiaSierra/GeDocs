@@ -1,7 +1,7 @@
 import api from "@/lib/axios";
 import { PencilIcon, UserIcon } from "@heroicons/react/24/outline";
 import { router, usePage } from "@inertiajs/react";
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { toast } from "sonner";
 
 const ProfileSidebar = ({ className = "" }) => {
@@ -12,6 +12,13 @@ const ProfileSidebar = ({ className = "" }) => {
     } = usePage();
     const [loadingPhoto, setLoadingPhoto] = useState(true)
 
+    useEffect(()=>{
+        if(user.profile_photo){
+            setLoadingPhoto(true);
+        }else{
+            setLoadingPhoto(false)
+        }
+    }, [])
 
     const UploatPhoto = async (e) => {
         try {

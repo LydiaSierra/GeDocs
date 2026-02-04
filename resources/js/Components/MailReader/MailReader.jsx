@@ -20,6 +20,43 @@ export function MailReader() {
         mail => mail.id === selectedMail
     );
 
+
+    const [responseText, setResponseText] = useState("");
+    const [sending, setSending] = useState(false);
+
+    const handleRespond = async () => {
+        if (!responseText.trim()) return;
+
+        try {
+            setSending(true);
+
+            await axios.post(
+                `/api/pqrs/${currentMail.id}/respond`,
+                {
+                    response: responseText
+                }
+            );
+
+            // Optional UX improvements 👇
+            setResponseText("");
+            alert("Respuesta enviada correctamente");
+
+            // If responding should close or archive the mail:
+            // setSelectedMail(null);
+
+        } catch (error) {
+            console.error("Respond error:", error);
+
+            if (error.response) {
+                console.error(error.response.data);
+                alert("Error al enviar la respuesta");
+            }
+        } finally {
+            setSending(false);
+        }
+    };
+
+
     const getThumbnail = (type) => {
         switch (type.toLowerCase()) {
             case "pdf":
@@ -205,9 +242,15 @@ export function MailReader() {
                 <textarea
                     className="textarea w-full rounded-lg focus:outline-gray-200 my-2"
                     placeholder="Escribe tu respuesta..."
+                    value={responseText}
+                    onChange={(e) => setResponseText(e.target.value)}
                 />
-                <button className="btn bg-primary p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end">
-                    Enviar respuesta
+                <button
+                    onClick={handleRespond}
+                    disabled={sending}
+                    className="btn bg-primary p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end disabled:opacity-50"
+                >
+                    {sending ? "Enviando..." : "Enviar respuesta"}
                 </button>
             </div>
         </div>
