@@ -51,7 +51,6 @@ export default function UpdateProfileInformation({
                         className="mt-1 block w-full"
                         // value={data.name}
                         onChange={(e) => setData("name", e.target.value)}
-                        required
                         isFocused
                         autoComplete="name"
                     />
@@ -66,9 +65,7 @@ export default function UpdateProfileInformation({
                         id="email"
                         type="email"
                         className="mt-1 block w-full"
-                        // value={data.email}
                         onChange={(e) => setData("email", e.target.value)}
-                        // required
                         autoComplete="username"
                     />
 
