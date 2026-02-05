@@ -112,8 +112,27 @@ export default function Explorer() {
                     }
                     <ModalCreateOrEditFolder/>
 
+                    <dialog id="confirmDeleteFolder" className="modal">
+                        <div className="modal-box">
+                            <h3 className="font-bold text-xl text-red-600  text-center">
+                                {/* ICON OF ALERT */}
+                                <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
+                                ADVERTENCIA!
+                            </h3>
+                            <p className="py-4 font-bold text-center">
+                                Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
+                            </p>
+                            <div className="modal-action">
+                                <form method="dialog" className="flex justify-center items-center w-full">
+                                    <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
+                                    <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </dialog>
 
                 </div>
+
 
 
             </DashboardLayout>

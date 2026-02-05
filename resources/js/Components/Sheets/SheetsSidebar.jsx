@@ -44,14 +44,14 @@ export default function TableSheets() {
 
             {/* SEARCH */}
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <div className="flex items-center w-full sm:w-auto bg-gray-200 px-3 py-1 rounded-md gap-2">
-                    <input
-                        placeholder="Buscar por número o estado"
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="
-                            flex-1
+                    <div className="flex items-center flex-1 bg-gray-200 px-3 py-1 rounded-md gap-2">
+                        <input
+                            placeholder="Buscar por número o estado"
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="
+                        input
                             bg-gray-200
                             border-none
                             focus:outline-none
@@ -59,19 +59,20 @@ export default function TableSheets() {
                             text-sm
                             min-w-0
                         "
-                    />
+                        />
 
-                    <MagnifyingGlassIcon
-                        className="w-4 h-4 shrink-0 text-[#404142] cursor-pointer"
-                        onClick={() => {
-                            searchUser(inputSearch, filterSelected);
-                        }}
-                    />
-                </div>
+                        <MagnifyingGlassIcon
+                            className="w-4 h-4 shrink-0 text-[#404142] cursor-pointer"
+                            onClick={() => {
+                                searchUser(inputSearch, filterSelected);
+                            }}
+                        />
+                    </div>
+                   
 
                 <button
                     onClick={openEditModal}
-                    className="p-2 bg-green-600 rounded-md text-white w-full sm:w-auto"
+                    className="p-2 bg-primary rounded-md text-white w-full sm:w-auto"
                 >
                     Nueva ficha
                 </button>

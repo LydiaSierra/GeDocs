@@ -98,7 +98,7 @@ const Folder = ({ folder }) => {
                             <FolderIcon className="w-6 h-6 md:w-8 md:h-8 text-gray-800 shrink-0" />
                             <span className="text-gray-600 shrink-0">{folder.folder_code}</span>
                             <span className="shrink-0">-</span>
-                            <span className="truncate max-w-[50vw] md:max-w-[60%]">{folder.name}</span>
+                            <span className="truncate max-w-[60vw] md:max-w-[80%]">{folder.name}</span>
                         </div>
 
                         <div className="flex gap-5 items-center">
@@ -188,6 +188,24 @@ const Folder = ({ folder }) => {
                     
                 </div>
             }
+            <dialog id="confirmDeleteFolder" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-xl text-red-600  text-center">
+                        {/* ICON OF ALERT */}
+                        <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
+                        ADVERTENCIA!
+                    </h3>
+                    <p className="py-4 font-bold text-center">
+                        Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
+                    </p>
+                    <div className="modal-action">
+                        <form method="dialog" className="flex justify-center items-center w-full">
+                            <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
+                            <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
 
 
         </>

@@ -1,4 +1,4 @@
-import ProfileHeader from "@/Components/Profile/ProfileHeader.jsx";
+import Header from "@/Components/Header/Header";
 import ProfileMenu from "@/Components/Profile/ProfileMenu.jsx";
 import ProfileSidebar from "@/Components/Profile/ProfileSidebar.jsx";
 
@@ -11,13 +11,7 @@ const ProfileLayout = ({
 }) => {
     return (
         <div className="bg-gray-100 min-h-screen">
-            {/* HEADER */}
-            <ProfileHeader
-                setOpenObject={setOpenObject}
-                openObject={openObject}
-                setOpenObject1={setOpenObject1}
-                openObject1={openObject1}
-            />
+           <Header/>
 
             <div className="flex flex-col md:flex-row min-h-screen">
                 <aside className="hidden lg:flex w-max p-2 pt-18 ">

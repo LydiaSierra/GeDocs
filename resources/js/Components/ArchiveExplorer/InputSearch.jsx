@@ -8,9 +8,9 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
     const { gridView, toggleGridView, showDropFolders, toggleDropFolders } = useContext(ArchiveUIContext);
     const url = usePage().url;
     return (
-        <div id="inbox-search" className="flex flex-wrap gap-3 flex-1 lg:flex-none min-w-max">
+        <div id="inbox-search" className="flex justify-between flex-wrap gap-3 flex-1 lg:flex-none min-w-max">
             {/* Search field */}
-            <div className="flex items-center bg-gray-100 px-2 rounded-md  max-w-sm">
+            <div className="flex flex-1 items-center bg-gray-100 px-2 rounded-md  max-w-sm">
                 <input
                     placeholder="Buscar"
                     type="text"

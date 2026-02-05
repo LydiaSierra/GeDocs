@@ -1,14 +1,14 @@
 import React from "react";
-import ProfileHeader from "@/Components/Profile/ProfileHeader.jsx";
 import ProfileMenu from "@/Components/Profile/ProfileMenu.jsx";
 import InboxSidebar from "@/Components/InboxSidebar/InboxSidebar";
 import SheetsSidebar from "@/Components/Sheets/SheetsSidebar";
+import Header from "@/Components/Header/Header";
 
 const ProfileLayout = ({ children }) => {
     return (
         <>
             <div className="bg-gray-100">
-                <ProfileHeader />
+                <Header />
 
                 <div className="flex h-screen">
                     <div className="hidden md:flex w-[26%] p-2">

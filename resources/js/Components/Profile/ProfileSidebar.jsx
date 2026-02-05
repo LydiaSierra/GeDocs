@@ -49,34 +49,34 @@ const ProfileSidebar = ({ className = "" }) => {
     }
     return (
         <aside
-            className={`h-full  flex flex-col items-center text-gray-800 ${className}`}
+            className={`h-full w-full flex flex-col items-center text-gray-800 ${className}`}
         >
             <h1 className="text-lg font-semibold text-black mb-4 mt-2">
                 Información de Usuario
             </h1>
 
-            <div className="w-70 bg-white rounded-2xl p-4 flex flex-col items-center shadow">
+            <div className="min-w-full lg:w-70 bg-white rounded-2xl p-4 flex flex-col items-center shadow">
                 <div className="my-3 relative">
-                    {loadingPhoto && (
+                    {(loadingPhoto && user.profile_photo) && (
                         <div className="skeleton h-40 w-40 rounded-xl absolute inset-0" />
                     )}
 
                     {user.profile_photo ? (
                         <img
                             src={user.profile_photo}
-                            className={` ${loadingPhoto ? "opacity-0 w-40 h-40" : "opacity-100  w-full"
+                            className={` ${loadingPhoto  ? "opacity-0 w-40 h-40" : "opacity-100 h-40 w-full rounded-md"
                                 }`}
                             onLoad={() => setLoadingPhoto(false)}
                             onError={() => setLoadingPhoto(false)}
                         />
                     ) : (
-                        <UserIcon className="h-40 w-40 text-gray-400" />
+                        <UserIcon className="h-40 w-40 text-gray-400 bg-gray-200 rounded-md" />
                     )}
 
 
 
                     <div enctype="multipart/form-data">
-                        <label htmlFor="photo" className="absolute z-10 -bottom-5 right-0 p-2 bg-primary text-white rounded-lg cursor-pointer" >
+                        <label htmlFor="photo" className="absolute z-10 -bottom-3 -right-3 p-2 bg-primary text-white rounded-lg cursor-pointer" >
                             <PencilIcon className="size-6 " />
                         </label>
                         <input type="file" id="photo" className="hidden" name="profile_photo" accept="image/*" onChange={UploatPhoto} />

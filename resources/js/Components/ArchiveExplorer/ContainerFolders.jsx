@@ -74,12 +74,12 @@ export default function ContainerFolders() {
             }
             <div className="flex justify-between px-4 border-b border-gray-400 py-3 my-3">
                 <div>
-                    <strong>Codigo / Nombre</strong>
+                    <strong className="truncate max-w-[50vw] md:max-w-[60%]">Codigo / Nombre</strong>
                 </div>
 
                 <div className="flex gap-5">
-                    <strong>Clasificación</strong>
-                    <strong>Fecha de creación</strong>
+                    <strong className="truncate max-w-[50vw] md:max-w-[60%]">Clasificación</strong>
+                    <strong className="truncate max-w-[50vw] md:max-w-[60%]">Fecha de creación</strong>
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto h-full    overflow-x-hidden">
@@ -92,8 +92,6 @@ export default function ContainerFolders() {
                 }
                 <div
                     className={`${gridView ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'flex flex-col'} gap-3 min-w-0 max-h-0`}>
-
-
                     <>
                         {(folders || []).map((folder) => (
                             <Folder key={folder.id} folder={folder} />

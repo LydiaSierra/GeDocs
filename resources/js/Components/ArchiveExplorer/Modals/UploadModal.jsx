@@ -2,7 +2,7 @@ import { ArchiveDataContext } from '@/context/ArchiveExplorer/ArchiveDataContext
 import { PlusIcon } from '@heroicons/react/24/solid';
 import React, { useContext, useState } from 'react'
 
-const UploadModal = ({ onOpen }) => {
+const UploadModal = () => {
     const { uploadFiles, currentFolder } = useContext(ArchiveDataContext)
     const [dragActive, setdragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([])
@@ -44,8 +44,11 @@ const UploadModal = ({ onOpen }) => {
     }
 
     return (
-        <div className='fixed inset-0 bg-black/40 flex justify-center items-center z-50'>
-            <div className="bg-white w-[450px] rounded-lg p-6 shadow">
+        <dialog id='uploadFile' className='modal'>
+            <div className="modal-box">
+                <form method="dialog">
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                </form>
                 <h2 className="text-xl font-semibold mb-4">Subir archivos</h2>
 
                 <div className={`border-2 border-dashed p-8 rounded-md flex flex-col gap-2 justify-center items-center ${dragActive ? "border-blue-500" : "border-gray-500"}`}
@@ -87,7 +90,7 @@ const UploadModal = ({ onOpen }) => {
                     <button
                         className="px-4 py-2 rounded bg-gray-300"
                         onClick={() => {
-                            onOpen(false)
+                            document.getElementById("uploadFile").close();
                             setSelectedFiles([])
                             seterror("");
                         }}
@@ -104,7 +107,7 @@ const UploadModal = ({ onOpen }) => {
                                 try {
                                     setIsLoading(true);
                                     await uploadFiles(currentFolder?.id ?? null, selectedFiles);
-                                    onOpen(false);
+                                    document.getElementById("uploadFile").close()
                                     setSelectedFiles([]);
                                     seterror("");
                                 } catch (err) {
@@ -119,7 +122,7 @@ const UploadModal = ({ onOpen }) => {
                     }
                 </div>
             </div>
-        </div>
+        </dialog>
     )
 }
 
