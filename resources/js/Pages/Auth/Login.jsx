@@ -5,6 +5,9 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import {Head, Link, router, useForm} from '@inertiajs/react';
+import {XMarkIcon} from "@heroicons/react/24/outline";
+import PasswordResetModal from "@/Components/PasswordResetModal.jsx";
+import { toast } from 'sonner';
 
 export default function Login({status, canResetPassword}) {
     const {data, setData, post, processing, errors, reset} = useForm({
@@ -26,13 +29,11 @@ export default function Login({status, canResetPassword}) {
             <Head title="Log in"/>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
+                toast.info(status)
             )}
 
             <form onSubmit={submit}>
-                <h1 className={"text-xl text-green-900 font-bold text-center"}>Iniciar Sesión</h1>
+                <h1 className={"text-xl text-primary-content font-bold text-center"}>Iniciar Sesión</h1>
                 <div>
                     <InputLabel htmlFor="email" value="Email"/>
 
@@ -66,17 +67,13 @@ export default function Login({status, canResetPassword}) {
                     <InputError message={errors.password} className="mt-2"/>
                 </div>
 
-
-                <div className="mt-4 flex items-center justify-start">
-                    {canResetPassword && (
-                        <Link
-                            href={route('password.request')}
-                            className="rounded-md text-sm text-green-700"
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </Link>
-                    )}
-                </div>
+                <a
+                    href="#"
+                    className="text-sm text-primary hover:underline cursor-pointer"
+                    onClick={() => document.getElementById('reset_modal').showModal()}
+                >
+                    ¿Olvidaste tu contraseña?
+                </a>
 
                 <div className={"flex justify-center my-4"}>
 
@@ -86,12 +83,13 @@ export default function Login({status, canResetPassword}) {
 
                     <Link
                         href={route("register")}
-                        className="block text-center ms-2 bg-transparent border border-green-800 text-green-800  px-4 py-2 text-xs font-semibold rounded-md w-full cursor-pointer"
+                        className="block text-center ms-2 bg-transparent border border-primary text-primary  px-4 py-2 text-xs font-semibold rounded-md w-full cursor-pointer"
                         disabled={processing}>
                         Registrarse
                     </Link>
                 </div>
             </form>
+            <PasswordResetModal />
         </GuestLayout>
     );
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Models\Folder;
 use App\Models\File;
+use Storage;
 
 class FolderController extends Controller
 {
@@ -13,35 +15,198 @@ class FolderController extends Controller
      */
     public function index()
     {
-        $folders = Folder::whereNull('parent_id')->get();
+        $folders = Folder::whereNull('parent_id')->orderBy('created_at', 'desc')->get();
         return response()->json(["success" => true, "folders" => $folders], 200);
     }
 
-//    public function store(Request $request){
-//        $validate =
-//    }
 
-    public function getByParent($parent_id)
+    // SHOW ONE FOLDER
+    public function show($id)
     {
-        $folders = Folder::where('parent_id', $parent_id)
-            ->with('files')
-            ->get();
-        $files = File::where('folder_id', $parent_id)->get();
+        $folder = Folder::findOrFail($id);
+
+        // Preparar archivos con información adicional
+        $files = $folder->files->map(function ($file) {
+
+            return [
+                "id" => $file->id,
+                "name" => $file->name,
+                "extension" => $file->extension,
+                "mime_type" => $file->mime_type,
+                "size" => $file->size,
+                "url" => asset("storage/" . $file->path),
+                "is_pdf" => $file->extension === "pdf",
+                "created_at" => $file->created_at,
+            ];
+        });
 
         return response()->json([
             "success" => true,
-            "folders" => $folders,
+            "folder" => $folder,
+            "children" => $folder->children,
             "files" => $files
-        ], 200);
+        ]);
     }
 
-    public function getAllFolders()
+
+    //GET ALL FOLDER
+    public function getAllFolders(Request $request)
     {
         $folders = Folder::all();
-        return response()->json(["success" => true, "folders" => $folders], 200);
 
+        return response()->json(["success" => true, "folders" => $folders]);
+    }
 
+    // CREATE FOLDER
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            "name" => "required|string",
+            "parent_id" => "nullable|exists:folders,id",
+            "folder_code" => "nullable|string",
+            "department" => "required|string"
+        ]);
+
+        $folder = Folder::create([
+            "name" => $validated["name"],
+            "parent_id" => $validated["parent_id"] ?? null,
+            "folder_code" => $validated["folder_code"] ?? null,
+            "department" => $validated["department"],
+        ]);
+
+        return response()->json(["success" => true, "folder" => $folder]);
     }
 
 
+    //UPLOAD FILE 
+    public function upload(Request $request, $folderId)
+    {
+        try {
+            // Validar que la carpeta existe primero
+            $folder = Folder::find($folderId);
+
+            $request->validate([
+                "files.*" => "required|file|max:51200", // 50MB
+            ]);
+
+            $uploadedFiles = [];
+
+            if (!$request->hasFile('files')) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "No files provided"
+                ], 400);
+            }
+
+            foreach ($request->file('files') as $file) {
+                $fileYear = date("Y");
+                $folderCode = $folder->folder_code ?? "000";
+
+                $newName = "{$fileYear}-Ex-{$folderCode}-{$file->getClientOriginalName()}";
+
+                $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
+
+                $newFile = File::create([
+                    "name" => $newName,
+                    "path" => $path,
+                    "extension" => $file->getClientOriginalExtension(),
+                    "mime_type" => $file->getClientMimeType(),
+                    "size" => $file->getSize(),
+                    "folder" => $folder,
+                    "folder_id" => $folderId,
+                ]);
+
+                $uploadedFiles[] = [
+                    "id" => $newFile->id,
+                    "folder" => $folder,
+                    "name" => $newFile->name,
+                    "extension" => $newFile->extension,
+                    "mime_type" => $newFile->mime_type,
+                    "size" => $newFile->size,
+                    "is_pdf" => $newFile->extension,
+                    "url" => asset("storage/" . $newFile->path),
+                ];
+            }
+
+            return response()->json([
+                "success" => true,
+                "files" => $uploadedFiles
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Folder not found"
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Validation error",
+                "errors" => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // DOWNLOAD FILE
+    public function download($fileId)
+    {
+        $file = File::findOrFail($fileId);
+
+        if (!Storage::disk('public')->exists($file->path)) {
+            return response()->json(["success" => false, "message" => "Archivo no encontrado"], 404);
+        }
+
+        return response()->download(Storage::disk('public')->path($file->path), $file->name);
+    }
+
+    /** Delete File */
+    public function destroyFile($fileId)
+    {
+        $file = File::findOrFail($fileId);
+
+        Storage::disk('public')->delete($file->path);
+        $file->delete();
+
+        return response()->json(["success" => true]);
+    }
+
+    public function deleteFolder($folderId)
+    {
+        $folder = Folder::find($folderId);
+
+        $folder->files()->delete();
+
+        $folder->children()->delete();
+
+        $folder->delete();
+
+        return response()->json(["success" => true]);
+    }
+
+    public function updateFolder(Request $request, $folderId)
+    {
+        $folder = Folder::find($folderId);
+        if (!$folder) {
+            return response()->json([
+                "message" => "Carpeta no encontrada",
+                "success" => false,
+
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            "name" => "sometimes|required|string",
+            "parent_id" => "sometimes|nullable|exists:folders,id",
+            "folder_code" => "sometimes|nullable|string",
+            "department" => "sometimes|required|string"
+        ]);
+
+        $folder->update($validated);
+
+        return response()->json(["success" => true, "folder" => $folder]);
+    }
 }

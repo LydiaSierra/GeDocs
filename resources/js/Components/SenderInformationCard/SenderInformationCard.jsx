@@ -1,48 +1,56 @@
-import { DocumentTextIcon, UserCircleIcon } from "@heroicons/react/24/solid";
+import { UserCircleIcon } from "@heroicons/react/24/solid";
 
-export default function InboxMailCard() {
+export default function InboxMailCard({currentMail}) {
     return (
-        <div className="w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden">
+        <div className="w-full bg-neutral-content rounded-xl p-6">
 
-            <div id="selector" className="h-20 w-1 rounded-xl bg-senaWashedBlue shrink-0"></div>
+            {/* Title */}
+            <h2 className="text-lg font-bold mb-4">
+                Información del solicitante
+            </h2>
 
+            {/* Main content */}
+            <div className="flex gap-6 items-start">
 
-            <div className="flex-1 min-w-0">
+                {/* Avatar */}
+                <UserCircleIcon className="size-20 text-neutral shrink-0" />
 
-                <div id="mail-card-tags" className="flex items-start justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <div id="mail-card-type" className="bg-gray-200 py-1 px-2 rounded-md text-sm shrink-0">
-                            Queja
-                        </div>
-                        <div id="mail-card-serial" className="text-sm truncate">10010025</div>
-                        <div id="mail-card-date" className="text-sm shrink-0">08/09/2025</div>
+                {/* Info grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-4 w-full">
+
+                    {/* Item */}
+                    <div>
+                        <p className="text-sm text-neutral/60">Solicitante</p>
+                        <p className="font-semibold">{currentMail.sender_name}</p>
                     </div>
-                    <div className="text-right text-sm shrink-0">
-                        <div>Límite</div>
-                        <div>08/22/2025</div>
+
+                    <div>
+                        <p className="text-sm text-neutral/60">Identificación</p>
+                        <p className="font-semibold">{currentMail.document_type} {currentMail.document}</p>
                     </div>
-                </div>
 
-
-                <div id="mail-card-content" className="mt-2 mb-3 min-w-0">
-                    <h3 id="mail-card-subject" className="font-semibold truncate">
-                        Queja generalizada
-                    </h3>
-                    <p
-                        id="mail-card-description"
-                        className="text-gray-600 text-sm overflow-hidden text-ellipsis line-clamp-2"
-                    >
-                        Instructor de la ficha 912221043 lleva 4 semanas sin asistir a clases
-                    </p>
-                </div>
-
-
-                <div id="mail-card-footer" className="flex justify-between items-center min-w-0">
-                    <div id="mail-card-sender" className="flex items-center gap-1 min-w-0">
-                        <UserCircleIcon className="w-5 shrink-0" />
-                        <div className="truncate text-sm">Antonio Antoniez</div>
+                    <div>
+                        <p className="text-sm text-neutral/60">Dirección</p>
+                        <p className="font-semibold">Calle 123 #45-67</p>
                     </div>
-                    <DocumentTextIcon className="w-5 shrink-0" />
+
+                    <div>
+                        <p className="text-sm text-neutral/60">Correo Electrónico</p>
+                        <p className="font-semibold break-all">
+                            {currentMail.email}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-neutral/60">Teléfono de contacto</p>
+                        <p className="font-semibold">300 123 4567</p>
+                    </div>
+
+                    <div>
+                        <p className="text-sm text-neutral/60">Dependencia destinataria</p>
+                        <p className="font-semibold">Tesorería</p>
+                    </div>
+
                 </div>
             </div>
         </div>
