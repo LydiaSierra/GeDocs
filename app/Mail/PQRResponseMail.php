@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\PQR;
+use App\Models\comunication;
 
 class PQRResponseMail extends Mailable
 {
@@ -18,10 +19,20 @@ class PQRResponseMail extends Mailable
      * Create a new message instance.
      */
     public $pqr;
+    public $comunication;
+    public $responseUrl;
 
-    public function __construct(PQR $pqr)
+    public function __construct(PQR $pqr, comunication $comunication = null, $responseUrl = null)
     {
         $this->pqr = $pqr;
+        $this->comunication = $comunication;
+        $this->responseUrl = $responseUrl;
+    }
+
+     public function build()
+    {
+        return $this->subject('Respuesta a tu PQR - SENA')
+                    ->view('emails.pqr_response');
     }
 
     /**
@@ -29,8 +40,17 @@ class PQRResponseMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        // Personalizar asunto según el caso
+        if ($this->comunication) {
+            // Email con link para subir documentos
+            $subject = 'Documentos Requeridos - ' . $this->pqr->affair;
+        } else {
+            // RESPUESTA DIRECTA A LA PQR (Este es tu caso)
+            $subject = 'Respuesta a tu ' . $this->pqr->request_type . ': ' . $this->pqr->affair;
+        }
+
         return new Envelope(
-            subject: 'Respuesta a la PQR'. $this->pqr->affair,
+            subject: $subject,
         );
     }
 

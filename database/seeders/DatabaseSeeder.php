@@ -6,6 +6,7 @@ use App\Models\Dependency;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Sheet_number;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,29 +19,18 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-            FoldersSeeder::class,
             RoleSeeder::class,
+            FoldersSeeder::class,
         ]);
-
-       
-
-           // Crear dependencias
-        $recursosHumanos = Dependency::create(['name' => 'Recursos Humanos']);
-        $sistemas = Dependency::create(['name' => 'Sistemas']);
-        $academica = Dependency::create(['name' => 'Académica']);
-        $financiera = Dependency::create(['name' => 'Financiera']);
-
-
-
 
         //Usuario admin
         $userAdmin = User::create([
-            'type_document'      => 'CC',
-            'document_number'    => 1020304050,
-            'name'               => 'Julio Alexis',
-            'email'              => 'julioalexishoyoscolorado@gmail.com',
+            'type_document' => 'CC',
+            'document_number' => 1020304050,
+            'name' => 'Julio Alexis',
+            'email' => 'julioalexishoyoscolorado@gmail.com',
             'password' => bcrypt('password'),
-            'status'             => 'active',
+            'status' => 'active',
         ]);
 
         $userAdmin->assignRole('Admin');
@@ -48,45 +38,70 @@ class DatabaseSeeder extends Seeder
 
         //Usuario Instructor
         $userInstructor = User::create([
-            'type_document'      => 'CC',
-            'document_number'    => 1094454354,
-            'name'               => 'Instructor User',
-            'email'              => 'instructor@gmail.com',
+            'type_document' => 'CC',
+            'document_number' => 1094454354,
+            'name' => 'Instructor User',
+            'email' => 'instructor@gmail.com',
             'password' => bcrypt('password'),
-            'status'             => 'active',
+            'status' => 'active',
         ]);
 
         $userInstructor->assignRole('Instructor');
 
-    
-
-         // Usuario dependiente (encargado)
+        // Usuario dependiente (encargado)
         $dependencia = User::create([
             'type_document' => 'CC',
             'document_number' => 1020304051,
             'name' => 'Carlos Dependent',
             'email' => 'dependent@test.com',
             'password' => bcrypt('password'),
-            'status' => 'activo',
+            'status' => 'pending',
         ]);
 
         $dependencia->assignRole('Dependencia');
 
 
-         // Usuario normal
+        // Usuario normal
         $aprendiz = User::create([
             'type_document' => 'CC',
             'document_number' => 1020304052,
             'name' => 'Maria User',
             'email' => 'user@test.com',
             'password' => bcrypt('password'),
-            'status' => 'activo',
+            'status' => 'active',
         ]);
         $aprendiz->assignRole('Aprendiz');
 
+        $this->call([
+            SheetSeeder::class
+        ]);
 
-         $this->call([
-            SheetSeeder::class,
+     //Dependencias
+        // Busca una ficha existente para asociar dependencias adicionales
+        $sheet = Sheet_number::first();
+
+        if ($sheet) {
+            $recursosHumanos = Dependency::firstOrCreate([
+                'name' => 'Recursos Humanos',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Sistemas',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Académica',
+                'sheet_number_id' => $sheet->id,
+            ]);
+            Dependency::firstOrCreate([
+                'name' => 'Financiera',
+                'sheet_number_id' => $sheet->id,
+            ]);
+        }
+
+
+        $this->call([
+            PQRSeeder::class,
         ]);
     }
 }

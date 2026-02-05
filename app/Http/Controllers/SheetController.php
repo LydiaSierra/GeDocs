@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sheet_number;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\Dependency;
+use Illuminate\Support\Facades\DB;
 
 class SheetController extends Controller
 {
@@ -18,37 +21,10 @@ class SheetController extends Controller
         // Load all sheets with their related users
         $sheets = Sheet_number::with('users')->get();
 
-        // Format each sheet by grouping users according to their roles
-        $formattedSheets = $sheets->map(function ($sheet) {
-
-            $instructors = [];
-            $aprendices = [];
-
-            // Loop through each user related to the sheet
-            foreach ($sheet->users as $user) {
-                $role = $user->getRoleNames()->first(); // Get first assigned role
-
-                if ($role === 'Instructor') {
-                    $instructors[] = $user;
-                } elseif ($role === 'Aprendiz') {
-                    $aprendices[] = $user;
-                }
-            }
-
-            // Return structured response
-            return [
-                'id' => $sheet->id,
-                'number' => $sheet->number,
-                'created_at' => $sheet->created_at,
-                'updated_at' => $sheet->updated_at,
-                'Instructor' => $instructors,
-                'Aprendices' => $aprendices,
-            ];
-        });
-
+        
         return response()->json([
             "success" => true,
-            "sheets" => $formattedSheets
+            "sheets" => $sheets
         ], 200);
     }
 
@@ -59,17 +35,26 @@ class SheetController extends Controller
      */
     public function store(Request $request)
     {
-        $validate = $request->validate([
-            "number" => "required|numeric",
-        ]);
+        return DB::transaction(function () use ($request) {
+            // Crear la ficha sin ventanilla_unica_id
+            $sheetNumber = Sheet_number::create([
+                'number' => $request->input('number'),
+                // 'ventanilla_unica_id' => null
+            ]);
 
-        $sheet = Sheet_number::create($validate);
+            // Crear la dependencia "Ventanilla Unica" relacionada a la ficha
+            $ventanilla = Dependency::create([
+                'name' => 'Ventanilla Unica',
+                'sheet_number_id' => $sheetNumber->id,
+            ]);
 
-        return response()->json([
-            "success" => true, 
-            "message" => "Ficha creada con exito", 
-            "ficha" => $sheet
-        ], 200);
+            // Actualizar la ficha con el id de la ventanilla unica
+            $sheetNumber->ventanilla_unica_id = $ventanilla->id;
+            $sheetNumber->save();
+
+            // Retornar la ficha con la relación cargada
+            return response()->json($sheetNumber->load('dependencies'), 201);
+        });
     }
 
     /**
@@ -86,41 +71,16 @@ class SheetController extends Controller
 
         if ($sheet->isEmpty()) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
 
-        // Same grouping logic as index()
-        $formattedSheets = $sheet->map(function ($sheet) {
-
-            $instructors = [];
-            $aprendices = [];
-
-            foreach ($sheet->users as $user) {
-                $role = $user->getRoleNames()->first();
-
-                if ($role === 'Instructor') {
-                    $instructors[] = $user;
-                } elseif ($role === 'Aprendiz') {
-                    $aprendices[] = $user;
-                }
-            }
-
-            return [
-                'id' => $sheet->id,
-                'number' => $sheet->number,
-                'created_at' => $sheet->created_at,
-                'updated_at' => $sheet->updated_at,
-                'Instructor' => $instructors,
-                'Aprendices' => $aprendices,
-            ];
-        });
-
+        
         return response()->json([
-            "success" => true, 
-            "message" => "Ficha encontrada exitosamente", 
-            "sheet" => $formattedSheets
+            "success" => true,
+            "message" => "Ficha encontrada exitosamente",
+            "sheet" => $sheet
         ], 200);
     }
 
@@ -128,28 +88,36 @@ class SheetController extends Controller
      * Update the specified resource in storage.
      * Updates the sheet number if the sheet exists.
      */
-    public function update(Request $request, string $id)
-    {
-        $sheet = Sheet_number::find($id);
+   public function update(Request $request, $id)
+{
+    $sheet = Sheet_number::find($id);
 
-        if (!$sheet) {
-            return response()->json([
-                "success" => false, 
-                "message" => "Ficha no encontrada"
-            ], 404);
-        }
-
-        $request->validate([
-            "number" => "sometimes|required|numeric",
-        ]);
-
-        $sheet->update($request->only('number'));
-
+    if (!$sheet) {
         return response()->json([
-            "success" => true, 
-            "message" => "Ficha actualizada con exito"
-        ], 200);
+            "success" => false,
+            "message" => "Ficha no encontrada"
+        ], 404);
     }
+
+    $validate = $request->validate([
+        "number" => "sometimes|numeric",
+        "active" => "sometimes|boolean",
+        "state" => "sometimes|string"
+    ]);
+
+    // Si esta ficha se activa, desactivar las demás
+    if (isset($validate["active"]) && $validate["active"] == true) {
+        Sheet_number::where("id", "!=", $sheet->id)
+            ->update(["active" => false]);
+    }
+
+    $sheet->update($validate);
+
+    return response()->json([
+        "success" => true,
+        "message" => "Ficha actualizada con éxito"
+    ], 200);
+}
 
     /**
      * Remove the specified resource from storage.
@@ -161,7 +129,7 @@ class SheetController extends Controller
 
         if (!$sheet) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -169,7 +137,7 @@ class SheetController extends Controller
         $sheet->delete();
 
         return response()->json([
-            "success" => true, 
+            "success" => true,
             "message" => "Ficha eliminada con exito"
         ], 200);
     }
@@ -186,7 +154,7 @@ class SheetController extends Controller
 
         if (!$sheet) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Ficha no encontrada"
             ], 404);
         }
@@ -196,7 +164,7 @@ class SheetController extends Controller
 
         if (!$user) {
             return response()->json([
-                "success" => false, 
+                "success" => false,
                 "message" => "Usuario no encontrado en la ficha"
             ], 404);
         }
@@ -205,8 +173,64 @@ class SheetController extends Controller
         $sheet->users()->detach($user->id);
 
         return response()->json([
-            "success" => true, 
+            "success" => true,
             "message" => "Usuario eliminado de la ficha con exito"
         ], 200);
+    }
+
+
+    public function addUserFromSheet(Request $request, string $numberSheet, string $idUser)
+    {
+        $sheet = Sheet_number::where("number", $numberSheet)->first();
+
+        if (!$sheet) {
+            return response()->json([
+                "success" => false,
+                "message" => "Ficha no encontrada"
+            ], 404);
+        }
+
+        $user = User::find($idUser);
+
+        if (!$user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuario no encontrado"
+            ], 404);
+        }
+
+        if ($user->hasRole("Admin")) {
+            return response()->json([
+                "success" => false,
+                "message" => "No puedes agregar a este usuario"
+            ], 500);
+        }
+
+        $authUser = $request->user();
+
+        $authUser->load("sheetNumbers");
+
+        if ($authUser->hasRole("Instructor") && !$authUser->sheetNumbers->contains("id", $sheet->id)) {
+            return response()->json([
+                "success" => false,
+                "message" => "No tienes permisos sobre esta ficha"
+            ], 403);
+        }
+
+        $sheet->load("users");
+
+        if ($sheet->users->contains("id", $user->id)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Este usuario ya está asignado a esta ficha"
+            ], 409); // 409 Conflict
+        }
+
+        $sheet->users()->attach($user->id);
+
+        return response()->json([
+            "success" => true,
+            "message" => "Usuario agregado correctamente a la ficha",
+        ]);
     }
 }
