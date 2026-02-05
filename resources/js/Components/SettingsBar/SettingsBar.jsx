@@ -2,7 +2,6 @@ import {
     UserCircleIcon,
     AcademicCapIcon,
     ListBulletIcon,
-
 } from "@heroicons/react/24/outline";
 import { useContext, useState } from "react";
 import { UserContext } from "@/context/UserContext/UserContext";
@@ -11,7 +10,6 @@ import NavLink from "../NavLink";
 import { usePage } from "@inertiajs/react";
 
 function SettingsBar() {
-
     const { setContent } = useContext(UserContext);
     const { auth } = usePage().props;
     const { url } = usePage();
@@ -29,8 +27,9 @@ function SettingsBar() {
                     <div className="w-full flex flex-col items-start p-1">
                         <div
                             className={`flex flex-row items-center cursor-pointer gap-2 w-full text-[#010515] text-lg 
-                        font-medium hover:underline ${url === "/profile" ? "underline" : ""
-                                }`}
+                        font-medium hover:underline ${
+                            url === "/profile" ? "underline" : ""
+                        }`}
                         >
                             <UserCircleIcon className="text-[#848484] size-8" />
                             Informacion de Perfil
@@ -49,8 +48,9 @@ function SettingsBar() {
                             <NavLink href={route("aprendiz")}>
                                 <div
                                     className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg
-                             font-medium hover:underline ${url === "/users/aprendiz" ? "underline" : ""
-                                        }`}
+                             font-medium hover:underline ${
+                                 url === "/users/aprendiz" ? "underline" : ""
+                             }`}
                                     onClick={() => {
                                         setContent("Dependencia");
                                     }}
@@ -66,8 +66,9 @@ function SettingsBar() {
                             >
                                 <div
                                     className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg
-                             font-medium hover:underline ${url === "/users/instructor" ? "underline" : ""
-                                        }`}
+                             font-medium hover:underline ${
+                                 url === "/users/instructor" ? "underline" : ""
+                             }`}
                                     onClick={() => {
                                         setContent("Instructor");
                                     }}
@@ -79,8 +80,9 @@ function SettingsBar() {
 
                             <NavLink href={route("sheets")}>
                                 <div
-                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${url === "/sheets" ? "underline" : ""
-                                        }`}
+                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                        url === "/sheets" ? "underline" : ""
+                                    }`}
                                 >
                                     <UserCircleIcon className="text-[#848484] size-8" />
                                     Fichas
@@ -99,12 +101,13 @@ function SettingsBar() {
 
                     <div className="w-full h-auto flex flex-col  items-start gap-2">
                         {rol !== "Dependencia" && (
-                            <NavLink href={route("notifications.index")}>
+                            <NavLink href={route("notifications.aprendiz")}>
                                 <div
-                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${url === "/notifications"
-                                        ? "underline"
-                                        : ""
-                                        }`}
+                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                        url === "/notifications/aprendiz"
+                                            ? "underline"
+                                            : ""
+                                    }`}
                                 >
                                     <UserCircleIcon className="text-[#848484] size-8" />
                                     Aprendices
@@ -114,8 +117,12 @@ function SettingsBar() {
 
                         {rol === "Admin" && (
                             <NavLink href={route("notifications.index")}>
-                                <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                                    <UserCircleIcon className="text-[#848484] size-8" />
+                                <div className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                    url === "/notifications"
+                                        ? "underline"
+                                        : ""
+                                }`}>
+                                    <UserCircleIcon className="text-[#848484] size-8 " />
                                     Instructores
                                 </div>
                             </NavLink>

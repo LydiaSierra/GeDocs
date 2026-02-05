@@ -6,7 +6,7 @@ import NotificationsCard from "@/Components/Notifications/NotificationsCard";
 import { useState } from "react";
 import React from "react";
 
-const Notifications = () => {
+const NotificationsAprendiz = () => {
     const {url}=usePage();
     const [details,setDetails]=useState(false);
     const [selectedId, setSelectedId] = useState(null);
@@ -30,8 +30,8 @@ const Notifications = () => {
     return (
         <NotificationsLayout>
 
-            <NotificationSidebar 
-                url={url}
+            <NotificationSidebar
+                url={url} 
                 handleSelectNotification={handleSelectNotification}
             />
 
@@ -46,4 +46,4 @@ const Notifications = () => {
     );
 }
 
-export default Notifications;
+export default NotificationsAprendiz;
