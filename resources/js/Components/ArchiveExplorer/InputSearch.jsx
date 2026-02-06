@@ -14,18 +14,18 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
                 <input
                     placeholder="Buscar"
                     type="text"
-                    className="bg-gray-100 text-black w-full focus:outline-none border-none p-4"
+                    className="bg-gray-100 text-black w-full focus:outline-none border-none md:p-3 p-2"
                     value={inputSearchTerm}
                     onChange={(e) => setInputSearchTerm(e.target.value)}
                 />
 
                 {inputSearchTerm ? (
                     <XMarkIcon
-                        className="size-7 stroke-black hover:cursor-pointer"
+                        className="size-6 md:size-7 stroke-black hover:cursor-pointer"
                     />
                 ) : (
                     <MagnifyingGlassIcon
-                        className="size-7 stroke-black hover:cursor-pointer"
+                        className="size-6 stroke-black hover:cursor-pointer"
                         onClick={() => handleSearch(inputSearchTerm)}
                     />
                 )}
