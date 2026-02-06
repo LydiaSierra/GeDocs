@@ -1,76 +1,103 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import ArchiveMailModal from "@/components/ArchiveMailModal/ArchiveMailModal";
+import api from "@/lib/axios.js";
+import {ArrowPathIcon} from "@heroicons/react/24/solid";
+
 export default function ArchiveTable() {
+    const [mails, setMails] = useState([]);
+    const [selectedMail, setSelectedMail] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+
+    useEffect(() => {
+        setLoading(true)
+        api.get("/api/pqrs?archived=true")
+            .then(res => {
+                setMails(res.data.data ?? res.data)
+                setLoading(false)
+
+
+            })
+            .catch(err => console.error(err));
+    }, []);
+
+    const unarchiveMail = async (id) => {
+        await axios.patch(`/api/pqrs/${id}`, { archived: false });
+        setMails(prev => prev.filter(mail => mail.id !== id));
+        setSelectedMail(null);
+    };
+
     return (
-        <div className="w-full max-w-full h-full">
+        <>
+            {/* DESKTOP */}
             <div className="hidden md:block overflow-x-auto">
-                <table className="w-full table-auto border-separate border-spacing-y-2">
-                    <thead className="sticky top-0">
-                    <tr className="bg-gray-500 text-white">
-                        <th className="rounded-l-lg p-2">
-                            <input type="checkbox" className="checkbox border-white text-white" />
-                        </th>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Solicitante</th>
-                        <th>Identificación</th>
-                        <th>Tipo</th>
-                        <th>Estado</th>
-                        <th className="rounded-r-lg">Fecha Recibido</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {Array.from({ length: 15 }).map((_, i) => (
-                        <tr key={i} className="odd:bg-gray-100 even:bg-gray-200 text-center hover:bg-senaLightBlue">
-                            <td className="p-2">
-                                <input type="checkbox" className="checkbox" />
-                            </td>
-                            <td>10010025</td>
-                            <td className="truncate max-w-[200px]">Queja Generalizada: Instructo...</td>
-                            <td>Antonio Antoniez</td>
-                            <td>1234567890</td>
-                            <td>Queja</td>
-                            <td>En Espera</td>
-                            <td>08/09/2025</td>
+                {loading ?
+                    <div className={"flex justify-center items-center h-40"}>
+
+                <div className={"flex gap-2 items-center text-gray-500"}>
+                    <ArrowPathIcon className={"animate-spin size-6"}/>
+                    Cargando
+                </div>
+                    </div>
+
+                    :
+                    <table className="w-full table-auto border-separate border-spacing-y-2">
+                        <thead className="sticky top-0">
+                        <tr className="bg-gray-500 text-white">
+                            <th className="py-3 rounded-l-md">ID</th>
+                            <th>Título</th>
+                            <th>Solicitante</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                            <th className="rounded-r-md">Fecha</th>
                         </tr>
-                    ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {mails.map(mail => (
+                            <tr
+                                key={mail.id}
+                                onClick={() => setSelectedMail(mail)}
+                                className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue text-center hover:bg-accent"
+                            >
+                                <td className="py-3 rounded-l-md">{mail.id}</td>
+                                <td className="truncate max-w-[200px]">{mail.affair}</td>
+                                <td>{mail.sender_name}</td>
+                                <td>{mail.request_type}</td>
+                                <td>{mail.response_status}</td>
+                                <td className="rounded-r-md">{new Date(mail.created_at).toLocaleDateString()}</td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                }
+
             </div>
 
-
-            <div className="block md:hidden space-y-3 w-full max-w-full">
-                {Array.from({ length: 15 }).map((_, i) => (
+            {/* MOBILE */}
+            <div className="md:hidden space-y-3">
+                {mails.map(mail => (
                     <div
-                        key={i}
-                        className="bg-gray-100 p-3 rounded-lg shadow w-full max-w-full overflow-hidden break-words"
+                        key={mail.id}
+                        onClick={() => setSelectedMail(mail)}
+                        className="bg-gray-100 p-3 rounded-lg shadow cursor-pointer"
                     >
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="font-semibold">ID: 10010025</span>
-                            <input type="checkbox" className="checkbox" />
-                        </div>
-                        <p>
-                            <span className="font-semibold">Título:</span>{" "}
-                            <span className="break-words">Queja Generalizada: Instructo...</span>
-                        </p>
-                        <p>
-                            <span className="font-semibold">Solicitante:</span>{" "}
-                            <span className="break-words">Antonio Antoniez</span>
-                        </p>
-                        <p>
-                            <span className="font-semibold">Identificación:</span>{" "}
-                            <span className="break-all">1234567890</span>
-                        </p>
-                        <p>
-                            <span className="font-semibold">Tipo:</span> Queja
-                        </p>
-                        <p>
-                            <span className="font-semibold">Estado:</span> En Espera
-                        </p>
-                        <p>
-                            <span className="font-semibold">Fecha:</span> 08/09/2025
-                        </p>
+                        <p><b>ID:</b> {mail.id}</p>
+                        <p><b>Título:</b> {mail.affair}</p>
+                        <p><b>Solicitante:</b> {mail.sender_name}</p>
+                        <p><b>Estado:</b> {mail.response_status}</p>
                     </div>
                 ))}
             </div>
-        </div>
+
+            {/* MODAL */}
+            {selectedMail && (
+                <ArchiveMailModal
+                    mail={selectedMail}
+                    onClose={() => setSelectedMail(null)}
+                    onUnarchive={unarchiveMail}
+                />
+            )}
+        </>
     );
 }

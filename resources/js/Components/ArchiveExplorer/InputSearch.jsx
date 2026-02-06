@@ -8,9 +8,9 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
     const { gridView, toggleGridView, showDropFolders, toggleDropFolders } = useContext(ArchiveUIContext);
     const url = usePage().url;
     return (
-        <div id="inbox-search" className="flex gap-3 flex-1 lg:flex-none">
+        <div id="inbox-search" className="flex justify-between flex-wrap gap-3 flex-1 lg:flex-none min-w-max">
             {/* Search field */}
-            <div className="flex items-center bg-gray-100 px-2 rounded-md  max-w-sm">
+            <div className="flex flex-1 items-center bg-gray-100 px-2 rounded-md  max-w-sm">
                 <input
                     placeholder="Buscar"
                     type="text"
@@ -36,7 +36,7 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
                 <>
                     {/* Filter button */}
                     <button
-                        className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
+                        className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300 hidden lg:inline-block 
                             ${showDropFolders
                                 ? "bg-primary text-white dark:bg-primary"
                                 : "bg-gray-100 hover:bg-primary dark:bg-gray-700 dark:hover:bg-primary"
@@ -44,13 +44,13 @@ export const InputSearch = ({ inputSearchTerm, setInputSearchTerm, handleSearch 
                         onClick={toggleDropFolders}
                     >
                         <Bars3Icon
-                            className={`size-7 ${showDropFolders
+                            className={`size-7  ${showDropFolders
                                 ? "text-white"
                                 : "text-gray-400"
                                 }`}
                         />
                     </button>
-                    
+
                     <button
                         className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
                             ${gridView

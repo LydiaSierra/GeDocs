@@ -10,10 +10,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "*",
         "laravel/tinker": "^2.10.1",
+        "laraveles/spanish": "^1.5",
         "spatie/laravel-permission": "^6.23",
         "tightenco/ziggy": "^2.0"
     },
@@ -88,6 +90,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "audit": {
+            "ignore": ["[PKSA-365x-2zjk-pt47]"]
         }
     },
     "minimum-stability": "stable",

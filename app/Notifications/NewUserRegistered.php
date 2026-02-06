@@ -37,21 +37,7 @@ class NewUserRegistered extends Notification
     {
         $user = $this->newUser;
         return [
-            'title' => "Registro de $user->role",
-            'description' => "El usuario $user->name se ha registrado como $user->role",
-            'message' => "
-                    El usuario $user->name se ha registrado como $user->role:
-                    datos del usuario:
-                    Nombre: $user->name
-                    Correo: $user->email
-                    Tipo de documento: $user->document_type
-                    Documento: $user->document_number.
-
-                    Su estado actual es $user->state.
-
-                    ¿DESEA PERMITIR QUE ESTE USUARIO INGRESE COMO INSTRUCTOR?
-
-            ",
+            'role' => "Instructor",
             'user' => $user,
         ];
     }

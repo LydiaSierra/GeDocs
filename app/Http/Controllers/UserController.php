@@ -14,34 +14,64 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $authUser = $request->user();
+
         $query = User::with('roles', "sheetNumbers");
 
+        if ($authUser->hasRole("Instructor")) {
+            $query->whereDoesntHave('roles', function ($q) {
+                $q->where('name', 'Admin');
+            });
+        }
 
         $users = $query->get();
-        return response()->json(["success" => true, "data" => $users]);
+
+        return response()->json([
+            "success" => true,
+            "data" => $users
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+
+        if (!$request->user()->hasRole("Admin")) {
+            return response()->json([
+                "success" => false,
+                "message" => "No tienes permiso para crear usuarios"
+            ]);
+        }
+
+        $validate = $request->validate([
             'type_document' => 'required|string|max:50',
             'document_number' => 'required|string|max:50|unique:users,document_number',
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'role' => 'nullable|string|in:Aprendiz,Instructor',
-            'technical_sheet_id' => 'nullable|exists:technical_sheets,id',
             'password' => "required|string",
+            "status" => "required|string",
+            "role" => "required|string",
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $statuFilter = ["pending", "active"];
 
-        $user = User::create($validated);
+        if (!in_array($validate["status"], $statuFilter)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Estado no permitido"
+            ]);
+        }
 
-        $role = $validated['role'] ?? 'Aprendiz';
-        $user->assignRole($role);
+        $validate['password'] = Hash::make($validate['password']);
+
+        $user = User::create($validate);
+        $user->assignRole($validate["role"]);
+
+        $user->load('roles');
+        $user->load('sheetNumbers');
 
         return response()->json([
             "success" => true,
@@ -53,12 +83,24 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $user = User::with('roles')->find($id);
+
+        $authUser = $request->user();
+
+        if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
+            $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
+        } else {
+            $user = User::with('roles', "sheetNumbers")->find($id);
+        }
+
+
         if (!$user) {
             return response()->json(["success" => false, "message" => "Usuario no encontrado"], 404);
         }
+
+
+
         return response()->json(["success" => true, "data" => $user]);
     }
 
@@ -69,27 +111,37 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        $validated = $request->validate([
+        $validate = $request->validate([
             'type_document' => 'sometimes|required|string|max:50',
             'document_number' => 'sometimes|required|string|max:50|unique:users,document_number,' . $user->id,
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'sometimes|nullable|string|in:Aprendiz,Instructor',
+            'status' => 'sometimes|nullable|string',
             'technical_sheet_id' => 'sometimes|nullable|exists:technical_sheets,id',
             'password' => "sometimes|required|string",
         ]);
 
-        if (!empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+        if (!empty($validate['password'])) {
+            $validate['password'] = Hash::make($validate['password']);
         } else {
-            unset($validated['password']);
+            unset($validate['password']);
         }
 
-        $user->update($validated);
+        $user->update($validate);
 
         // Actualizar rol si llega uno nuevo
-        if (!empty($validated['role'])) {
-            $user->syncRoles([$validated['role']]);
+        if (!empty($validate['role'])) {
+            $user->syncRoles([$validate['role']]);
+        }
+
+        $statuFilter = ["pending", "active"];
+
+        if (!in_array($validate["status"], $statuFilter)) {
+            return response()->json([
+                "success" => false,
+                "message" => "Estado no permitido"
+            ]);
         }
 
         return response()->json([
@@ -105,6 +157,12 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuario no encontrado"
+            ]);
+        }
         $user->delete();
 
         return response()->json([
@@ -116,8 +174,14 @@ class UserController extends Controller
 
     public function userByFilter(Request $request)
     {
+        if (!$request->query()) {
+            return response()->json([
+                "success" => false,
+                "message" => "No hay filtro seleccionado"
+            ]);
+        }
         // Allowed filters
-        $allowed = ["name", "email", "document_number", "technical_sheet"];
+        $allowed = ["name", "email", "document_number"];
 
         // Validate if the used filter is allowed
         foreach ($request->query() as $key => $value) {
@@ -129,15 +193,20 @@ class UserController extends Controller
             }
         }
 
-        $query = User::with('roles');
-
         // loop through the array allowed to search for each selected filter
 
-        foreach ($allowed as $field) {
-            if ($request->filled($field)) {
-                $query->where($field, "LIKE", "%" . $request->$field . "%");
-            }
+        $query = User::with('roles', "sheetNumbers");
+
+        foreach ($request->query() as $key => $value) {
+            $query->where($key, "LIKE", "%{$value}%");
         }
+
+        $authUser = $request->user();
+
+        if (!$authUser->hasRole("Admin")) {
+            $query->role("Aprendiz");
+        }
+
 
         $users = $query->get();
 
@@ -146,5 +215,4 @@ class UserController extends Controller
             "data" => $users
         ]);
     }
-
 }

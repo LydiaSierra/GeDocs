@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-
             $table->string('type_document')->nullable();
             $table->integer('document_number')->unique();
             $table->string("status")->default("pending");
@@ -21,6 +20,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('profile_photo')->nullable();
+            $table->unsignedBigInteger('dependency_id')->nullable();
+            $table->foreign('dependency_id')->references('id')->on('dependencies');
             $table->timestamps();
             $table->rememberToken();
         });

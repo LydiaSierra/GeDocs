@@ -8,15 +8,12 @@ export function ArchiveUIProvider({ children }) {
   // States for the UI management like the grid view and modal details 
   const [gridView, setGridView] = useState(false);
   const [showDropFolders, setShowDropFolders] = useState(false)
-  const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [inputNameFolder, setinputNameFolder] = useState("Caperta sin titulo");
 
-  const [onContextMenu, setOnContextMenu] = useState({
-    visible: false,
-    x: 0,
-    y: 0
-  });
+  const [selectedFolder, setSelectedFolder] = useState(null);
+
+
+
 
   // Load the grid view prefeence from the local store ge on initial rendering
 
@@ -40,32 +37,15 @@ export function ArchiveUIProvider({ children }) {
     return `${(size / Math.pow(1024, index)).toFixed(2)} ${units[index]}`;
   }, []);
   // Handle the opening and closing of the modal details, setting the selected item accordingly
-  const handleModalDetails = (type, item) => {
-    setSelectedItem(item ? { type: type.toLowerCase(), data: item } : null);
-    setShowModal(!showModal);
+  const showDetails = (item) => {
+    setSelectedItem(item);
+    console.log(item);
+
   };
-
-
-  const handleModalFolder = (idModal) => {
-    const modal = document.getElementById(idModal);
-    if (modal) {
-      if (modal.open) {
-        modal.close();
-        setinputNameFolder("Caperta sin titulo");
-      } else {
-        modal.showModal();
-      }
-    }
-  };
-
 
   const toggleDropFolders = useCallback(() => {
-    setShowDropFolders((prev) => {
-      const newValue = !prev;
-      localStorage.setItem("ShowdropFolders", newValue);
-      return newValue;
-    })
-  })
+    setShowDropFolders(!showDropFolders);
+  }, [showDropFolders]);
 
 
 
@@ -75,18 +55,15 @@ export function ArchiveUIProvider({ children }) {
     <ArchiveUIContext.Provider
       value={{
         gridView,
-        showModal,
         selectedItem,
         toggleGridView,
-        handleModalDetails,
+        showDetails,
         formatSize,
-        onContextMenu,
-        setOnContextMenu,
-        handleModalFolder,
-        inputNameFolder,
-        setinputNameFolder,
-        toggleDropFolders, 
+        setSelectedItem,
+        toggleDropFolders,
         showDropFolders,
+        selectedFolder,
+        setSelectedFolder
       }}
     >
       {children}

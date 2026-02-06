@@ -25,7 +25,8 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.2.0",
-        "@inertiajs/inertia": "^0.11.1"
+        "@inertiajs/inertia": "^0.11.1",
+        "sonner": "^2.0.7"
     },
     "overrides": {
         "axios": "^1.13.2"

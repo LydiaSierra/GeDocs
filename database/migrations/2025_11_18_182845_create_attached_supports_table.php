@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('type');
             $table->unsignedBigInteger('size');
             $table->foreignId('pqr_id')->constrained('p_q_r_s')->onDelete('cascade');
+            $table->unsignedBigInteger('comunication_id')->nullable();
+            $table->foreign('comunication_id')->references('id')->on('comunications')->onDelete('cascade');
             $table->timestamps();
         });
     }

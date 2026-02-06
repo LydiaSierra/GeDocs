@@ -57,7 +57,7 @@ class RegisteredUserController extends Controller
             if ($user->status === "pending") {
                 Auth::logout();
                 return redirect()->route('login')->with('pending', [
-                    'message' => "$user->role. Tu cuenta sera revisada por el administrador",
+                    'message' => "Instructor. Tu cuenta sera revisada por el administrador",
                 ]);
             }
         }

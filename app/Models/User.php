@@ -19,15 +19,17 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+
+    // protected $with = ['roles', 'sheetNumbers'];
+
     protected $fillable = [
         'type_document',
         'document_number',
         'name',
         'email',
         'password',
-        'role_id',
-        'technical_sheet',
         'status',
+        'profile_photo',
     ];
 
     /**
@@ -64,6 +66,11 @@ class User extends Authenticatable
     }
 
     public function assignedPqrs(){
-        return $this-> hasMany(PQR::class, 'responsible_id');
+        return $this->hasMany(PQR::class, 'responsible_id');
+    }
+
+    //Relacion con la dependencia
+    public function dependency(){
+        return $this->belongsTo(Dependency::class);
     }
 }

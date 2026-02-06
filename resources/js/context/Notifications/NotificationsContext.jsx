@@ -1,51 +1,115 @@
-import {createContext, useState, useEffect, useCallback} from "react";
+import { createContext, useState, useEffect, useCallback, useMemo } from "react";
 import api from "@/lib/axios";
-import {router, usePage} from "@inertiajs/react";
+
 
 export const NotificationsContext = createContext();
 
-export function NotificationsProvider({children}) {
+export function NotificationsProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
-    const [filter, setFilter] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [loadingDetailsNotification, setLoadingDetailsNotification] =
+        useState(false);
+    const [notificationSeleted, setNotificationSeleted] = useState(null);
 
-    const loadNotifications = useCallback(async () => {
+
+    const fetchNotifications = useCallback(async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const endpoint = filter ? `api/notifications/${filter}` : "/api/notifications"
-            const res = await api.get(endpoint);
+            const res = await api.get("/api/notifications");
 
-            if (res.data.success) {
-                setNotifications(res.data.notifications);
+            if (!res.data || res.data.success === false) {
+                console.log("ERROR AL OBTENER NOTIFICACIONES!", res.data?.message || "");
+                setNotifications([]);
+                setLoading(false);
+                return;
             }
 
-        } catch (err) {
-            console.error(err)
-
+            setNotifications(res.data.notifications || []);
+        } catch (error) {
+            console.error("Error fetching notifications:", error?.response?.data || error.message || error);
+            setNotifications([]);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }, [filter]);
+    }, []);
 
-    const markAsRead = useCallback((id) => {
-        setNotifications(prev =>
-            prev.map(n => n.id === id ? {...n, read_at: new Date().toISOString()} : n)
-        )
-    }, [])
+    const visibleDetails = useMemo(()=>{
+        if(!notificationSeleted) return null
+        return notifications.find(n => n.id === notificationSeleted);
+    })
+    const markAsReadNotification = useCallback(
+        async (id) => {
+            setLoadingDetailsNotification(true);
+            setNotifications((prev) =>
+                prev.map((notification) =>
+                    notification.id === id
+                        ? { ...notification, read_at: new Date().toISOString() }
+                        : notification
+                )
+            );
+
+            try {
+                const res = await api.post(`/api/notifications/${id}/mark-as-read`);
+                if (!res.data || res.data.success === false) {
+                    console.log("ERROR AL MARCAR NOTIFICACIONES LEIDAS!", res.data?.message || "");
+                }
+            } catch (error) {
+                console.error(error?.response?.data || error.message || error);
+            } finally {
+                setLoadingDetailsNotification(false);
+            }
+        },
+        [notificationSeleted]
+    );
+
+    const updateUserStatusFromNotification = async (notificationId, status) => {
+        const notification = notifications.find(n => n.id === notificationId);
+        if (!notification) return;
+
+        try {
+            await api.put(`/api/notifications/update/${notificationId}/${status}`);
+
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    n.id === notificationId
+                        ? {
+                            ...n, 
+                            data: {
+                                ...n.data,
+                                user: {
+                                    ...n.data.user,
+                                    status
+                                }
+                            }
+                        }
+                        : n
+                )
+            );
+        } catch (err) {
+            console.error(err?.response?.data || err.message || err || "Error actualizando estado del usuario");
+        }
+    }
+
+    const closeDetails = () => setNotificationSeleted(null);
 
 
     useEffect(() => {
-        loadNotifications();
-    }, [filter])
-
+        fetchNotifications();
+    }, [fetchNotifications]);
 
     return (
         <NotificationsContext.Provider
             value={{
                 notifications,
-                setNotifications,
+                markAsReadNotification,
                 loading,
-                markAsRead
+                loadingDetailsNotification,
+                closeDetails,
+                visibleDetails,
+                fetchNotifications,
+                notificationSeleted,
+                setNotificationSeleted,
+                updateUserStatusFromNotification,
             }}
         >
             {children}

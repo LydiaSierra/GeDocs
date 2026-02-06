@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Sheet_Number_user extends Model
+class Sheet_number_user extends Model
 {
-    use HasFactory;
+    //
+        protected $table = "Sheet_number_user";
 
-    protected $fillable = ['name']; 
+        //Relaciones
+        public function users(){
+            return $this->belongsToMany(User::class, "sheet_number_user", "sheet_number_id", "user_id");
+        }
 
-    public function users()
-    {
-        return $this->hasMany(User::class);
-    }
+        public function sheetNumbers(){
+            return $this->belongsToMany(Sheet_number::class, 'sheet_number_user', 'user_id', 'sheet_number_id');
+        }
 }
