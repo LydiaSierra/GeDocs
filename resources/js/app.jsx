@@ -11,7 +11,7 @@ import { NotificationsProvider } from "@/context/Notifications/NotificationsCont
 import { UserProvider } from "./context/UserContext/UserContext";
 import { Toaster } from "sonner";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
-
+import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
 const appName = import.meta.env.VITE_APP_NAME || "Laravel";
 
 createInertiaApp({
@@ -19,7 +19,7 @@ createInertiaApp({
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,
-            import.meta.glob("./Pages/**/*.jsx")
+            import.meta.glob("./Pages/**/*.jsx"),
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);
@@ -30,14 +30,19 @@ createInertiaApp({
                         <NotificationsProvider>
                             <UserProvider>
                                 <SheetsProvider>
-                                    <Toaster position="top-center" richColors />
-                                    <App {...props} />
+                                    <DependenciesProvider>
+                                        <Toaster
+                                            position="top-center"
+                                            richColors
+                                        />
+                                        <App {...props} />
+                                    </DependenciesProvider>
                                 </SheetsProvider>
                             </UserProvider>
                         </NotificationsProvider>
                     </RightClickProvider>
                 </ArchiveDataProvider>
-            </ArchiveUIProvider>
+            </ArchiveUIProvider>,
         );
     },
     progress: {
