@@ -19,8 +19,24 @@ export default function Login({status, canResetPassword}) {
     const submit = (e) => {
         e.preventDefault();
 
+        if(!data.email || !data.password){
+            toast.error("Por favor complete todos los campos");
+            return;
+        }
+
+        let toastId;
+
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onStart: () => {
+                toastId = toast.loading("Verificando información");
+            },
+            onError: () => {
+                toast.error("Error en el ingreso al sistema");
+            },
+            onFinish: () => {
+                reset('password')
+                toast.dismiss(toastId);
+            }
         });
     };
 

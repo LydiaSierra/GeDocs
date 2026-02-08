@@ -1,17 +1,23 @@
+import api from "@/lib/axios";
 import { UserContext } from "@/context/UserContext/UserContext";
 import React, { useContext, useState, useEffect } from "react";
 import { ArrowUturnLeftIcon, CameraIcon } from "@heroicons/react/24/solid";
+import { toast } from "sonner";
+import { router, usePage } from "@inertiajs/react";
 
 function UserEdit() {
-    const { idSelected, setEdit, UpdateInfo, loadingEdit } =
+    // traemos los contextos
+    const { idSelected, setEdit, UpdateInfo} =
         useContext(UserContext);
 
+    // declaracion de varianle y useState
     const [nombre, setNombre] = useState("");
     const [documento, setDocumento] = useState("");
     const [numero_documento, setNumeroDocumento] = useState("");
     const [email, setEmail] = useState("");
     const [estado, setEstado] = useState("");
 
+    
     useEffect(() => {
         if (idSelected) {
             setNombre(idSelected.name);
@@ -21,6 +27,63 @@ function UserEdit() {
             setEstado(idSelected.status);
         }
     }, [idSelected]);
+
+    const [loadingEdit, setLoadingEdit] = useState(false);
+
+    // UseEffect para cargar el toast
+
+    useEffect(() => {
+        if (idSelected) {
+            setLoadingEdit(true);
+        } else {
+            setLoadingEdit(false);
+        }
+    }, []);
+
+    // funcion que llama la funcion de editar usuario del contexto mientras activa y desactiva los toast
+    const UploadUser = async () => {
+        let toastId;
+        // validaciones de inputs
+        if(numero_documento.length > 10){
+            toast.error("El número de documento no puede tener más de 10 caracteres");
+            return;
+        }
+        if(nombre.length < 3){
+            toast.error("El nombre debe tener al menos 3 caracteres");
+            return;
+        }
+        if(email.length < 5 || !email.includes("@")){
+            toast.error("Ingrese un correo electrónico válido");
+            return;
+        }
+        if(estado === ""){
+            toast.error("Seleccione un estado Valido");
+            return;
+        }
+        try {
+            toastId = toast.loading("Actualizando información");
+            await UpdateInfo(
+                nombre,
+                documento,
+                numero_documento,
+                email,
+                estado,
+                idSelected.id,
+            );
+            toast.success("Información actualizada");
+        } catch (err) {
+            toast.error(
+                err?.response?.data?.message ||
+                    err?.message ||
+                    err ||
+                    "Error al hacer la petición",
+            );
+        } finally {
+            if (toastId) {
+                toast.dismiss(toastId);
+            }
+        }
+    };
 
     return (
         <div
@@ -140,29 +203,13 @@ function UserEdit() {
                         <button
                             className="lg:px-4 px-2  lg:h-8 h-7 lg:text-md text-sm rounded-md bg-primary 
                             text-white font-semibold hover:bg-white hover:text-primary border-2 border-primary transition"
-                            onClick={() => {
-                                UpdateInfo(
-                                    nombre,
-                                    documento,
-                                    numero_documento,
-                                    email,
-                                    estado,
-                                    idSelected.id
-                                );
-                            }}
+                            onClick={UploadUser}
                         >
                             Guardar
                         </button>
                     </div>
                 </div>
             </div>
-
-            {/* LOADING */}
-            {loadingEdit && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-white border-2 border-primary text-primary px-4 py-2 rounded-md z-50">
-                    Actualizando usuario...
-                </div>
-            )}
         </div>
     );
 }

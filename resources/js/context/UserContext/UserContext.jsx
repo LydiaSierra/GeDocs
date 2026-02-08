@@ -79,11 +79,10 @@ export function UserProvider({ children }) {
             const updateUser = newList.find((u) => u.id === id);
             setEdit(false);
             setidSelected(updateUser);
-            setLoadingEdit(false);
         } catch (error) {
-            throw new Error(
-                "Error al hacer la peticion" + error.response.data.message
-            );
+            throw error;
+        } finally {
+            setLoadingEdit(false);
         }
     };
 
@@ -121,10 +120,6 @@ export function UserProvider({ children }) {
         await fetchUser();
     };
 
-    useEffect(() => {
-        fetchUser();
-    }, []);
-
     return (
         <UserContext.Provider
             value={{
@@ -153,6 +148,8 @@ export function UserProvider({ children }) {
                 loadingSearch,
                 filterSelected,
                 setFilterSelected,
+                fetchUser,
+                setLoadingEdit,
             }}
         >
             {children}

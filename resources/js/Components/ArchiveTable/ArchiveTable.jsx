@@ -42,9 +42,9 @@ export default function ArchiveTable() {
                     </div>
 
                     :
-                    <table className="w-full table-auto border-separate border-spacing-y-2">
-                        <thead className="sticky top-0">
-                        <tr className="bg-gray-500 text-white">
+                    <table className="w-full table-auto border-separate border-spacing-y-2 mt-3 ">
+                        <thead className="sticky top-0 ">
+                        <tr className="bg-gray-500 text-white ">
                             <th className="py-1.5 md:py-3 rounded-l-md">ID</th>
                             <th>Título</th>
                             <th className="hidden md:table-cell">Solicitante</th>
