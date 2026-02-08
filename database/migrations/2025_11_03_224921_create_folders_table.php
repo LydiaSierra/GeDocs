@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->integer('parent_id')->nullable();
+            $table->boolean("active")->default(true);
             $table->string('folder_code')->nullable();
             $table->string("department");
             $table->timestamps();

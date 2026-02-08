@@ -1,9 +1,7 @@
 import { Link, router, usePage } from "@inertiajs/react";
 
 import NotificationDropDown from "../Notifications/NotificationDropDown";
-import api from "@/lib/axios.js";
-import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
 import { UserIcon, UserCircleIcon, AcademicCapIcon, ListBulletIcon, Cog6ToothIcon, ArrowLeftEndOnRectangleIcon } from "@heroicons/react/24/outline";
 
@@ -17,14 +15,12 @@ export default function Header() {
 
     const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
 
-    const { fetchNotifications } = useContext(NotificationsContext);
-    const { setcurrentFolder } = useContext(ArchiveDataContext);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
 
 
 
     return (
-        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-screen">
+        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-10 w-screen">
             {shouldShowHamburger && (
                 <div className="dropdown lg:hidden">
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">

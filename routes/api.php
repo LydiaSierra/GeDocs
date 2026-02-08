@@ -15,11 +15,25 @@ use App\Http\Controllers\SheetUserController;
 Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
+    // Get the contents (subfolders and files) of a specific folder
     Route::get('/folders/parent_id/{id}', [FolderController::class, 'show']);
+
+    // Get all root-level folders (no parent)
     Route::get('/folders', [FolderController::class, 'index']);
+
+    // Global search for folders and files
+    Route::get('/search', [FolderController::class, 'globalSearch']);
+
+
+    // Get all folders in the system (used for selectors or trees)
     Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
+
+    // Upload one or more files to a specific folder
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
+
+    // Delete a single file by its ID
     Route::delete('/folders/file/{fileId}', [FolderController::class, 'destroyFile']);
+
 
     // --------- NOTIFICATIONS ---------
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -35,10 +49,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users/{id}', [UserController::class, 'show']);
         Route::get('/users/search/filter', [UserController::class, 'userByFilter']);
 
-        // ============= FOLDERS ==============
+        // ================== FOLDERS ROUTES ==================
+        // Creates a new folder
         Route::post("/folders", [FolderController::class, "store"]);
-        Route::delete('/folders/{folderId}', [FolderController::class, 'deleteFolder']);
+
+        // Logically deletes (moves to trash) a mixed selection of folders and files.
+        Route::post('/folders/delete-mixed', [FolderController::class, 'deleteMixed']);
+
+        //  Updates an existing folder.
         Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder']);
+
+        //   Downloads a single file.
+        Route::get('/folders/file/download/{id}', [FolderController::class, 'download']);
+
+        //  Downloads multiple folders and/or files as a ZIP archive.p
+        Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip']);
+
+        //   Deletes multiple folders or files at once.
+        Route::post('/folders/delete-multiple', [FolderController::class, 'deleteMultiple']);
+
 
 
 
@@ -133,7 +162,7 @@ Route::prefix('pqr')->group(function () {
         ->name('pqr.create-communication');
 
     //Ruta para archivar y desarchivar comunicaciones
-    Route::patch('comunicaciones/{communicationId}/archive',  [CommunicationController::class, 'archiveCommunication'])
+    Route::patch('comunicaciones/{communicationId}/archive', [CommunicationController::class, 'archiveCommunication'])
         ->middleware('auth:sanctum');
 });
 

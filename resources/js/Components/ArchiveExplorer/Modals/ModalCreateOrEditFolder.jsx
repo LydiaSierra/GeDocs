@@ -1,44 +1,52 @@
-import { ArchiveDataContext } from '@/context/ArchiveExplorer/ArchiveDataContext';
-import { ArchiveUIContext } from '@/context/ArchiveExplorer/ArchiveUIContext';
-import React, { useContext, useState, useRef, useEffect } from 'react'
+// ModalCreateOrEditFolder is a modal dialog for creating a new folder or editing an existing folder's details within the archive explorer.
+import { useExplorerData } from '@/Hooks/useExplorer';
+import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner';
 
-const  ModalCreateOrEditFolder = () => {
-    const { currentFolder, createFolder, updateFolder } = useContext(ArchiveDataContext);
-    const { selectedFolder, setSelectedFolder } = useContext(ArchiveUIContext);
+const ModalCreateOrEditFolder = () => {
+
+    const {
+        currentFolder,
+        createFolder,
+        updateFolder,
+        selectedItems,
+        folders,
+        deletedSelection
+    } = useExplorerData();
+
     const [loading, setLoading] = useState(false);
+
     const [formData, setFormData] = useState({
         name: "",
         folder_code: "",
+        department: "sección",
     });
+
+    const selected =
+        selectedItems.length === 1 && selectedItems[0].type === 'folder'
+            ? folders.find(f => f.id === selectedItems[0].id)
+            : null;
+
 
     const createFolderSubmit = async (e) => {
         e.preventDefault();
-        document.getElementById('createFolder').close();
-
+        document.getElementById("drawer-information").close();
         setLoading(true);
-        try {
 
+        try {
             const data = {
                 name: formData.name,
                 folder_code: formData.folder_code,
                 parent_id: currentFolder?.id || null,
-                department: currentFolder?.department || "sección",
+                department: formData.department || "sección",
             };
 
-            await createFolder({
-                data,
-            });
-            setSelectedFolder(null);
-            setFormData({
-                name: "",
-                folder_code: "",
-            });
+            await createFolder({ data });
+            setFormData({ name: "", folder_code: "" });
+            document.getElementById('createFolder').close();
 
         } catch (err) {
-
             toast.error("Error al crear la carpeta: " + err.message);
-
         } finally {
             setLoading(false);
         }
@@ -47,25 +55,24 @@ const  ModalCreateOrEditFolder = () => {
 
     const editFolderSubmit = async (e) => {
         e.preventDefault();
-        document.getElementById('createFolder').close();
         setLoading(true);
-
+        document.getElementById("drawer-information").close();
 
         try {
-            const form = new FormData(e.target);
-
             const data = {
-                name: form.get("name"),
-                folder_code: form.get("folder_code"),
+                name: formData.name,
+                folder_code: formData.folder_code,
                 parent_id: currentFolder?.id || null,
-                departament: currentFolder?.departament || "sección",
+                department: formData.department,
             };
+
 
             await updateFolder({
                 data,
-                folderId: selectedFolder.id,
+                folderId: selected.id,
             });
-            setSelectedFolder(null);
+            document.getElementById('createFolder').close();
+
         } catch (err) {
             toast.error(err?.message || "Error al editar la carpeta");
         } finally {
@@ -73,99 +80,113 @@ const  ModalCreateOrEditFolder = () => {
         }
     };
 
-
-
     const handleCancel = () => {
         setLoading(false);
-        setSelectedFolder(null);
         document.getElementById('createFolder').close();
     };
 
     useEffect(() => {
-        if (selectedFolder) {
+        if (selected) {
             setFormData({
-                name: selectedFolder.name || "",
-                folder_code: selectedFolder.folder_code || ""
+                name: selected.name || "",
+                folder_code: selected.folder_code || "",
+                department: selected.department || "sección",
             });
         } else {
             setFormData({
                 name: "",
-                folder_code: ""
+                folder_code: "",
+                department: "sección",
             });
         }
-    }, [selectedFolder]);
-
+    }, [selected]);
 
 
 
     return (
         <dialog id='createFolder' className='modal'>
             <div className='modal-box'>
-                <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" onClick={handleCancel}>✕</button>
+
+                <button
+                    className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                    onClick={handleCancel}
+                >
+                    ✕
+                </button>
+
+                <h2 className='text-2xl font-bold text-center mb-4'>
+                    {selected ? "Editar Carpeta" : "Crear Carpeta"}
+                </h2>
+
+                <form
+                    className='flex flex-col gap-8'
+                    onSubmit={selected ? editFolderSubmit : createFolderSubmit}
+                >
+                    <div className='flex flex-col space-y-2'>
+                        <label>Nombre de la Carpeta:</label>
+                        <input
+                            required
+                            type="text"
+                            className='border border-gray-300 rounded-md p-2'
+                            placeholder='Ejem: Actas'
+                            value={formData.name}
+                            onChange={(e) =>
+                                setFormData({ ...formData, name: e.target.value })
+                            }
+                        />
+                    </div>
+
+                    <div className='flex flex-col space-y-2'>
+                        <label>Código de la Carpeta:</label>
+                        <input
+                            required
+                            type="text"
+                            className='border border-gray-300 rounded-md p-2'
+                            placeholder='Ejem: 110'
+                            value={formData.folder_code}
+                            onChange={(e) =>
+                                setFormData({ ...formData, folder_code: e.target.value })
+                            }
+                        />
+                    </div>
+
+                    <div className='flex flex-col space-y-2'>
+                        <label>Clasificación:</label>
+                        <select
+                            className='border border-gray-300 rounded-md p-2'
+                            value={formData.department}
+                            onChange={(e) =>
+                                setFormData({ ...formData, department: e.target.value })
+                            }
+                            required
+                        >
+                            <option value="sección">Sección</option>
+                            <option value="subsección">Subsección</option>
+                            <option value="serie">Serie</option>
+                            <option value="subserie">Subserie</option>
+                        </select>
+                    </div>
+
+
+                    <div className='flex justify-center'>
+                        <button
+                            className='bg-primary text-white rounded-md px-4 py-2'
+                            type='submit'
+                            disabled={loading}
+                        >
+                            {loading
+                                ? selected ? "Editando..." : "Creando..."
+                                : selected ? "Guardar" : "Crear"}
+                        </button>
+                    </div>
                 </form>
-
-
-
-                <h2 className='text-2xl font-bold text-center'>{selectedFolder ? "Editar Carpeta" : "Crear Carpeta"}</h2>
-
-                {selectedFolder ? (
-                    <form className='flex flex-col gap-8' onSubmit={editFolderSubmit}>
-                        <div className='flex flex-col space-y-2'>
-                            <label htmlFor="folder_name">Nombre de la Carpeta:</label>
-                            <input required type="text" value={formData.name || ""} id="folder_name" name="name" className='border border-gray-300 rounded-md p-2' placeholder='Ejem: Actas'
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </div>
-
-                        <div className='flex flex-col space-y-2'>
-                            <label htmlFor="folder_code">Codigo de la Carpeta:</label>
-                            <input required type="text" value={formData.folder_code || ""} id="folder_code" name="folder_code" className='border border-gray-300 rounded-md p-2' placeholder='Ejem: 110'
-                                onChange={(e) => setFormData({ ...formData, folder_code: e.target.value })}
-                            />
-                        </div>
-
-                        <div className='flex items-center justify-center gap-2'>
-
-                            <button className='bg-primary text-white rounded-md px-4 py-2 cursor-pointer' type='submit' disabled={loading}>
-                                {loading ? "Editando..." : "Guardar"}
-                            </button>
-                        </div>
-
-                    </form>
-                ) : (
-                    <form className='flex flex-col gap-8' onSubmit={createFolderSubmit}>
-                        <div className='flex flex-col space-y-2'>
-                            <label htmlFor="folder_name">Nombre de la Carpeta:</label>
-                            <input required type="text" name="name" className='border border-gray-300 rounded-md p-2' placeholder='Ejem: Actas'
-                                value={formData.name || ""}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </div>
-
-                        <div className='flex flex-col space-y-2'>
-                            <label htmlFor="folder_code">Codigo de la Carpeta:</label>
-                            <input required type="text" name="folder_code" className='border border-gray-300 rounded-md p-2' placeholder='Ejem: 110'
-                                value={formData.folder_code || ""}
-                                onChange={(e) => setFormData({ ...formData, folder_code: e.target.value })}
-                            />
-                        </div>
-
-                        <div className='flex items-center justify-center gap-2'>
-                            <button className='bg-primary text-white rounded-md px-4 py-2 cursor-pointer' type='submit' disabled={loading}>
-                                {loading ? "Creando..." : "Crear"}
-                            </button>
-                        </div>
-                    </form>
-                )}
             </div>
 
-            <form method="dialog" class="modal-backdrop" onClick={handleCancel}>
+            <form method="dialog" className="modal-backdrop" onClick={handleCancel}>
                 <button>close</button>
             </form>
         </dialog>
-    )
-}
+    );
+};
 
-export default ModalCreateOrEditFolder
+export default ModalCreateOrEditFolder;

@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext.jsx";
 import { PlusCircleIcon, ArrowPathIcon } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
+import EmptyState from "../EmptyState";
 
 
 const NotificationSidebar = () => {
@@ -16,16 +17,17 @@ const NotificationSidebar = () => {
             <div className="col-span-1  overflow-y-auto">
                 <div className="flex justify-between items-center flex-wrap gap-4 pr-6">
                     <h1 className="font-bold text-2xl text-black"> Solicitudes de instructores </h1>
-                    <h1 className="cursor-pointer" onClick={() => {
+                    <div className="cursor-pointer flex items-center gap-1" onClick={() => {
                         fetchNotifications();
                     }}>
-                        Refrescar Notificaciones
-                    </h1>
+                        <span className={`${loading ? "animate-spin" : ""}`}><ArrowPathIcon className="size-5" /></span>
+                            Refrescar
+                    </div>
                 </div>
 
-         
-                    {notifications.length > 0 ? (
-                         <ul className="flex flex-col  gap-3 pr-2 mt-1 rounded-lg h-auto">
+
+                {notifications.length > 0 ? (
+                    <ul className="flex flex-col  gap-3 pr-2 mt-1 rounded-lg h-auto">
 
                         {/* condicionales para estilos dependiendo el estado de la notificacion */}
                         {notifications.map((item) => {
@@ -78,12 +80,12 @@ const NotificationSidebar = () => {
                         })}
 
                     </ul>
-                    ) : (
-                        <div className="text-ray-500 flex items-center justify-center ">
-                            <p>No hay notificaciones</p>
-                        </div>
-                    )}
-            
+                ) : (
+                    <div className="text-ray-500 flex items-center justify-center h-[50vh]  relative">
+                        <EmptyState text={"Sin notificaciones"} />
+                    </div>
+                )}
+
 
             </div>
 

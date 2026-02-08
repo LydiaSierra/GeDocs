@@ -46,7 +46,7 @@ export default function Sidebar() {
             </aside>
 
             {/* Mobile */}
-            <div className="md:hidden fixed bottom-0 left-0 w-full bg-primary flex justify-around items-center py-1 z-50">
+            <div className="md:hidden fixed bottom-0 left-0 w-full bg-primary flex justify-around items-center py-1 z-10">
                 {filteredLinks.map(link => (
                     <NavLink
                         key={link.id}
