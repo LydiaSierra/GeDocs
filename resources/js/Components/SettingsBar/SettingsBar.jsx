@@ -100,30 +100,17 @@ function SettingsBar() {
                     </h1>
 
                     <div className="w-full h-auto flex flex-col  items-start gap-2">
-                        {rol !== "Dependencia" && (
-                            <NavLink href={route("notifications.aprendiz")}>
+                        {rol === "Admin" && (
+                            <NavLink href={route("notifications.index")}>
                                 <div
                                     className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
-                                        url === "/notifications/aprendiz"
+                                        url === "/notifications"
                                             ? "underline"
                                             : ""
                                     }`}
                                 >
-                                    <UserCircleIcon className="text-[#848484] size-8" />
-                                    Aprendices
-                                </div>
-                            </NavLink>
-                        )}
-
-                        {rol === "Admin" && (
-                            <NavLink href={route("notifications.index")}>
-                                <div className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
-                                    url === "/notifications"
-                                        ? "underline"
-                                        : ""
-                                }`}>
                                     <UserCircleIcon className="text-[#848484] size-8 " />
-                                    Instructores
+                                    Solicitudes
                                 </div>
                             </NavLink>
                         )}

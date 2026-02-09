@@ -29,27 +29,27 @@ const NotificationCard = () => {
     const isRejected = visibleDetails.data.user.status === "rejected";
 
     return (
-        <div className=" bg-white flex flex-col w-full h-full gap-5 p-3 rounded-md col-span-2 overflow-y-auto relative">
+        <div className=" bg-white flex flex-col w-full h-full md:gap-5 gap-3 p-3 rounded-md col-span-2 overflow-y-auto relative">
             <div className="w-full h-auto flex flex-row justify-between sticky top-0 bg-white z-1">
                 <button className="h-auto w-auto cursor-pointer rounded-[50%] hover:bg-gray-400 p-1 hover:text-white">
                     <ArrowUturnLeftIcon
-                        className="w-7 h-7"
+                        className="md:size-7 size-5"
                         onClick={closeDetails}
                     />
                 </button>
             </div>
-            <p className="font-semibold text-[#000000] text-2xl">
+            <p className="font-semibold text-[#000000] md:text-2xl text-lg">
                 Solicitud de Acceso: <br />
                 El usuario {visibleDetails.data.user.name} solicita un nuevo
                 acceso con el rol de {visibleDetails.data.role}
             </p>
 
-            <p className="font-semibold text-lg text-[#404142]">
+            <p className="font-semibold md:text-lg text-md text-[#404142]">
                 {new Date(visibleDetails.created_at).toLocaleDateString()}
             </p>
 
-            <div className="bg-[#F3F3F3] w-full  mx-auto p-6 rounded-md text-base">
-                <h1 className="font-semibold ">
+            <div className="bg-[#F3F3F3] w-full max-h-fit  mx-auto md:p-6 p-3 rounded-md text-base">
+                <h1 className="font-semibold text-md">
                     {" "}
                     Información del solicitante:{" "}
                 </h1>
@@ -89,7 +89,7 @@ const NotificationCard = () => {
             </div>
             {isRejected ?
                 <div>
-                    <h1 className="text-start font-medium text-xl">
+                    <h1 className="text-start font-medium md:text-xl text-md">
                         Usuario rechazado
                     </h1>
                     <p>
@@ -97,7 +97,7 @@ const NotificationCard = () => {
                     </p>
                 </div>
                 :
-                <h1 className="text-center font-medium text-2xl ">
+                <h1 className="text-center font-medium md:text-2xl text-lg">
                     ¿Desea permitir que este usuario ingrese como instructor?
                 </h1>
             }

@@ -130,24 +130,12 @@ export default function Header() {
                         <li className="mt-3 text-xs font-semibold text-[#848484]">
                             Solicitudes
                         </li>
-                        {rol !== "Dependencia" && (
-                            <li>
-                                <Link href={route("notifications.index")}>
-                                    <div
-                                        className={`flex items-center gap-2 text-sm font-medium ${url === "/notifications" ? "underline" : "hover:underline"}`}
-                                    >
-                                        <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                        Aprendices
-                                    </div>
-                                </Link>
-                            </li>
-                        )}
                         {rol === "Admin" && (
                             <li>
                                 <Link href={route("notifications.index")}>
                                     <div className="flex items-center gap-2 text-sm font-medium hover:underline">
                                         <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                        Instructores
+                                        Solicitudes
                                     </div>
                                 </Link>
                             </li>
