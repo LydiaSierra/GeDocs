@@ -5,7 +5,7 @@ import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Register() {
+export default function Register({sheets}) {
     const { data, setData, post, processing, errors, reset } = useForm({
         type_document: '',
         document_number: '',
@@ -130,8 +130,11 @@ export default function Register() {
                             required={data.role === 'Aprendiz'} // ✅ Solo requerido si es Aprendiz
                         >
                             <option value="" disabled>Seleccione su ficha</option>
-                            <option value="3002085">3002085</option>
-                            <option value="3002087">3002087</option>
+                            {sheets.map((sheet) => (
+                                <option key={sheet.id} value={sheet.number}>
+                                    {sheet.number}
+                                </option>
+                            ))}
                         </select>
                         <InputError message={errors.technical_sheet} className="mt-2" />
                     </div>
