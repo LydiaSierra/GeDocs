@@ -133,6 +133,20 @@ function UserEdit() {
                                 <option value="active">Activo</option>
                             </select>
                         </div>
+                        <div className="flex flex-col items-center gap-1">
+                            <label className="text-sm font-light">
+                                Asignar Fichas
+                            </label>
+                            <select
+                                className="lg:w-full w-[80%] lg:h-8 h-7 border border-[#D9D9D9] rounded-lg px-2 text-sm bg-white focus:outline-none cursor-pointer"
+                                value={estado}
+                                onChange={(e) => setEstado(e.target.value)}
+                            >
+                                <option value="">Seleccione un estado</option>
+                                <option value="pending">Pendiente</option>
+                                <option value="active">Activo</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* BOTÓN */}
@@ -147,7 +161,7 @@ function UserEdit() {
                                     numero_documento,
                                     email,
                                     estado,
-                                    idSelected.id
+                                    idSelected.id,
                                 );
                             }}
                         >

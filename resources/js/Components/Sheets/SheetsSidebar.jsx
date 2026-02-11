@@ -1,15 +1,22 @@
 import React, { useState, useContext, useMemo } from "react";
-import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import SheetsTable from "./SheetsTable";
 import CreateSheets from "./CreateSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 
 export default function TableSheets() {
     const { sheets } = useContext(SheetsContext);
+
+    const [inputValue, setInputValue] = useState("");
     const [search, setSearch] = useState("");
 
     const openEditModal = () => {
         document.getElementById("my_modal_2")?.showModal();
+    };
+
+    const resetSearch = () => {
+        setInputValue("");
+        setSearch("");
     };
 
     const filteredSheets = useMemo(() => {
@@ -21,12 +28,13 @@ export default function TableSheets() {
             (sheet) =>
                 sheet.number.toString().includes(term) ||
                 sheet.state.toLowerCase().includes(term) ||
-                sheet.id.toString().includes(term)
+                sheet.id.toString().includes(term),
         );
     }, [search, sheets]);
 
     return (
-        <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-90% mt-4">
+        <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-[90%] mt-4">
+            {/* MODAL */}
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box max-w-5xl w-[95%] sm:w-[90%] p-6 sm:p-8">
                     <form method="dialog">
@@ -42,33 +50,35 @@ export default function TableSheets() {
                 Lista de Fichas
             </h2>
 
-            {/* SEARCH */}
             <div className="flex flex-col sm:flex-row gap-3 w-full">
-                    <div className="flex items-center flex-1 bg-gray-200 px-3 py-1 rounded-md gap-2">
-                        <input
-                            placeholder="Buscar por número o estado"
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="
-                        input
-                            bg-gray-200
-                            border-none
-                            focus:outline-none
-                            shadow-none
-                            text-sm
-                            min-w-0
-                        "
-                        />
+                <div className="flex items-center flex-1 bg-white px-3 py-1">
+                    <input
+                        placeholder="Buscar por número o estado"
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                setSearch(inputValue);
+                            }
+                        }}
+                        className="input bg-gray-200 border-none focus:outline-none shadow-none text-sm min-w-0"
+                    />
 
-                        <MagnifyingGlassIcon
-                            className="w-4 h-4 shrink-0 text-[#404142] cursor-pointer"
-                            onClick={() => {
-                                searchUser(inputSearch, filterSelected);
-                            }}
-                        />
-                    </div>
-                   
+                    <MagnifyingGlassIcon
+                        className="w-10 h-10 shrink-0 text-[#404142] cursor-pointer bg-gray-200 rounded-r-lg -translate-x-1"
+                        onClick={() => setSearch(inputValue)}
+                    />
+
+                    {search && (
+                        <button
+                            onClick={resetSearch}
+                            className="ml-2 px-3 py-2 text-sm bg-gray-300 rounded-md hover:bg-gray-400 transition"
+                        >
+                            Limpiar
+                        </button>
+                    )}
+                </div>
 
                 <button
                     onClick={openEditModal}
