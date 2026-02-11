@@ -86,7 +86,7 @@ export function MailReader() {
             });
 
             setMailCards((prev) =>
-                prev.filter((mail) => mail.id !== currentMail.id)
+                prev.filter((mail) => mail.id !== currentMail.id),
             );
 
             setSelectedMail(null); // triggers clean UI reset
@@ -123,7 +123,7 @@ export function MailReader() {
         >
             <div className="flex items-center justify-between mb-4 ">
                 <button
-                    className="flex items-center gap-2 text-gray-600"
+                    className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors cursor-pointer"
                     onClick={() => setSelectedMail(null)}
                 >
                     <ArrowLeftIcon className="w-5" />
@@ -141,7 +141,7 @@ export function MailReader() {
                         </>
                     ) : (
                         <>
-                            <ArchiveBoxIcon className="w-5" />
+                            <ArchiveBoxIcon className="w-5 " />
                             Archivar
                         </>
                     )}
@@ -157,7 +157,7 @@ export function MailReader() {
             <div className="hidden lg:flex justify-end mb-2">
                 <button
                     onClick={handleArchiveToggle}
-                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary cursor-pointer"
+                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary hover:bg-white cursor-pointer"
                 >
                     {isArchiveView ? (
                         <>
