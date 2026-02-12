@@ -84,7 +84,6 @@ export default function InboxMailCard({ card }) {
                     </div>
                     <DocumentTextIcon className="w-5 shrink-0" />
                 </div>
-                <DocumentTextIcon className="w-5 shrink-0" />
             </div>
         </div>
     );

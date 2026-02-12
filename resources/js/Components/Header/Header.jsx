@@ -1,10 +1,6 @@
 import { Link, router, usePage } from "@inertiajs/react";
-
 import NotificationDropDown from "../Notifications/NotificationDropDown";
-import { Link, router, usePage } from "@inertiajs/react";
-
-import NotificationDropDown from "../Notifications/NotificationDropDown";
-import api from "@/lib/axios.js";
+// import api from "@/lib/axios.js";
 import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
 import { useContext, useEffect, useState } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
@@ -16,6 +12,7 @@ import {
     Cog6ToothIcon,
     ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
+
 import { toast } from "sonner";
 
 export default function Header() {
@@ -179,13 +176,6 @@ export default function Header() {
                         className="h-8 block"
                     />
                 </Link>
-                <Link href={route("inbox")}>
-                    <img
-                        src="/gedocs-logo.svg"
-                        alt="gedocs logo"
-                        className="h-8 block"
-                    />
-                </Link>
             </div>
 
             <div className="flex gap-4 items-center h-full">
@@ -258,10 +248,7 @@ export default function Header() {
 
 
                         <li>
-                            <Link href={route("profile.edit")}>
-                                <Cog6ToothIcon className="size-6" />
-                                Configuración
-                            </Link>
+
                             <Link href={route("profile.edit")}>
                                 <Cog6ToothIcon className="size-6" />
                                 Configuración

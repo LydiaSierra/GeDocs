@@ -30,74 +30,6 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
 - [Api EndPoints](#api)  
 
 ## Descripción del proyecto 
-
-<<<<<<< HEAD
-El Sistema de Gestión Documental con PQRS es una plataforma web diseñada para administrar documentos institucionales y gestionar Peticiones, Quejas, Reclamos y Sugerencias (PQRS) de manera centralizada, segura y trazable. 
-
-## Características principales 
-
-- Gestión de documentos digitales. 
-
-- Registro y seguimiento de PQRS. 
-
-- Notificaciones internas. 
-
-- Control de acceso por roles y permisos. 
-
-- Interfaz moderna con React. 
-
-## Arquitectura y tecnologías
-
-| Método      | URI                           | 
-|-------------|-------------------------------|
-| Backend     | Laravel (PHP >= 8.1)          | 
-| Frontend    | Inertia.js, React y Vite      | 
-| Otros       | MySQL                         | 
-
-## Requisitos previos
-
-Asegúrese de tener instalado lo siguiente: 
-
-- PHP >= 8.1 
-
-- Composer >= 2.x 
-
-- Node.js >= 18.x 
-
-- npm >= 9.x 
-
-- Git 
-
-- MySQL >= 8.x  
-
-##  Instalación
-
-1. Clonar el repositorio 
-``` 
-git clone https://github.com/LydiaSierra/GeDocs.git 
-cd GecDocs 
-``` 
-2. Instalar dependencias backend 
-``` 
-composer install 
-``` 
-3. Instalar dependencias frontend 
-``` 
-npm install 
-``` 
-4. Instalar paquetes backend 
-``` 
-composer require spatie/laravel-permission 
-``` 
-``` 
-php artisan vendor:publish --provider="Spatie\\Permission\\PermissionServiceProvider" 
-``` 
-``` 
-composer require barryvdh/laravel-dompdf 
-``` 
-``` 
-php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider" 
-=======
 # ROLES
 ## Crear Rol
 
@@ -658,6 +590,3 @@ La creación, actualización y eliminación solo está permitida para el rol **A
 **- No es posible acceder a notificaciones de otros usuarios.**
 **- Las notificaciones se devuelven en orden descendente por fecha.**
 **- Una notificación ya leída no se vuelve a marcar como no leída.**
-
-
-
