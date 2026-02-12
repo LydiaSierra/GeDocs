@@ -62,14 +62,12 @@ class SheetController extends Controller
      * Searches sheets by number using a LIKE query.
      * Returns users grouped by role (Instructor, Aprendiz).
      */
-    public function show(string $numberSheet)
+    public function show(string $id)
     {
         // Search sheet(s) by partial sheet number
-        $sheet = Sheet_number::where("number", "LIKE", "%" . $numberSheet . "%")
-            ->with('users')
-            ->get();
+        $sheet = Sheet_number::find($id);
 
-        if ($sheet->isEmpty()) {
+        if (!$sheet) {
             return response()->json([
                 "success" => false,
                 "message" => "Ficha no encontrada"

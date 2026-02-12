@@ -71,14 +71,11 @@ export function DependenciesProvider({ children }) {
         }
     };
 
-    useEffect(() => {
-        fetchDependencies();
-    }, []);
-
     return (
         <DependenciesContext.Provider
             value={{
                 dependencies,
+
                 fetchDependencies,
                 createDependency,
                 editDependency,
