@@ -152,6 +152,7 @@ public function archiveCommunication(Request $request, string $communicationId):
     public function processResponse(Request $request, string $uuid): JsonResponse
     {
         $comunication = comunication::with('pqr')->where('response_uuid', $uuid)->first();
+        $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($comunication->pqr_id);
 
         if (!$comunication) {
             return response()->json(['error' => 'Enlace de respuesta no válido'], 404);
@@ -176,7 +177,7 @@ public function archiveCommunication(Request $request, string $communicationId):
         DB::beginTransaction();
         try {
             // Crear la respuesta del usuario como una nueva comunicación
-            $responseComunication = $comunication->pqr->comunications()->create([
+            $responseComunication = $pqr->comunications()->create([
                 'message' => $validated['message'],
                 'requires_response' => false,
                 'is_user_response' => true,
@@ -197,7 +198,7 @@ public function archiveCommunication(Request $request, string $communicationId):
             }
 
             // Marcar el UUID como usado
-            $comunication->response_uuid_used_at = now();
+            $comunication->updated_at = now();
             $comunication->save();
 
             DB::commit();
@@ -210,7 +211,7 @@ public function archiveCommunication(Request $request, string $communicationId):
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error procesando respuesta: ' . $e->getMessage());
-            return response()->json(['error' => 'Error interno del servidor'], 500);
+            return response()->json(['error' =>  $e->getMessage()], 500);
         }
     }
 
