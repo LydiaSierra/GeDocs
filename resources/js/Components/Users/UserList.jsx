@@ -3,6 +3,7 @@ import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import { useContext, useState, useEffect } from "react";
 import UserModal from "./UserModal";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import EmptyState from "../EmptyState";
 
 export const UserList = ({ url }) => {
     const {
@@ -66,14 +67,16 @@ export const UserList = ({ url }) => {
                             const filtered = InfoView.filter((item) =>
                                 item.roles.some((r) => r.name === content)
                             );
-                            if (filtered.length === 0) {
-                                if (isSearching) {
-                                    return (
-                                        <h1 className="absolute top-1/2 left-1/2">
-                                            No hay resultados para mostrar.
-                                        </h1>
-                                    );
-                                }
+                            if (filtered.length === 0 && isSearching) {
+                                return (
+                                    <tr>
+                                        <td colSpan={5}>
+                                            <div className="h-[40vh] text-gray-500 relative ">
+                                                <EmptyState text="No hay resultados para mostrar." />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
                             } else {
                                 return filtered.map((item) => (
                                     <tr
@@ -118,7 +121,6 @@ export const UserList = ({ url }) => {
                         })()}
                     </tbody>
                 </table>
-                <UserModal />
             </div>
         );
     }

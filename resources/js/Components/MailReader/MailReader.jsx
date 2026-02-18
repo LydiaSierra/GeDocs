@@ -8,6 +8,7 @@ import {
     ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
 import card from "daisyui/components/card/index.js";
+import EmptyState from "../EmptyState";
 
 export function MailReader() {
     const {
@@ -70,8 +71,9 @@ export function MailReader() {
 
     if (!currentMail) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-gray-500">
-                Selecciona un correo
+            <div className="h-full w-full flex items-center justify-center text-gray-500 relative">
+                <EmptyState text={"Selecciona un correo"} />
+
             </div>
         );
     }
@@ -181,7 +183,9 @@ export function MailReader() {
                 <h2 className="font-bold text-xl">{currentMail.affair}</h2>
             </div>
 
+
             <SenderInformationCard currentMail={currentMail} />
+
 
             <div id="email-description" className="mt-4">
                 <div className="font-bold text-lg mb-2">Descripción</div>

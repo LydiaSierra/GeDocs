@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Sheet_number;
 use App\Models\User;
 use App\Models\TechnicalSheet;
 use App\Notifications\NewUserRegistered;
@@ -17,7 +18,10 @@ class RegisteredUserController extends Controller
 {
     public function create()
     {
-        return Inertia::render('Auth/Register');
+        $sheets = Sheet_number::all();
+        return Inertia::render('Auth/Register', [
+            'sheets' => $sheets
+        ]);
     }
 
     public function store(Request $request)

@@ -10,7 +10,7 @@ export const DashboardLayout = ({children}) => {
             <div className='flex gap-2 h-screen'>
                 <Sidebar/>
                 <DropdownFolders/>
-                <div className='pt-16 pb-2 w-full h-full'>
+                <div className='pt-14 pb-2 w-full h-full'>
                     {children}
                 </div>
             </div>

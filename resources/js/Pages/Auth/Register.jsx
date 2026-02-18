@@ -6,7 +6,7 @@ import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
 
-export default function Register() {
+export default function Register({sheets}) {
     const { data, setData, post, processing, errors, reset } = useForm({
         type_document: "",
         document_number: "",
@@ -203,11 +203,12 @@ export default function Register() {
                             }
                             className="mt-1 w-full border border-gray-500 rounded-md p-2"
                         >
-                            <option value="" disabled>
-                                Seleccione su ficha
-                            </option>
-                            <option value="3002085">3002085</option>
-                            <option value="3002087">3002087</option>
+                            <option value="" disabled>Seleccione su ficha</option>
+                            {sheets.map((sheet) => (
+                                <option key={sheet.id} value={sheet.number}>
+                                    {sheet.number}
+                                </option>
+                            ))}
                         </select>
                         <InputError
                             message={errors.technical_sheet}

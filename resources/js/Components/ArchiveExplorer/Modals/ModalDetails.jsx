@@ -1,30 +1,30 @@
-import { useContext } from "react";
+// ModalDetails displays a modal with detailed information about the selected file or folder, including metadata and main icon.
 import { DocumentIcon, FolderIcon } from "@heroicons/react/24/outline";
-import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext";
-import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext";
+
+import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
 
 export const ModalDetails = () => {
 
   // Context UI management
-  const { selectedItem, setSelectedItem, formatSize } = useContext(ArchiveUIContext);
-  const { currentFolder } = useContext(ArchiveDataContext);
+  const { formatSize } = useExplorerUI();
+  const { currentFolder, folders, files, selectedItems } = useExplorerData();
 
+  const selected = selectedItems[0];
 
-  if (!selectedItem) return null;
-  // Destructure selectedItem and data from the selected item
-
-console.log(selectedItem);
-
+  const selectedItem = selected
+    ? selected.type === 'folder'
+      ? folders.find(f => f.id === selected.id)
+      : files.find(f => f.id === selected.id)
+    : null;
+  ;
   // Render the modal with item details
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm z-40 text-xl"
-      onClick={() => {
-        setSelectedItem(null);
-      }}
+    <dialog
+      id="modalDetails"
+      className="modal"
     >
       <div
-        className="max-w-xs md:max-w-md w-full  bg-white border rounded-lg shadow-sm p-4 text-center transform origin-center"
+        className="modal-box"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Main Icon */}
@@ -50,7 +50,7 @@ console.log(selectedItem);
             {selectedItem?.extension ? `Archivo ${selectedItem?.extension}` : "Carpeta"}
           </p>
           <p>
-            <span className="font-medium">Última Modificación: {new Date(selectedItem?.updated_at || selectedItem?.created_at).toLocaleString()}</span>
+            <span className="font-medium">Última Modificación: {new Date(selectedItem?.updated_at).toLocaleString()}</span>
 
           </p>
         </div>
@@ -68,7 +68,7 @@ console.log(selectedItem);
           </p>
           <p>
             <span className="font-medium">Clasificación:</span>{" "}
-            {currentFolder?.departament || selectedItem?.departament || "--"}
+            {currentFolder?.department || selectedItem?.department || "--"}
           </p>
           {selectedItem?.extemsion &&
             <>
@@ -80,6 +80,9 @@ console.log(selectedItem);
           }
         </div>
       </div>
-    </div>
+      <form method="dialog" className="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
   );
 };
