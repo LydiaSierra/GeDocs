@@ -107,7 +107,7 @@ function UserModal() {
                                         </h1>
                                         <h2 className="font-semibold text-xs sm:text-sm lg:text-base">
                                             {new Date(
-                                                idSelected.created_at
+                                                idSelected.created_at,
                                             ).toLocaleDateString()}
                                         </h2>
                                     </div>
@@ -137,7 +137,7 @@ function UserModal() {
                                                           <p key={item.number}>
                                                               {item.number}
                                                           </p>
-                                                      )
+                                                      ),
                                                   )
                                                 : "Sin Fichas"}
                                         </h2>

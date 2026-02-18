@@ -4,22 +4,24 @@ import { MailContext } from "@/context/MailContext/MailContext";
 
 export default function InboxMailCard({ card }) {
     const { selectedMail, setSelectedMail } = useContext(MailContext);
-    const isSelected = String(card.id) === String(selectedMail);
 
     return (
         <div
-            className={`w-full p-4 border ${isSelected ? "border-[#3CACBB]" : "border-senaWashedBlue"} bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer`}
-            onClick={() => {
-                setSelectedMail(card.id);
-                console.log(selectedMail);
-            }}
+            className={`w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer
+        ${
+            selectedMail === card.id
+                ? "border-primary border-3 "
+                : " hover:bg-gray-100"
+        }
+    `}
+            onClick={() => setSelectedMail(card.id)}
         >
             <div
                 id="selector"
-                className={`h-20 w-1 rounded-xl ${isSelected ? "bg-[#3CACBB]" : "bg-senaWashedBlue"} shrink-0`}
+                className="h-20 w-1 rounded-xl bg-senaWashedBlue shrink-0"
             ></div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ">
                 <div
                     id="mail-card-tags"
                     className="flex flex-wrap items-start justify-between gap-2"
@@ -27,7 +29,13 @@ export default function InboxMailCard({ card }) {
                     <div className="flex items-center gap-2 min-w-0 flex-wrap">
                         <div
                             id="mail-card-type"
-                            className="bg-gray-200 py-1 px-2 rounded-md text-sm shrink-0"
+                            className={`bg-black py-1 px-2 rounded-md text-sm shrink-0
+                                ${
+                                    selectedMail === card.id
+                                        ? "bg-primary font-bold text-white"
+                                        : "bg-gray-100 hover:bg-gray-100"
+                                }
+                                `}
                         >
                             {card.request_type}
                         </div>
@@ -47,7 +55,7 @@ export default function InboxMailCard({ card }) {
                             {" "}
                             {card.response_time
                                 ? new Date(
-                                      card.response_time,
+                                      card.response_time
                                   ).toLocaleDateString()
                                 : "Sin asignar"}
                         </div>

@@ -31,7 +31,7 @@ export function MailReader() {
             setSending(true);
 
             await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
-                response_message: responseText,
+                response: responseText,
             });
 
             // Optional UX improvements 👇
@@ -71,9 +71,12 @@ export function MailReader() {
 
     if (!currentMail) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-gray-500 relative">
-                <EmptyState text={"Selecciona un correo"} />
-
+            <div className="h-full w-full flex items-center justify-center text-gray-500">
+                <img
+                    className="h-110 opacity-60"
+                    src="/images/OBJECTS.svg"
+                    alt=""
+                />
             </div>
         );
     }
@@ -102,7 +105,7 @@ export function MailReader() {
             }
         }
     };
-    //Esto para que se esta usando?
+
     console.log("attachments:", currentMail.attached_supports);
 
     return (
@@ -120,9 +123,9 @@ export function MailReader() {
     lg:block
   `}
         >
-            <div className="flex items-center justify-between mb-4 lg:hidden">
+            <div className="flex items-center justify-between mb-4 ">
                 <button
-                    className="flex items-center gap-2 text-gray-600"
+                    className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors cursor-pointer"
                     onClick={() => setSelectedMail(null)}
                 >
                     <ArrowLeftIcon className="w-5" />
@@ -131,7 +134,7 @@ export function MailReader() {
 
                 <button
                     onClick={handleArchiveToggle}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary"
+                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary lg:hidden"
                 >
                     {isArchiveView ? (
                         <>
@@ -140,7 +143,7 @@ export function MailReader() {
                         </>
                     ) : (
                         <>
-                            <ArchiveBoxIcon className="w-5" />
+                            <ArchiveBoxIcon className="w-5 " />
                             Archivar
                         </>
                     )}
@@ -156,7 +159,7 @@ export function MailReader() {
             <div className="hidden lg:flex justify-end mb-2">
                 <button
                     onClick={handleArchiveToggle}
-                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary cursor-pointer"
+                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary hover:bg-white cursor-pointer"
                 >
                     {isArchiveView ? (
                         <>
@@ -183,9 +186,7 @@ export function MailReader() {
                 <h2 className="font-bold text-xl">{currentMail.affair}</h2>
             </div>
 
-
             <SenderInformationCard currentMail={currentMail} />
-
 
             <div id="email-description" className="mt-4">
                 <div className="font-bold text-lg mb-2">Descripción</div>

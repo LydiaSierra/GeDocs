@@ -16,6 +16,14 @@ export default function Register({sheets}) {
         technical_sheet: "",
         password: "",
         password_confirmation: "",
+        type_document: "",
+        document_number: "",
+        name: "",
+        email: "",
+        role: "",
+        technical_sheet: "",
+        password: "",
+        password_confirmation: "",
     });
 
     const submit = (e) => {
@@ -97,6 +105,10 @@ export default function Register({sheets}) {
                         htmlFor="type_document"
                         value="Tipo de documento"
                     />
+                    <InputLabel
+                        htmlFor="type_document"
+                        value="Tipo de documento"
+                    />
                     <select
                         id="type_document"
                         name="type_document"
@@ -104,8 +116,14 @@ export default function Register({sheets}) {
                         onChange={(e) =>
                             setData("type_document", e.target.value)
                         }
+                        onChange={(e) =>
+                            setData("type_document", e.target.value)
+                        }
                         className="mt-1 w-full border border-gray-500 rounded-md p-2"
                     >
+                        <option value="" disabled>
+                            Seleccione un tipo
+                        </option>
                         <option value="" disabled>
                             Seleccione un tipo
                         </option>
@@ -117,10 +135,18 @@ export default function Register({sheets}) {
                         message={errors.type_document}
                         className="mt-2"
                     />
+                    <InputError
+                        message={errors.type_document}
+                        className="mt-2"
+                    />
                 </div>
 
                 {/* Número de documento */}
                 <div className="mt-4">
+                    <InputLabel
+                        htmlFor="document_number"
+                        value="Número de documento"
+                    />
                     <InputLabel
                         htmlFor="document_number"
                         value="Número de documento"
@@ -135,6 +161,10 @@ export default function Register({sheets}) {
                         onChange={(e) =>
                             setData("document_number", e.target.value)
                         }
+                    />
+                    <InputError
+                        message={errors.document_number}
+                        className="mt-2"
                     />
                     <InputError
                         message={errors.document_number}
@@ -180,8 +210,12 @@ export default function Register({sheets}) {
                         name="role"
                         value={data.role}
                         onChange={(e) => setData("role", e.target.value)}
+                        onChange={(e) => setData("role", e.target.value)}
                         className="mt-1 w-full border border-gray-500 rounded-md p-2"
                     >
+                        <option value="" disabled>
+                            Seleccione un rol
+                        </option>
                         <option value="" disabled>
                             Seleccione un rol
                         </option>
@@ -192,12 +226,16 @@ export default function Register({sheets}) {
                 </div>
 
                 {data.role === "Aprendiz" && (
+                {data.role === "Aprendiz" && (
                     <div className="mt-4">
                         <InputLabel htmlFor="technical_sheet" value="Ficha" />
                         <select
                             id="technical_sheet"
                             name="technical_sheet"
                             value={data.technical_sheet}
+                            onChange={(e) =>
+                                setData("technical_sheet", e.target.value)
+                            }
                             onChange={(e) =>
                                 setData("technical_sheet", e.target.value)
                             }
@@ -214,7 +252,12 @@ export default function Register({sheets}) {
                             message={errors.technical_sheet}
                             className="mt-2"
                         />
+                        <InputError
+                            message={errors.technical_sheet}
+                            className="mt-2"
+                        />
                     </div>
+                )}
                 )}
 
                 {/* Contraseña */}
@@ -238,6 +281,10 @@ export default function Register({sheets}) {
                         htmlFor="password_confirmation"
                         value="Confirmar contraseña"
                     />
+                    <InputLabel
+                        htmlFor="password_confirmation"
+                        value="Confirmar contraseña"
+                    />
                     <TextInput
                         id="password_confirmation"
                         type="password"
@@ -246,6 +293,7 @@ export default function Register({sheets}) {
                         className="mt-1 block w-full outline-none"
                         autoComplete="new-password"
                         onChange={(e) =>
+                            setData("password_confirmation", e.target.value)
                             setData("password_confirmation", e.target.value)
                         }
                     />
@@ -258,6 +306,7 @@ export default function Register({sheets}) {
                 {/* Botón */}
                 <div className="mt-4 flex items-center justify-end">
                     <Link
+                        href={route("login")}
                         href={route("login")}
                         className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
