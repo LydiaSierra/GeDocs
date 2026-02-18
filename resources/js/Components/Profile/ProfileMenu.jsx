@@ -84,6 +84,16 @@ function ProfileMenu({
                             </div>
                         </Link>
                     )}
+                    {rol === "Instructor" && (
+                        <Link href={route("notifications.index")}>
+                            <div
+                                className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg"
+                            >
+                                <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
+                                Solicitudes
+                            </div>
+                        </Link>
+                    )}
                 </div>
             </div>
 

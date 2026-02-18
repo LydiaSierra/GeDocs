@@ -84,10 +84,10 @@ class NotificationController extends Controller
         }
         $stateAllowed = ["active", "pending", "rejected"];
 
-        if(!in_array($state, $stateAllowed)){
-            return response()->json(["success" => false, "message"=>"Estado no permitido"]);
+        if (!in_array($state, $stateAllowed)) {
+            return response()->json(["success" => false, "message" => "Estado no permitido"]);
         }
-      
+
 
         $user->update([
             'status' => $state,

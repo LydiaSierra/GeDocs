@@ -7,7 +7,7 @@ import api from "@/lib/axios";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 export default function DependenciesSidebar() {
-    const [sheets, setSheets] = useState({});
+    const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState();
 
     const { dependencies, fetchDependencies } = useContext(DependenciesContext);
@@ -16,22 +16,22 @@ export default function DependenciesSidebar() {
         const dependency = dependencies[0];
         try {
             const result = await api.get(
-                `api/sheets/${dependency.sheet_number_id}`,
+                `api/sheets`,
             );
             if (!result) {
                 return;
             }
-            setSheets(result.data.sheet);
+            setSheets(result.data.sheets);
         } catch (e) {
             console.log(e.message);
         }
     };
 
-    const getInformation = async () => {
-        await fetchDependencies();
+        const getInformation = async () => {
+            await fetchDependencies();
         await fetchSheet();
-        setLoading(false);
-    };
+            setLoading(false);
+        };
 
     useEffect(() => {
         getInformation();
@@ -80,7 +80,7 @@ export default function DependenciesSidebar() {
                                         <ArrowPathIcon className="s" />
                                     </span>
                                 ) : (
-                                    <>{sheets.number}</>
+                                    <>{sheets.map((sheet) => sheet.id === dependency.sheet_number_id ? sheet.number : "")}</>
                                 )}
                             </span>
                         </div>
@@ -97,7 +97,7 @@ export default function DependenciesSidebar() {
                                                 <ArrowPathIcon className="size-5" />
                                             </span>
                                         ) : (
-                                            <>{sheets.number}</>
+                                            <>{sheets.map((sheet) => sheet.id === dependency.sheet_number_id ? sheet.number : "")}</>
                                         )}
                                     </p>
                                 </div>
