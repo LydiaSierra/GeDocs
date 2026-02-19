@@ -54,41 +54,47 @@ export function UserProvider({ children }) {
     };
 
     const UpdateInfo = async (
-        nombre,
-        tipo_documento,
-        documento_number,
-        email,
-        estado,
-        id
-    ) => {
-        try {
-            setLoadingEdit(true);
-            const res = await api.put(`/api/users/${id}`, {
-                type_document: tipo_documento,
-                document_number: documento_number.toString(),
-                name: nombre,
-                email: email,
-                status: estado,     
-            });
+    nombre,
+    tipo_documento,
+    documento_number,
+    email,
+    estado,
+    id,
+    sheetNumbers 
+) => {
+    try {
+        setLoadingEdit(true);
 
-            if (res.data.success === false) {
-                console.log("ERROR AL ACTUALIZAR USUARIO");
-                return;
-            }
-            const newList = await fetchUser();
-            const updateUser = newList.find((u) => u.id === id);
-            setEdit(false);
-            setidSelected(updateUser);
-        } catch (error) {
-            throw error;
-        } finally {
-            setLoadingEdit(false);
+        const res = await api.put(`/api/users/${id}`, {
+            type_document: tipo_documento,
+            document_number: documento_number.toString(),
+            name: nombre,
+            email: email,
+            status: estado,
+            sheet_numbers: sheetNumbers, 
+        });
+
+        if (res.data.success === false) {
+            console.log("ERROR AL ACTUALIZAR USUARIO");
+            return;
         }
-    };
+
+        const newList = await fetchUser();
+        const updateUser = newList.find((u) => u.id === id);
+
+        setEdit(false);
+        setidSelected(updateUser);
+    } catch (error) {
+        throw error;
+    } finally {
+        setLoadingEdit(false);
+    }
+};
+
 
     const searchUser = async (searcher, filter) => {
         if (searcher === "" && isSearching) {
-            setFilteredUser([]); // ← no hay resultados
+            setFilteredUser([]); 
             return;
         }
 
