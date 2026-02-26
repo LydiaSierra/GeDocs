@@ -55,13 +55,26 @@ class RegisteredUserController extends Controller
 
         if ($user->hasRole('Instructor')) {
             $admin = User::role("Admin")->first();
-            if($admin){
+            if ($admin) {
                 $admin->notify(new NewUserRegistered($user));
             }
             if ($user->status === "pending") {
                 Auth::logout();
                 return redirect()->route('login')->with('pending', [
                     'message' => "Instructor. Tu cuenta sera revisada por el administrador",
+                ]);
+            }
+        }
+
+        if ($user->hasRole('Aprendiz')) {
+            $instructor = User::role("Instructor")->first();
+            if ($instructor) {
+                $instructor->notify(new NewUserRegistered($user));
+            }
+            if ($user->status === "pending") {
+                Auth::logout();
+                return redirect()->route('login')->with('pending', [
+                    'message' => "Aprendiz. Tu cuenta sera revisada por el instructor",
                 ]);
             }
         }
