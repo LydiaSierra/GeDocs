@@ -11,7 +11,7 @@ export default function InboxMailCard({card}) {
         className="w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer"
         onClick={() => {
             setSelectedMail(card.id);
-            console.log(selectedMail);
+            
         }}>
 
         <div id="selector" className="h-20 w-1 rounded-xl bg-senaWashedBlue shrink-0"></div>
@@ -34,7 +34,7 @@ export default function InboxMailCard({card}) {
                     </div>
                     <div
                         id="mail-card-serial"
-                        className="text-sm truncate max-w-[80px] sm:max-w-[120px]"
+                        className="text-sm truncate max-w-20 sm:max-w-[120px]"
                     >
                         {card.id}
                     </div>

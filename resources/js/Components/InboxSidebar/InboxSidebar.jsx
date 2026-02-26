@@ -9,7 +9,7 @@ export default function InboxSidebar() {
 
     const {mailCards, selectedMail, loading} = useContext(MailContext);
 
-    console.log(mailCards)
+    
     return (<div
         className={`
         w-full

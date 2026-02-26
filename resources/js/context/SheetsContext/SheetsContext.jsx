@@ -58,10 +58,7 @@ export function SheetsProvider({ children }) {
         }
     };
 
-    // Cargar fichas al inicio
-    useEffect(() => {
-        fetchSheets();
-    }, []);
+    
 
     return (
         <SheetsContext.Provider

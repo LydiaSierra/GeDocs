@@ -121,9 +121,7 @@ export function UserProvider({ children }) {
         await fetchUser();
     };
 
-    useEffect(() => {
-        fetchUser();
-    }, []);
+    
 
     return (
         <UserContext.Provider
