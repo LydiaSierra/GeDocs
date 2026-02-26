@@ -85,7 +85,7 @@ const ProfileSidebar = ({ className = "" }) => {
 
 
 
-                <h2 className="text-md font-medium">{user.name}</h2>
+                <h2 data-testid="user-email" className="text-md font-medium">{user.name}</h2>
 
                 <p className="text-sm text-gray-500">{user.email}</p>
             </div>
