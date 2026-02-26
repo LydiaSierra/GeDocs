@@ -90,7 +90,8 @@ class UserController extends Controller
 
         if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
             $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
-        } else {
+        }
+        else {
             $user = User::with('roles', "sheetNumbers")->find($id);
         }
 
@@ -107,9 +108,15 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        $user = User::find($id);
+    public function update(Request $request, string $id)    {
+        $user = User::with('sheetNumbers')->find($id);
+
+        if (!$user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuario no encontrado"
+            ], 404);
+        }
 
         $validate = $request->validate([
             'type_document' => 'sometimes|required|string|max:50',
@@ -117,39 +124,43 @@ class UserController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'sometimes|nullable|string|in:Aprendiz,Instructor',
-            'status' => 'sometimes|nullable|string',
-            'technical_sheet_id' => 'sometimes|nullable|exists:technical_sheets,id',
-            'password' => "sometimes|required|string",
+            'status' => 'sometimes|nullable|string|in:pending,active',
+            'sheet_numbers' => 'sometimes|array',
+            'sheet_numbers.*' => 'exists:sheet_numbers,id',
+            'password' => 'sometimes|required|string',
         ]);
 
+        // Encriptar password si viene
         if (!empty($validate['password'])) {
             $validate['password'] = Hash::make($validate['password']);
-        } else {
+        }
+        else {
             unset($validate['password']);
         }
 
+       
         $user->update($validate);
 
-        // Actualizar rol si llega uno nuevo
+        
         if (!empty($validate['role'])) {
             $user->syncRoles([$validate['role']]);
         }
 
-        $statuFilter = ["pending", "active"];
-
-        if (!in_array($validate["status"], $statuFilter)) {
-            return response()->json([
-                "success" => false,
-                "message" => "Estado no permitido"
-            ]);
+        
+        if (isset($validate['sheet_numbers'])) {
+            $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
+
+        $user->load('roles', 'sheetNumbers');
 
         return response()->json([
             "success" => true,
             "message" => "Usuario actualizado correctamente",
             "data" => $user
-        ]);
-    }
+        ]);    }
+
+
+
 
     /**
      * Remove the specified resource from storage.

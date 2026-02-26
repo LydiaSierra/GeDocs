@@ -93,9 +93,7 @@ export function NotificationsProvider({ children }) {
     const closeDetails = () => setNotificationSeleted(null);
 
 
-    useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
+
 
     return (
         <NotificationsContext.Provider

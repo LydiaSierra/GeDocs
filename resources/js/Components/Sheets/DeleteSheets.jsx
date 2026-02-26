@@ -17,7 +17,7 @@ export default function DeleteSheets({ sheetToDelete, deleteSheet }) {
                 <h3 className="font-bold text-lg">¿Eliminar ficha?</h3>
 
                 <p className="py-4 text-gray-600">
-                    Esta acción no se puede deshacer.
+                    Esta acción no se puede deshacer. Ten en cuenta que al eliminar, las dependencias ligadas a la ficha se eliminarán de igual forma.
                 </p>
 
                 <div className="modal-action">

@@ -1,8 +1,9 @@
 import { UserContext } from "@/context/UserContext/UserContext";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useEffect } from "react";
 import UserModal from "./UserModal";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import EmptyState from "../EmptyState";
 
 export const UserList = ({ url }) => {
     const {
@@ -22,7 +23,6 @@ export const UserList = ({ url }) => {
     }, []);
 
     const InfoView = isSearching ? filteredUser : user;
-
 
     useEffect(() => {
         if (url === "/users/instructor") {
@@ -50,76 +50,95 @@ export const UserList = ({ url }) => {
         );
     } else {
         return (
-            <div className="overflow-y-scroll w-full">
-                <table className="w-full lg:border-separate lg:border-spacing-y-4">
-                    <thead className="sticky top-0 h-auto">
-                        <tr className="lg:bg-[#E8E8E8] bg-none lg:h-10 md:h-7 ">
-                            <th className="md:rounded-l-[7px] rounded-tl-[7px] text-xs sm:text-2xs lg:text-lg md:w-auto">Nombre</th>
-                            <th className="text-xs sm:text-2xs lg:text-lg md:w-auto">Identificacion</th>
-                            <th className="hidden lg:table-cell">Email</th>
-                            <th className="hidden lg:table-cell">Fecha de cración</th>
-                            <th className="md:rounded-r-[7px] rounded-tr-[7px] text-xs sm:text-2xs lg:text-lg md:w-auto">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {(() => {
-                            const filtered = InfoView.filter((item) =>
-                                item.roles.some((r) => r.name === content)
-                            );
-                            if (filtered.length === 0) {
-                                if (isSearching) {
+            <>
+                <div className="overflow-y-scroll w-full">
+                    <table className="w-full lg:border-separate lg:border-spacing-y-4">
+                        <thead className="sticky top-0 h-auto">
+                            <tr className="lg:bg-[#E8E8E8] bg-none lg:h-10 md:h-7 ">
+                                <th className="md:rounded-l-[7px] rounded-tl-[7px] text-xs sm:text-2xs lg:text-lg md:w-auto">
+                                    Nombre
+                                </th>
+                                <th className="text-xs sm:text-2xs lg:text-lg md:w-auto">
+                                    Identificacion
+                                </th>
+                                <th className="hidden lg:table-cell">
+                                    Email
+                                </th>
+                                <th className="hidden lg:table-cell">
+                                    Fecha de cración
+                                </th>
+                                <th className="md:rounded-r-[7px] rounded-tr-[7px] text-xs sm:text-2xs lg:text-lg md:w-auto">
+                                    Estado
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(() => {
+                                const filtered = InfoView.filter((item) =>
+                                    item.roles.some(
+                                        (r) => r.name === content
+                                    )
+                                );
+
+                                if (filtered.length === 0 && isSearching) {
                                     return (
-                                        <h1 className="absolute top-1/2 left-1/2">
-                                            No hay resultados para mostrar.
-                                        </h1>
+                                        <tr>
+                                            <td colSpan={5}>
+                                                <div className="h-[40vh] text-gray-500 relative ">
+                                                    <EmptyState text="No hay resultados para mostrar." />
+                                                </div>
+                                            </td>
+                                        </tr>
                                     );
+                                } else {
+                                    return filtered.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            onClick={() =>
+                                                ShowInformation(item.id)
+                                            }
+                                            className=" lg:bg-white bg-none lg:border-none border-y border-solid border-[#DBDBDB]
+                                            hover:bg-accent text-center cursor-pointer h-15 "
+                                        >
+                                            <td className="lg:pl-5 pl-2 lg:text-xl text-xs sm:text-2xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
+                                                <div className="truncate h-full flex flex-row items-center justify-start lg:gap-5 gap-3">
+                                                    <img
+                                                        className="lg:w-10 w-8 rounded-full"
+                                                        alt="profile pic"
+                                                        src="/images/girl-pic.jpg"
+                                                    />
+                                                    {item.name}
+                                                </div>
+                                            </td>
+                                            <td className="truncate text-[#606164] lg:text-lg text-xs sm:text-2xs font-normal">
+                                                {item.document_number}
+                                            </td>
+                                            <td className="text-[#606164] hidden lg:table-cell font-normal">
+                                                {item.email}
+                                            </td>
+                                            <td className="text-[#606164] hidden lg:table-cell font-normal">
+                                                {new Date(
+                                                    item.created_at
+                                                ).toLocaleDateString()}
+                                            </td>
+                                            <td className=" text-[#606164] h-full font-normal md:rounded-r-[7px] rounded-tr-[7px]">
+                                                <div className="bg-[#E8E8E8] rounded-md lg:w-[90%] md:w-[70%] w-auto text-xs sm:text-2xs lg:text-lg h-auto">
+                                                    {item.status === "pending"
+                                                        ? "Pendiente"
+                                                        : "Activo"}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ));
                                 }
-                            } else {
-                                return filtered.map((item) => (
-                                    <tr
-                                        key={item.id}
-                                        onClick={() => {
-                                            ShowInformation(item.id);
-                                        }}
-                                        className=" lg:bg-white bg-none lg:border-none border-y border-solid border-[#DBDBDB]
-                                        hover:bg-accent text-center cursor-pointer h-15 "
-                                    >
-                                        <td className="lg:pl-5 pl-2 lg:text-xl text-xs sm:text-2xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
-                                            <div className="truncate h-full flex flex-row items-center justify-start lg:gap-5 gap-3">
-                                                <img
-                                                    className="lg:w-10 w-8 rounded-full"
-                                                    alt="profile pic"
-                                                    src="/images/girl-pic.jpg"
-                                                />
-                                                {item.name}
-                                            </div>
-                                        </td>
-                                        <td className="truncate text-[#606164] lg:text-lg text-xs sm:text-2xs font-normal">
-                                            {item.document_number}
-                                        </td>
-                                        <td className="text-[#606164] hidden lg:table-cell font-normal">
-                                            {item.email}
-                                        </td>
-                                        <td className="text-[#606164] hidden lg:table-cell font-normal">
-                                            {new Date(
-                                                item.created_at
-                                            ).toLocaleDateString()}
-                                        </td>
-                                        <td className=" text-[#606164] h-full font-normal md:rounded-r-[7px] rounded-tr-[7px]yy">
-                                            <div className="bg-[#E8E8E8] rounded-md lg:w-[90%] md:w-[70%] w-auto text-xs sm:text-2xs lg:text-lg h-auto">
-                                                {item.status === "pending"
-                                                    ? "Pendiente"
-                                                    : "Activo"}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ));
-                            }
-                        })()}
-                    </tbody>
-                </table>
+                            })()}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* 🔥 MODAL */}
                 <UserModal />
-            </div>
+            </>
         );
     }
 };

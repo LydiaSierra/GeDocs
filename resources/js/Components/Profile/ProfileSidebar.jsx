@@ -13,9 +13,7 @@ const ProfileSidebar = ({ className = "" }) => {
     const [loadingPhoto, setLoadingPhoto] = useState(true)
 
     useEffect(()=>{
-        if(user.profile_photo){
-            setLoadingPhoto(true);
-        }else{
+        if(!user.profile_photo){
             setLoadingPhoto(false)
         }
     }, [])
@@ -75,7 +73,7 @@ const ProfileSidebar = ({ className = "" }) => {
 
 
 
-                    <div enctype="multipart/form-data">
+                    <div encType="multipart/form-data">
                         <label htmlFor="photo" className="absolute z-10 -bottom-3 -right-3 p-2 bg-primary text-white rounded-lg cursor-pointer" >
                             <PencilIcon className="size-6 " />
                         </label>

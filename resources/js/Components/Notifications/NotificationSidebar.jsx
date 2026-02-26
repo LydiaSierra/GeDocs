@@ -6,6 +6,7 @@ import {
     ArrowPathIcon,
 } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
+import EmptyState from "../EmptyState";
 
 const NotificationSidebar = ({ url }) => {
     const {
