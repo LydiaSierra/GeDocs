@@ -1,12 +1,11 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext.jsx";
 import {
     PlusCircleIcon,
-    FunnelIcon,
     ArrowPathIcon,
 } from "@heroicons/react/24/solid";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
-import EmptyState from "../EmptyState";
+import { usePage } from "@inertiajs/react";
 
 const NotificationSidebar = ({ url }) => {
     const {
@@ -18,60 +17,24 @@ const NotificationSidebar = ({ url }) => {
         fetchNotifications,
     } = useContext(NotificationsContext);
 
-    const [openDropdown, setOpenDropdown] = useState(false);
-    const [FilterText, setFilterText] = useState("");
-    const [filterSelected, setFilterSelected] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
-    const [loadingSearch, setLoadingSearch] = useState(false);
+    const { auth } = usePage().props;
 
-    useEffect(() => {
-        setLoadingSearch(true);
-        if (filterSelected === "Instructores") {
-            setFilterText("Instructores");
-            setIsSearching(true);
-        } else if (filterSelected === "Aprendices") {
-            setFilterText("Aprendices");
-            setIsSearching(true);
-        } else {
-            setFilterText("");
-            setIsSearching(false);
-        }
-        const timer = setTimeout(() => {
-            setLoadingSearch(false);
-        }, 0);
+    // Rol del usuario autenticado
+    const rol = auth.user.roles[0].name;
 
-        return () => clearTimeout(timer);
-    }, [filterSelected]);
-
+    // Filtrar notificaciones según el rol:
+    // Instructor solo ve notificaciones de Aprendiz
+    // Admin solo ve notificaciones de Instructor
     const filteredNotifications = useMemo(() => {
-        if (!isSearching || !filterSelected) {
-            return notifications;
-        }
-
-        const normalizedFilter = filterSelected.toLowerCase();
-
         return notifications.filter((item) => {
-            const role = (item?.data?.role || "").toLowerCase();
-            if (normalizedFilter === "instructores") {
-                return role.includes("instructor");
-            }
-            if (normalizedFilter === "aprendices") {
-                return role.includes("aprendiz");
-            }
-            return true;
+            const notifRole = item?.data?.user?.roles?.[0]?.name || "";
+            if (rol === "Instructor") return notifRole === "Aprendiz";
+            if (rol === "Admin") return notifRole === "Instructor";
+            return false;
         });
-    }, [isSearching, filterSelected, notifications]);
+    }, [notifications, rol]);
 
     if (loading) {
-        return (
-            <div className="w-auto h-auto flex flex-col absolute top-1/2 md:left-[55%] left-[40%] items-center justify-center z-100">
-                <ArrowPathIcon className="size-8 animate-spin" />
-                cargando.....
-            </div>
-        );
-    }
-
-    if (loadingSearch) {
         return (
             <div className="w-auto h-auto flex flex-col absolute top-1/2 md:left-[55%] left-[40%] items-center justify-center z-100">
                 <ArrowPathIcon className="size-8 animate-spin" />
@@ -90,61 +53,6 @@ const NotificationSidebar = ({ url }) => {
                         <h1 className="font-bold text-2xl text-black">
                             Notificaciones de Acceso
                         </h1>
-
-                        <div
-                            className={`relative p-2 rounded-md shrink-0 cursor-pointer bg-[#E8E8E8]
-                        ${openDropdown ? "bg-[#E8E8E8]" : ""} `}
-                            onClick={() => {
-                                if (openDropdown === false) {
-                                    setOpenDropdown(true);
-                                } else {
-                                    setOpenDropdown(false);
-                                }
-                            }}
-                        >
-                            <div className="flex flex-row justify-center items-center gap-3">
-                                <FunnelIcon className="size-5 text-[#404142] " />
-                                {FilterText}
-                            </div>
-
-                            {openDropdown && (
-                                <div className="absolute left-0 top-full w-40 h-auto bg-white shadow-lg rounded-md border z-20">
-                                    <ul className="py-2 text-sm text-neutral text-start">
-                                        <li
-                                            className="px-4 py-2 hover:bg-accent cursor-pointer"
-                                            onClick={() => {
-                                                setOpenDropdown(false);
-                                                setFilterSelected("Aprendices");
-                                            }}
-                                        >
-                                            Aprendices
-                                        </li>
-                                        <li
-                                            className="px-4 py-2 hover:bg-accent cursor-pointer"
-                                            onClick={() => {
-                                                setOpenDropdown(false);
-                                                setFilterSelected(
-                                                    "Instructores",
-                                                );
-                                            }}
-                                        >
-                                            Instructores
-                                        </li>
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        {isSearching ? (
-                            <button
-                                className="w-auto px-3 h-auto py-2 rounded-[7px] bg-primary text-[16px] cursor-pointer text-white border-none font-semibold text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary"
-                                onClick={() => {
-                                    setFilterSelected("");
-                                }}
-                            >
-                                Ver Todos
-                            </button>
-                        ) : null}
                     </div>
 
                     <h1
@@ -158,7 +66,7 @@ const NotificationSidebar = ({ url }) => {
                 </div>
 
                 {filteredNotifications.length > 0 ? (
-                    <ul className="flex flex-col overflow-y-scroll gap-3 pr-2 mt-1 rounded-lg h-auto">
+                    <ul className="flex flex-col overflow-y-scroll gap-3 pr-2 mt-1 rounded-lg h-full">
                         {/* condicionales para estilos dependiendo el estado de la notificacion */}
                         {filteredNotifications.map((item) => {
                             const isSelected = item.id === notificationSeleted;
@@ -187,7 +95,7 @@ const NotificationSidebar = ({ url }) => {
                                     >
                                         <h1 className={`text-[17px]`}>
                                             Nuevo{" "}
-                                            {`${item?.data?.role || "instructor"}`}
+                                            {`${item?.data?.user.roles[0]?.name || "Usuario"}`}
                                         </h1>
 
                                         {/* texto de la notificacion */}
@@ -198,7 +106,7 @@ const NotificationSidebar = ({ url }) => {
                                         <p className="text-[15px]">
                                             {" "}
                                             {`${item.data.user.name} desea solicitar un nuevo acceso con
-                                el rol ${item?.data?.role || "instructor"} en el sistema`}{" "}
+                                el rol ${item?.data?.user.roles[0]?.name || "Usuario"} en el sistema`}{" "}
                                         </p>
                                     </div>
 

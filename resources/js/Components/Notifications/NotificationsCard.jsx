@@ -41,7 +41,7 @@ const NotificationCard = () => {
             <p className="font-semibold text-[#000000] md:text-2xl text-lg">
                 Solicitud de Acceso: <br />
                 El usuario {visibleDetails.data.user.name} solicita un nuevo
-                acceso con el rol de {visibleDetails.data.role}
+                acceso con el rol de {visibleDetails.data.user.roles[0]?.name || "Usuario"}
             </p>
 
             <p className="font-semibold md:text-lg text-md text-[#404142]">
@@ -98,7 +98,7 @@ const NotificationCard = () => {
                 </div>
                 :
                 <h1 className="text-center font-medium md:text-2xl text-lg">
-                    ¿Desea permitir que este usuario ingrese como instructor?
+                    ¿Desea permitir que este usuario ingrese como {visibleDetails.data.user.roles[0]?.name || "Usuario"}?
                 </h1>
             }
 

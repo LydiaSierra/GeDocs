@@ -128,7 +128,8 @@ export default function Header() {
 
             {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center">
-                <NotificationDropDown />
+                {rol === "Admin" ||
+                    (rol === "Instructor" && <NotificationDropDown />)}
 
                 {/* USER MENU */}
                 <div className="dropdown dropdown-end">

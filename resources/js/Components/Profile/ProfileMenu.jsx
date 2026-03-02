@@ -67,35 +67,31 @@ function ProfileMenu({
                 </div>
             )}
 
-            <div className="w-full flex flex-col items-start gap-3 md:gap-4">
-                <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
-                    Solicitudes
-                </h1>
+            {rol === "Admin" ||
+                (rol === "Instructor" && (
+                    <div className="w-full flex flex-col items-start gap-3 md:gap-4">
+                        <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
+                            Solicitudes
+                        </h1>
 
-                <div className="flex flex-col gap-2 md:gap-3">
-                    
-                    {rol === "Admin" && (
-                        <Link href={route("notifications.index")}>
-                            <div
-                                className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg"
-                            >
-                                <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
-                                Solicitudes
-                            </div>
-                        </Link>
-                    )}
-                    {rol === "Instructor" && (
-                        <Link href={route("notifications.index")}>
-                            <div
-                                className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg"
-                            >
-                                <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
-                                Solicitudes
-                            </div>
-                        </Link>
-                    )}
-                </div>
-            </div>
+                        <div className="flex flex-col gap-2 md:gap-3">
+                            {rol === "Admin" && (
+                                <Link href={route("notifications.index")}>
+                                    <div className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
+                                        <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
+                                        Solicitudes
+                                    </div>
+                                </Link>
+                            )}
+                            <Link href={route("notifications.index")}>
+                                <div className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
+                                    <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
+                                    Solicitudes
+                                </div>
+                            </Link>
+                        </div>
+                    </div>
+                ))}
 
             <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                 <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
@@ -121,7 +117,6 @@ function ProfileMenu({
                         <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
                         Secciones y Subsecciones
                     </div>
-
                 </div>
             </div>
 
