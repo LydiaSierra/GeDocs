@@ -93,29 +93,29 @@ function SettingsBar() {
                 )}
 
                 {/* request */}
+                {rol === "Admin" ||
+                    (rol === "Instructor" && (
+                        <div className="w-5/5 flex flex-col items-start gap-5 p-1">
+                            <h1 className="self-start text-md text-[#848484]">
+                                Solicitudes
+                            </h1>
 
-                <div className="w-5/5 flex flex-col items-start gap-5 p-1">
-                    <h1 className="self-start text-md text-[#848484]">
-                        Solicitudes
-                    </h1>
-
-                    <div className="w-full h-auto flex flex-col  items-start gap-2">
-                        {rol === "Admin" && (
-                            <NavLink href={route("notifications.index")}>
-                                <div
-                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
-                                        url === "/notifications"
-                                            ? "underline"
-                                            : ""
-                                    }`}
-                                >
-                                    <UserCircleIcon className="text-[#848484] size-8 " />
-                                    Solicitudes
-                                </div>
-                            </NavLink>
-                        )}
-                    </div>
-                </div>
+                            <div className="w-full h-auto flex flex-col  items-start gap-2">
+                                <NavLink href={route("notifications.index")}>
+                                    <div
+                                        className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                            url === "/notifications"
+                                                ? "underline"
+                                                : ""
+                                        }`}
+                                    >
+                                        <UserCircleIcon className="text-[#848484] size-8 " />
+                                        Solicitudes
+                                    </div>
+                                </NavLink>
+                            </div>
+                        </div>
+                    ))}
 
                 {/* Document manage */}
 
@@ -126,10 +126,18 @@ function SettingsBar() {
 
                     <div className="w-full h-auto flex flex-col  items-start gap-2">
                         <div>
-                            <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                                <UserCircleIcon className="text-[#848484] size-8" />
-                                Dependencias
-                            </div>
+                            <NavLink href={route("dependencies")}>
+                                <div
+                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                        url === "/dependencies"
+                                            ? "underline"
+                                            : ""
+                                    }`}
+                                >
+                                    <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Dependencias
+                                </div>
+                            </NavLink>
                         </div>
 
                         <div>

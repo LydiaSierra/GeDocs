@@ -102,11 +102,13 @@ export const UserList = ({ url }) => {
                                         >
                                             <td className="lg:pl-5 pl-2 lg:text-xl text-xs sm:text-2xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
                                                 <div className="truncate h-full flex flex-row items-center justify-start lg:gap-5 gap-3">
-                                                    <img
-                                                        className="lg:w-10 w-8 rounded-full"
-                                                        alt="profile pic"
-                                                        src="/images/girl-pic.jpg"
-                                                    />
+                                                    <div className="lg:w-10 lg:h-10 w-8 h-8 rounded-full overflow-hidden shrink-0">
+                                                        <img
+                                                            className="w-full h-full object-cover"
+                                                            alt="profile pic"
+                                                            src={item.profile_photo || "/images/default-user-icon.png"}
+                                                        />
+                                                    </div>
                                                     {item.name}
                                                 </div>
                                             </td>
@@ -136,7 +138,6 @@ export const UserList = ({ url }) => {
                     </table>
                 </div>
 
-                {/* 🔥 MODAL */}
                 <UserModal />
             </>
         );

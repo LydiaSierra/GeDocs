@@ -48,7 +48,7 @@ function UserModal() {
                             <img
                                 className="w-full h-32 sm:h-36 lg:h-48 rounded-md object-cover"
                                 alt="profile pic"
-                                src="/images/girl-pic.jpg"
+                                src={idSelected.profile_photo || "/images/default-user-icon.png"}
                             />
                             <div className="w-full flex flex-col justify-start">
                                 <h1 className="font-medium text-sm sm:text-base lg:text-lg text-start">
@@ -70,7 +70,7 @@ function UserModal() {
                                 <img
                                     className="w-8 h-8 rounded-full object-cover"
                                     alt="profile pic"
-                                    src="/images/girl-pic.jpg"
+                                    src={idSelected.profile_photo || "/images/default-user-icon.png"}
                                 />
                                 <span className="font-semibold">
                                     {idSelected.name}

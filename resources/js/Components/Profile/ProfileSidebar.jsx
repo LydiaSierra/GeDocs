@@ -19,12 +19,12 @@ const ProfileSidebar = ({ className = "" }) => {
     }, [])
 
     const UploatPhoto = async (e) => {
-        try {
-            let toastId;
-            toastId =  toast.loading(user.profile_photo ? "Actualizando Imagen" : "Subiendo imagen");
-            const file = e.target.files[0]
-            if (!file) return;
+        const file = e.target.files[0];
+        if (!file) return;
 
+        const toastId = toast.loading(user.profile_photo ? "Actualizando Imagen" : "Subiendo imagen");
+
+        try {
             const form = new FormData();
             form.append("profile_photo", file);
 
@@ -33,17 +33,15 @@ const ProfileSidebar = ({ className = "" }) => {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            toast.success(user.profile_photo ? "Foto actualizada" : "Foto subida")
             toast.dismiss(toastId);
+            toast.success(user.profile_photo ? "Foto actualizada" : "Foto subida");
             router.reload({ only: ["auth"] });
         } catch (err) {
-            toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion")
-            throw new Error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion");
-
+            toast.dismiss(toastId);
+            toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion");
         } finally {
-            setLoadingPhoto(false)
+            setLoadingPhoto(false);
         }
-
     }
     return (
         <aside
