@@ -52,7 +52,7 @@ function SettingsBar() {
                                  url === "/users/aprendiz" ? "underline" : ""
                              }`}
                                     onClick={() => {
-                                        setContent("Dependencia");
+                                        setContent("Aprendiz");
                                     }}
                                 >
                                     <AcademicCapIcon className="text-[#848484] size-8" />
@@ -93,8 +93,7 @@ function SettingsBar() {
                 )}
 
                 {/* request */}
-                {rol === "Admin" ||
-                    (rol === "Instructor" && (
+                {(rol === "Admin" || rol === "Instructor") && (
                         <div className="w-5/5 flex flex-col items-start gap-5 p-1">
                             <h1 className="self-start text-md text-[#848484]">
                                 Solicitudes
@@ -115,7 +114,7 @@ function SettingsBar() {
                                 </NavLink>
                             </div>
                         </div>
-                    ))}
+                    )}
 
                 {/* Document manage */}
 

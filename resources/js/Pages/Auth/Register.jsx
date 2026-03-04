@@ -48,18 +48,28 @@ export default function Register({ sheets }) {
                 toastId = toast.loading("Registrando usuario...");
             },
             onSuccess: () => {
+                if (toastId) toast.dismiss(toastId);
                 toast.success("Solicitud de Registro Enviada");
             },
-            onError: () => {
-                toast.error("No se pudo registrar el usuario");
+            onError: (errors) => {
+                if (toastId) toast.dismiss(toastId);
+                if (errors.email) {
+                    toast.error("Este correo electrónico ya está registrado");
+                } else if (errors.document_number) {
+                    toast.error("Este número de documento ya está registrado");
+                } else if (errors.password) {
+                    toast.error("Error con la contraseña, verifica los datos");
+                } else if (errors.technical_sheet) {
+                    toast.error("La ficha seleccionada no es válida");
+                } else {
+                    toast.error("No se pudo registrar el usuario");
+                }
             },
             onFinish: () => {
                 reset("password", "password_confirmation");
-                if (toastId) toast.dismiss(toastId);
             },
         });
     };
-console.log("Sheets:", sheets);
     return (
         <GuestLayout>
             <Head title="Register" />

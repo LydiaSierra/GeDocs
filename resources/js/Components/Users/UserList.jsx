@@ -28,7 +28,7 @@ export const UserList = ({ url }) => {
         if (url === "/users/instructor") {
             setContent("Instructor");
         } else if (url === "/users/aprendiz") {
-            setContent("Dependencia");
+            setContent("Aprendiz");
         } else if (url === "/users/fichas") {
             setContent("Ficha");
         }

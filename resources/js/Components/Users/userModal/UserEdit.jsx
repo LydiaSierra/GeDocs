@@ -138,9 +138,8 @@ const [selectedSheets, setSelectedSheets] = useState([]);
                         <img
                             className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover"
                             alt="profile pic"
-                            src="/images/girl-pic.jpg"
+                            src={idSelected.profile_photo || "/images/default-user-icon.png"}
                         />
-                        <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5 absolute bottom-0 right-0 text-primary cursor-pointer bg-white rounded-full p-1 shadow" />
                     </div>
                     <h1 className="font-semibold text-base sm:text-lg truncate">
                         {idSelected?.name}

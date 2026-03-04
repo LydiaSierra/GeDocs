@@ -13,7 +13,8 @@ function ProfileMenu({
     openObject1,
 }) {
     const { url, props } = usePage();
-    const rol = props.auth.user.roles[0].name;
+    const { auth } = usePage().props;
+    const rol = auth.user.roles[0].name;
 
     const showEditProfile = route().current("profile.edit");
 
@@ -67,31 +68,28 @@ function ProfileMenu({
                 </div>
             )}
 
-            {rol === "Admin" ||
-                (rol === "Instructor" && (
+            {(rol === "Admin" || rol === "Instructor") && (
                     <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                         <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
                             Solicitudes
                         </h1>
 
                         <div className="flex flex-col gap-2 md:gap-3">
-                            {rol === "Admin" && (
-                                <Link href={route("notifications.index")}>
-                                    <div className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                                        <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
-                                        Solicitudes
-                                    </div>
-                                </Link>
-                            )}
                             <Link href={route("notifications.index")}>
-                                <div className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                                    <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${
+                                        url === "/notifications"
+                                            ? "underline"
+                                            : ""
+                                    }`}
+                                >
+                                    <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
                                     Solicitudes
                                 </div>
                             </Link>
                         </div>
                     </div>
-                ))}
+                )}
 
             <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                 <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
