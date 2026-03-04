@@ -1,148 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>Acta</title>
+    <title>Acta de Reunión</title>
     <style>
-
-        /* contenido general */
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            line-height: 1.4;
+        /* Optimización para PDF */
+        @page {
+            margin: 2cm;
         }
-        /* contenedor del encabezado */
-        .titleContainer{
-            border: 1px solid black;
-            display: flex;
-            justify-content: start;
-            width: 100%;
-            height: 5vh;
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #1a1a1a;
             margin: 0;
             padding: 0;
         }
 
-        .containerGedocs{
-            background-color: skyblue;
-            text-align: center;
-            height: auto;
+        /* Barra decorativa superior (basada en la imagen) */
+        .top-bar {
+            width: 100%;
+            height: 15px;
+            margin-bottom: 40px;
         }
-        .containerSena{
-            height: auto;
-            background-color: skyblue;
+        .bar-SenaGreen { width: 30%; height: 100%; background-color: #0FB849; float: left; }
+        .bar-blue { width: 40%; height: 100%; background-color: #2c3e50; float: left; }
+        .bar-SenaGreen-right { width: 30%; height: 100%; background-color: #0FB849; float: left; }
+
+        /* Título Principal */
+        .main-title {
             text-align: center;
-        }
-        .sectionTitle{
-            width: 60%;
-            text-align: center;
-            background-color: orange;
-            height: auto;
+            text-decoration: underline;
+            font-weight: bold;
+            font-size: 14pt;
+            margin-bottom: 50px;
+            clear: both;
         }
 
-        /* subtitulos */
+        /* Bloques de sección */
+        .section {
+            margin-bottom: 20px;
+        }
+
         .label {
             font-weight: bold;
+            display: block;
         }
 
-        /* texto de la información */
-        .line{
-            color: gray;
+        .line {
+            display: block;
         }
 
-        .section {
-            margin-bottom: 15px;
+        /* Contenedor de datos del destinatario */
+        .destinatario {
+            margin: 30px 0;
+        }
+
+        /* Área de texto justificada */
+        .text-content {
+            text-align: justify;
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* Estructura de Firma al pie */
+        .signature-container {
+            margin-top: 60px;
+            width: 100%;
+        }
+        .signature-line {
+            width: 250px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+
+        .footer-notes {
+            margin-top: 40px;
+            font-size: 10pt;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
+        .footer{
+            text-align: center; 
+            font-size: 10pt; 
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <div class="titleContainer">
-        
-        <div class="containerGedocs">
-            <!-- <img src="/gedocs-logo.svg" alt="gedocs logo"> -->
-             <h1> GeDocs </h1>
-        </div>
 
-        <div class="sectionTitle">
-            <div class="label">Código de acta:</div>
-            <div class="line">{{ $data['codigo'] ?? '' }}</div>
-        </div>
+    <div class="top-bar clearfix">
+        <div class="bar-SenaGreen"></div>
+        <div class="bar-blue"></div>
+        <div class="bar-SenaGreen-right"></div>
+    </div>
 
-        <div class="containerSena">
-            <h1> SENA </h1>
-        </div>
-
+    <div class="main-title">
+        SENA - Centro de comercio y servicios - Regional Pereira<br>
+        Acta de Reunión
     </div>
 
     <div class="section">
+        <div class="line">Código de acta: {{ $data['codigo'] ?? 'S/N' }}</div>
         <div class="label">Lugar y fecha de elaboración</div>
         <div class="line">{{ $data['lugar'] ?? '' }}</div>
         <div class="line">{{ $data['fecha'] ?? '' }}</div>
     </div>
 
-    <div class="section">
-        <div class="label">Tratamiento</div>
+    <div class="destinatario">
         <div class="line">{{ $data['tratamiento'] ?? '' }}</div>
-
-        <div class="label">NOMBRES Y APELLIDOS</div>
-        <div class="line">{{ $data['nombres'] ?? '' }}</div>
-
-        <div class="label">Cargo</div>
+        <div class="label">{{ $data['nombres'] ?? '' }}</div>
         <div class="line">{{ $data['cargo'] ?? '' }}</div>
-
-        <div class="label">Empresa</div>
         <div class="line">{{ $data['empresa'] ?? '' }}</div>
-
-        <div class="label">Dirección</div>
         <div class="line">{{ $data['direccion'] ?? '' }}</div>
-
-        <div class="label">Ciudad</div>
         <div class="line">{{ $data['ciudad'] ?? '' }}</div>
     </div>
 
     <div class="section">
-        <div class="label">Asunto:</div>
-        <div class="line">{{ $data['asunto'] ?? '' }}</div>
+        <span class="label" style="display: inline;">Asunto:</span>
+        <span>{{ $data['asunto'] ?? '' }}</span>
     </div>
 
     <div class="section">
-        <div class="label">Saludo</div>
         <div class="line">{{ $data['saludo'] ?? '' }}</div>
-    </div>
-
-    <div class="section">
-        <div class="label">Texto</div>
-        <div class="textarea">
+        <div class="text-content">
             {!! nl2br(e($data['texto'] ?? '')) !!}
         </div>
     </div>
 
     <div class="section">
-        <div class="label">Despedida</div>
         <div class="line">{{ $data['despedida1'] ?? '' }}</div>
         <div class="line">{{ $data['despedida2'] ?? '' }}</div>
         <div class="line">{{ $data['despedida3'] ?? '' }}</div>
     </div>
 
-    <div class="section">
-        <div class="label">NOMBRES Y APELLIDOS</div>
-        <div class="line">{{ $data['firma_nombres'] ?? '' }}</div>
-
-        <div class="label">Cargo</div>
-        <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
+    <div class="signature-container">
+        <div class="signature-line">
+            <div class="label">{{ $data['firma_nombres'] ?? '' }}</div>
+            <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
+        </div>
     </div>
 
-    <div class="section">
-        <div class="label">Anexo:</div>
-        <div class="line">{{ $data['anexo'] ?? '' }}</div>
+    <div class="footer-notes">
+        @if(!empty($data['anexo']))
+            <div><strong>Anexo:</strong> {{ $data['anexo'] }}</div>
+        @endif
+        @if(!empty($data['copia']))
+            <div><strong>Copia:</strong> {{ $data['copia'] }}</div>
+        @endif
+        @if(!empty($data['transcriptor']))
+            <div style="margin-top: 10px;"><strong>Transcriptor:</strong> {{ $data['transcriptor'] }}</div>
+        @endif
     </div>
 
-    <div class="section">
-        <div class="label">Copia:</div>
-        <div class="line">{{ $data['copia'] ?? '' }}</div>
-    </div>
-
-    <div class="section">
-        <div class="label">Transcriptor:</div>
-        <div class="line">{{ $data['transcriptor'] ?? '' }}</div>
+    <!-- <div class="top-bar clearfix">
+        <div class="bar-SenaGreen"></div>
+        <div class="bar-blue"></div>
+        <div class="bar-SenaGreen-right"></div>
+    </div> -->
+    <br>
+    <div class="footer">
+        <div>
+            SENA - Centro de comercio y servicios - Area de gestion documental<br>
+            &copy; Gedocs {{ date('Y') }} Todos los derechos reservados.
+        </div>
     </div>
 
 </body>
