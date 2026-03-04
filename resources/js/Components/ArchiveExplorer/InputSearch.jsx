@@ -48,7 +48,6 @@ export const InputSearch = ({ handleSearch }) => {
                 ) : (
                     <MagnifyingGlassIcon
                         className="size-6 stroke-black hover:cursor-pointer"
-                        onClick={() => handleSearch(inputSearchTerm)}
                     />
                 )}
             </form>

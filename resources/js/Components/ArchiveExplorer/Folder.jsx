@@ -58,7 +58,7 @@ const Folder = ({ folder }) => {
                     }}>
                     <div className="flex gap-2 items-center font-medium min-w-0">
                         {(isMultipleSelection && selectedItems.length > 0) &&
-                            <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" checked={isSelected(folder.id, 'folder')} />
+                            <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" defaultChecked={isSelected(folder.id, 'folder')} />
                         }
                         <FolderIcon className="w-6 h-6 md:w-8 md:h-8 text-gray-800 shrink-0" />
                         <span className="text-gray-600 shrink-0">{folder.folder_code}</span>

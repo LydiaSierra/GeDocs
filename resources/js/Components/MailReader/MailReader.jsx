@@ -106,8 +106,6 @@ export function MailReader() {
         }
     };
 
-    console.log("attachments:", currentMail.attached_supports);
-
     return (
         <div
             className={`

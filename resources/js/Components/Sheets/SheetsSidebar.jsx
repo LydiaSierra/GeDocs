@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import SheetsTable from "./SheetsTable";
 import CreateSheets from "./CreateSheets";
@@ -6,7 +6,11 @@ import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 import EmptyState from "../EmptyState";
 
 export default function TableSheets() {
-    const { sheets } = useContext(SheetsContext);
+    const { sheets, fetchSheets } = useContext(SheetsContext);
+
+    useEffect(() => {
+        fetchSheets();
+    }, []);
 
     const [inputValue, setInputValue] = useState("");
     const [search, setSearch] = useState("");
