@@ -138,20 +138,6 @@ function SettingsBar() {
                                 </div>
                             </NavLink>
                         </div>
-
-                        <div>
-                            <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                                <UserCircleIcon className="text-[#848484] size-8" />
-                                Series y Subseries
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline">
-                                <UserCircleIcon className="text-[#848484] size-8" />
-                                Secciones y Subsecciones
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
