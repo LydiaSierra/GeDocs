@@ -63,7 +63,7 @@ class CommunicationController extends Controller
             }
 
             // Enviar email
-            $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
+            $emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
             Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
 
             DB::commit();
