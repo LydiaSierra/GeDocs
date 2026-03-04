@@ -31,7 +31,7 @@ export function MailReader() {
             setSending(true);
 
             await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
-                response: responseText,
+                response_message: responseText,
             });
 
             // Optional UX improvements 👇

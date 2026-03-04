@@ -7,7 +7,7 @@ export default function Comunication(params) {
     const [response, setResponse] = useState("");
 
     useEffect(() => {
-        const url = "http://localhost:8000/api/pqr/responder";
+        const url = "api/pqr/responder";
         async function fetchComunication() {
             try {
                 const response = await axios.get(`${url}/${params.pqrID}`);
@@ -36,7 +36,7 @@ export default function Comunication(params) {
                     <textarea
                         name="tespuesta"
                         id="respuesta"
-                        placeholder="necrochimbo"
+                        placeholder=""
                         onChange={(e) => setResponse(e.target.value)}
                     ></textarea>
                     <button type="submit">Enviar</button>
