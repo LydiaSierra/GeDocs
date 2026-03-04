@@ -6,7 +6,7 @@ export default function Form() {
     const [toasts, setToasts] = useState([]);
 
     const addToast = (type, message) => {
-        const id = Date.now();
+        const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         setToasts((prev) => [...prev, { id, type, message }]);
 
         // auto remove after 4s
