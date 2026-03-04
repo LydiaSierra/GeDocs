@@ -13,43 +13,58 @@ const DependencyScheme = ({ onPdfGenerated }) => {
     // Función que maneja la generación del PDF
     // ------------------------------
     const handleGeneratePdf = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Evita que el formulario recargue la página
         document.getElementById("my_modal_1").close();
 
-        let toastId;         // Evita que el formulario recargue la página
+        let toastId;
         toastId = toast.loading("Generando PDF")
 
         try {
-            // Toma todos los datos del formulario que disparó el evento
             const form = new FormData(e.target);
-
-            // Convierte los datos del formulario en un objeto normal de JS
             const data = Object.fromEntries(form.entries());
 
-            // Hace una petición POST al backend para generar el PDF
-            // responseType: "blob" es necesario para recibir archivos binarios (PDF)
             const response = await api.post(
                 "/generate-pdf",
                 data,
                 { responseType: "blob" }
             );
 
-            // Crea una URL temporal en el navegador con el PDF recibido
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            // Verificar si el blob es en realidad un JSON de error
+            if (response.data.type === "application/json") {
+                const text = await response.data.text();
+                const errorData = JSON.parse(text);
+                throw new Error(errorData.error || "Error desconocido en el servidor");
+            }
 
-            // Crea un enlace <a> para forzar la descarga
+            const url = window.URL.createObjectURL(new Blob([response.data]));
             const a = document.createElement("a");
             a.href = url;
-            a.download = "acta.pdf";  // Nombre del archivo descargado
-            a.click();                // Simula el click para descargar
+            a.download = "acta.pdf";
+            a.click();
 
-            onPdfGenerated();
+            if (onPdfGenerated) onPdfGenerated();
 
             toast.dismiss(toastId);
-            toast.success("PDF Generado correctamente");
+            toast.success("PDF generado correctamente");
 
         } catch (error) {
-            console.error("Error generando el PDF:", error.message);
+            toast.dismiss(toastId);
+            console.error("Error generando el PDF:", error);
+            
+            let errorMessage = "No se pudo generar el PDF";
+            if (error.response && error.response.data instanceof Blob) {
+                const text = await error.response.data.text();
+                try {
+                    const json = JSON.parse(text);
+                    errorMessage = json.error || errorMessage;
+                } catch (e) {
+                    errorMessage = text || errorMessage;
+                }
+            } else {
+                errorMessage = error.message || errorMessage;
+            }
+            
+            toast.error(errorMessage);
         }
     };
 
@@ -176,12 +191,12 @@ const DependencyScheme = ({ onPdfGenerated }) => {
                 </div>
 
                 {/* Botón del formulario */}
-                {/* <button
+                <button
                     type="submit"
-                    className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
+                    className="mt-6 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
                 >
                     Generar PDF
-                </button> */}
+                </button>
             </div>
         </form>
     );
