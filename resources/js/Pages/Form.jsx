@@ -1,9 +1,23 @@
 import { CheckCircleIcon, PaperClipIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, router, usePage } from "@inertiajs/react";
 export default function Form() {
     const [toasts, setToasts] = useState([]);
+    const [dependencies, setDependencies] = useState([]);
+
+    const fetchDependencies = async () => {
+        try {
+            const res = await axios.get("/api/dependencies");
+            setDependencies(res.data.dependencies || []);
+        } catch (error) {
+            console.error("Error fetching dependencies:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDependencies();
+    }, []);
 
     const addToast = (type, message) => {
         const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -25,6 +39,7 @@ export default function Form() {
             description: "",
             request_type: "Peticion",
             number: "",
+            dependency_id: "",
             attachments: [],
         });
 
@@ -42,6 +57,7 @@ export default function Form() {
         description: "",
         request_type: "Peticion",
         number: "",
+        dependency_id: "",
         attachments: [],
     });
 
@@ -62,7 +78,7 @@ export default function Form() {
 
         const data = new FormData();
 
-        // Append normal fields
+        
         Object.entries(formData).forEach(([key, value]) => {
             if (key === "attachments") {
                 value.forEach((file) => {
@@ -283,6 +299,28 @@ export default function Form() {
                                         <option>Queja</option>
                                         <option>Reclamo</option>
                                         <option>Sugerencia</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        className="text-md font-light text-gray-600"
+                                        htmlFor="dependency_id"
+                                    >
+                                        Dependencia
+                                    </label>
+                                    <select
+                                        name="dependency_id"
+                                        id="dependency_id"
+                                        className="select w-full"
+                                        value={formData.dependency_id}
+                                        onChange={formDataHandler}
+                                    >
+                                        <option value="">Seleccione una dependencia (Opcional)</option>
+                                        {dependencies.map((dep) => (
+                                            <option key={dep.id} value={dep.id}>
+                                                {dep.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

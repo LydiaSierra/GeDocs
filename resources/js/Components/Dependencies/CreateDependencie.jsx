@@ -22,7 +22,7 @@ export default function CreateDependencie() {
             const result = await api.get("/api/sheets");
             setSheets(result.data.sheets || []);
         } catch (e) {
-            console.log(e.message);
+            console.log(e.response?.data);
         }
     };
 
@@ -40,20 +40,33 @@ export default function CreateDependencie() {
             });
         }
 
+        if (!sheetNumber) {
+            return setMessage({
+                type: "error",
+                text: "Debe seleccionar una ficha",
+            });
+        }
+
         setLoading(true);
         setMessage(null);
 
-        const success = await createDependency({
+        const response = await createDependency({
             name: name.trim(),
-            sheet_number_id: sheetNumber || null,
+            sheet_number_id: Number(sheetNumber),
         });
 
-        if (success) {
+        if (response.success) {
             setName("");
             setSheetNumber("");
             setMessage({
                 type: "success",
                 text: "Dependencia creada exitosamente",
+            });
+        } else if (response.errors) {
+            const firstError = Object.values(response.errors)[0][0];
+            setMessage({
+                type: "error",
+                text: firstError,
             });
         } else {
             setMessage({
@@ -82,7 +95,6 @@ export default function CreateDependencie() {
                 className="flex flex-wrap gap-3 items-end"
             >
 
-                {/* Nombre */}
                 <div>
                     <InputLabel value="Nombre" />
                     <input
@@ -94,7 +106,6 @@ export default function CreateDependencie() {
                     />
                 </div>
 
-                {/* Ficha */}
                 <div>
                     <InputLabel value="Ficha" />
                     <select
@@ -104,19 +115,14 @@ export default function CreateDependencie() {
                     >
                         <option value="">Seleccione ficha</option>
 
-                        {sheets.length > 0 ? (
-                            sheets.map((sheet) => (
-                                <option key={sheet.id} value={sheet.id}>
-                                    {sheet.number}
-                                </option>
-                            ))
-                        ) : (
-                            <option disabled>No hay fichas registradas</option>
-                        )}
+                        {sheets.map((sheet) => (
+                            <option key={sheet.id} value={sheet.id}>
+                                {sheet.number}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
-                {/* Botón */}
                 <button
                     type="submit"
                     disabled={loading}

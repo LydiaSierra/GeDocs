@@ -8,7 +8,27 @@ import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
 
 export default function InboxSidebar() {
-    const { mailCards, selectedMail, loading } = useContext(MailContext);
+    const {
+        filteredMailCards,
+        selectedMail,
+        loading,
+        toggleFilter,
+        filters,
+        searchTerm,
+        setSearchTerm,
+    } = useContext(MailContext);
+
+    const categories = [
+        { label: "Peticiones", value: "Peticion" },
+        { label: "Quejas", value: "Queja" },
+        { label: "Reclamos", value: "Reclamo" },
+        { label: "Sugerencias", value: "Sugerencia" },
+    ];
+
+    const currentMonthYear = new Intl.DateTimeFormat("es-ES", {
+        month: "long",
+        year: "numeric",
+    }).format(new Date());
 
     return (
         <div
@@ -34,53 +54,43 @@ export default function InboxSidebar() {
                 <div id="inbox-search" className="flex gap-2 w-full">
                     <div className="flex items-center bg-gray-100 px-2 rounded-md flex-1 min-w-0">
                         <input
-                            placeholder="Buscar"
+                            placeholder="Buscar por asunto, id o descripción..."
                             type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="input bg-gray-100 border-none focus:outline-none shadow-none w-full truncate"
                         />
                         <MagnifyingGlassIcon className="size-5 mr-2 shrink-0" />
                     </div>
-                    <button className="p-3 bg-gray-100 rounded-md shrink-0">
-                        <FunnelIcon className="size-5" />
-                    </button>
                 </div>
 
                 <div
                     id="inbox-categories"
                     className="flex my-2 w-full justify-between items-center"
                 >
-                    <form className="flex gap-2 w-full overflow-x-auto p-1">
-                        <input
-                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                            type="checkbox"
-                            aria-label="Peticiones"
-                        />
-                        <input
-                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                            type="checkbox"
-                            aria-label="Quejas"
-                        />
-                        <input
-                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                            type="checkbox"
-                            aria-label="Reclamos"
-                        />
-                        <input
-                            className="btn rounded-xl checked:bg-senaGreen border-none py-2 px-4 whitespace-nowrap"
-                            type="checkbox"
-                            aria-label="Sugerencias"
-                        />
-                    </form>
-                    <button className="p-3 bg-gray-100 rounded-md ml-2 shrink-0">
-                        <BarsArrowUpIcon className="size-5" />
-                    </button>
+                    <div className="flex gap-2 w-full overflow-x-auto p-1 scrollbar-hide">
+                        {categories.map((cat) => (
+                            <input
+                                key={cat.value}
+                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${
+                                    filters.includes(cat.value)
+                                        ? "bg-primary text-white hover:bg-primary"
+                                        : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                                type="checkbox"
+                                aria-label={cat.label}
+                                checked={filters.includes(cat.value)}
+                                onChange={() => toggleFilter(cat.value)}
+                            />
+                        ))}
+                    </div>
                 </div>
 
                 <h3
                     id="inbox-date"
-                    className="text-start w-full px-2 my-4 font-bold"
+                    className="text-start w-full px-2 my-4 font-bold capitalize"
                 >
-                    Agosto, 2025
+                    {currentMonthYear}
                 </h3>
             </div>
 
@@ -96,9 +106,16 @@ export default function InboxSidebar() {
                     </div>
                 ) : (
                     <>
-                        {mailCards.map((card) => {
-                            return <InboxMailCard key={card.id} card={card} />;
-                        })}
+                        {filteredMailCards.length > 0 ? (
+                            filteredMailCards.map((card) => (
+                                <InboxMailCard key={card.id} card={card} />
+                            ))
+                        ) : (
+                            <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
+                                <FunnelIcon className="size-12 mb-2 opacity-20" />
+                                <p>No se encontraron PQRS con estos filtros.</p>
+                            </div>
+                        )}
                     </>
                 )}
             </div>

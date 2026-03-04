@@ -1,23 +1,18 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import api from "@/lib/axios";
 
 export const DependenciesContext = createContext();
 
 export function DependenciesProvider({ children }) {
+
     const [dependencies, setDependencies] = useState([]);
 
     const fetchDependencies = useCallback(async () => {
         try {
             const res = await api.get("/api/dependency");
-
-            if (!res.data?.dependencies) {
-                console.log("ERROR AL OBTENER DEPENDENCIAS");
-                return;
-            }
-
-            setDependencies(res.data.dependencies);
+            setDependencies(res.data.dependencies || []);
         } catch (error) {
-            console.log("Error API (fetchDependencies):", error);
+            console.log("Error API (fetchDependencies):", error.response?.data);
         }
     }, []);
 
@@ -25,49 +20,45 @@ export function DependenciesProvider({ children }) {
         try {
             const res = await api.post("/api/dependency", data);
 
-            if (!res.data?.dependency) {
-                console.log("Error creando dependencia");
-                return false;
-            }
-
             await fetchDependencies();
 
-            return true;
+            return {
+                success: true,
+                data: res.data.dependency
+            };
+
         } catch (error) {
-            console.log("Error API (createDependency):", error);
-            return false;
+
+            if (error.response?.status === 422) {
+                return {
+                    success: false,
+                    errors: error.response.data.errors
+                };
+            }
+
+            return {
+                success: false,
+                message: "Error inesperado"
+            };
         }
     };
 
     const editDependency = async (id, data) => {
         try {
-            const res = await api.put(`/api/dependency/${id}`, data);
-
-            if (!res.data?.success) {
-                console.log("Error editando dependencia");
-                return false;
-            }
-
+            await api.put(`/api/dependency/${id}`, data);
             await fetchDependencies();
-            return true;
+            return { success: true };
         } catch (error) {
-            console.log("Error API (editDependency):", error);
-            return false;
+            return { success: false };
         }
     };
 
     const deleteDependency = async (id) => {
         try {
-            const res = await api.delete(`/api/dependency/${id}`);
-
-            if (!res.data?.success) {
-                console.log("Error eliminando dependencia");
-                return;
-            }
-
-            setDependencies((prev) => prev.filter((dep) => dep.id !== id));
+            await api.delete(`/api/dependency/${id}`);
+            setDependencies(prev => prev.filter(dep => dep.id !== id));
         } catch (error) {
-            console.log("Error API (deleteDependency):", error);
+            console.log("Error eliminando:", error.response?.data);
         }
     };
 
@@ -75,7 +66,6 @@ export function DependenciesProvider({ children }) {
         <DependenciesContext.Provider
             value={{
                 dependencies,
-
                 fetchDependencies,
                 createDependency,
                 editDependency,

@@ -85,6 +85,7 @@ class PQRController extends Controller
             'email' => 'nullable|email|string',
             'document_type' => 'required|string|in:CC,TI,CE',
             'document' => 'nullable|string|max:100',
+            'dependency_id' => 'nullable|exists:dependencies,id',
         ]);
 
         if (!empty($validated['response_days']) && !empty($validated['response_time'])) {
@@ -98,9 +99,16 @@ class PQRController extends Controller
             return response()->json(['error' => 'Ficha técnica no encontrada'], 404);
         }
 
-        $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
-        if (!$ventanillaUnica) {
-            return response()->json(['error' => 'Ventanilla única no encontrada'], 404);
+
+        if (!empty($validated['dependency_id'])) {
+            $targetDependencyId = $validated['dependency_id'];
+        }
+        else {
+            $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
+            if (!$ventanillaUnica) {
+                return response()->json(['error' => 'Ventanilla única no encontrada'], 404);
+            }
+            $targetDependencyId = $ventanillaUnica->id;
         }
 
         $userId = optional($request->user())->id;
@@ -118,10 +126,10 @@ class PQRController extends Controller
             'response_time' => $validated['response_time'] ?? null,
             'response_days' => $validated['response_days'] ?? null,
             'state' => false,
-            'archived' => false, // 🔸 ARCHIVE
+            'archived' => false,
             'user_id' => $userId,
             'responsible_id' => null,
-            'dependency_id' => $ventanillaUnica->id,
+            'dependency_id' => $targetDependencyId,
             'request_type' => $validated['request_type'],
             'sheet_number_id' => $sheetNumber->id,
             'response_status' => 'pending',
