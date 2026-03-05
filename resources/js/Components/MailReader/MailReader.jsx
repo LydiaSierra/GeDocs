@@ -1,4 +1,4 @@
-import SenderInformationCard from "@/components/SenderInformationCard/SenderInformationCard";
+import SenderInformationCard from "@/Components/SenderInformationCard/SenderInformationCard";
 import { MailContext } from "@/context/MailContext/MailContext";
 import { useContext, useEffect, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
