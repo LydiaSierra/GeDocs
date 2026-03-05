@@ -1,6 +1,11 @@
-import { createContext, useState, useEffect, useCallback, useMemo } from "react";
+import {
+    createContext,
+    useState,
+    useEffect,
+    useCallback,
+    useMemo,
+} from "react";
 import api from "@/lib/axios";
-
 
 export const NotificationsContext = createContext();
 
@@ -11,14 +16,16 @@ export function NotificationsProvider({ children }) {
         useState(false);
     const [notificationSeleted, setNotificationSeleted] = useState(null);
 
-
     const fetchNotifications = useCallback(async () => {
         setLoading(true);
         try {
             const res = await api.get("/api/notifications");
 
             if (!res.data || res.data.success === false) {
-                console.log("ERROR AL OBTENER NOTIFICACIONES!", res.data?.message || "");
+                console.log(
+                    "ERROR AL OBTENER NOTIFICACIONES!",
+                    res.data?.message || "",
+                );
                 setNotifications([]);
                 setLoading(false);
                 return;
@@ -26,17 +33,20 @@ export function NotificationsProvider({ children }) {
 
             setNotifications(res.data.notifications || []);
         } catch (error) {
-            console.error("Error fetching notifications:", error?.response?.data || error.message || error);
+            console.error(
+                "Error fetching notifications:",
+                error?.response?.data || error.message || error,
+            );
             setNotifications([]);
         } finally {
             setLoading(false);
         }
     }, []);
 
-    const visibleDetails = useMemo(()=>{
-        if(!notificationSeleted) return null
-        return notifications.find(n => n.id === notificationSeleted);
-    })
+    const visibleDetails = useMemo(() => {
+        if (!notificationSeleted) return null;
+        return notifications.find((n) => n.id === notificationSeleted);
+    });
     const markAsReadNotification = useCallback(
         async (id) => {
             setLoadingDetailsNotification(true);
@@ -44,14 +54,19 @@ export function NotificationsProvider({ children }) {
                 prev.map((notification) =>
                     notification.id === id
                         ? { ...notification, read_at: new Date().toISOString() }
-                        : notification
-                )
+                        : notification,
+                ),
             );
 
             try {
-                const res = await api.post(`/api/notifications/${id}/mark-as-read`);
+                const res = await api.post(
+                    `/api/notifications/${id}/mark-as-read`,
+                );
                 if (!res.data || res.data.success === false) {
-                    console.log("ERROR AL MARCAR NOTIFICACIONES LEIDAS!", res.data?.message || "");
+                    console.log(
+                        "ERROR AL MARCAR NOTIFICACIONES LEIDAS!",
+                        res.data?.message || "",
+                    );
                 }
             } catch (error) {
                 console.error(error?.response?.data || error.message || error);
@@ -59,41 +74,45 @@ export function NotificationsProvider({ children }) {
                 setLoadingDetailsNotification(false);
             }
         },
-        [notificationSeleted]
+        [notificationSeleted],
     );
 
     const updateUserStatusFromNotification = async (notificationId, status) => {
-        const notification = notifications.find(n => n.id === notificationId);
+        const notification = notifications.find((n) => n.id === notificationId);
         if (!notification) return;
 
         try {
-            await api.put(`/api/notifications/update/${notificationId}/${status}`);
+            await api.put(
+                `/api/notifications/update/${notificationId}/${status}`,
+            );
 
             setNotifications((prev) =>
                 prev.map((n) =>
                     n.id === notificationId
                         ? {
-                            ...n, 
-                            data: {
-                                ...n.data,
-                                user: {
-                                    ...n.data.user,
-                                    status
-                                }
-                            }
-                        }
-                        : n
-                )
+                              ...n,
+                              data: {
+                                  ...n.data,
+                                  user: {
+                                      ...n.data.user,
+                                      status,
+                                  },
+                              },
+                          }
+                        : n,
+                ),
             );
         } catch (err) {
-            console.error(err?.response?.data || err.message || err || "Error actualizando estado del usuario");
+            console.error(
+                err?.response?.data ||
+                    err.message ||
+                    err ||
+                    "Error actualizando estado del usuario",
+            );
         }
-    }
+    };
 
     const closeDetails = () => setNotificationSeleted(null);
-
-
-
 
     return (
         <NotificationsContext.Provider

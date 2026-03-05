@@ -33,7 +33,10 @@ export function MailReader() {
             await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
                 response_message: responseText,
             });
-
+            await axios.post(`api/pqr/${currentMail.id}/comunicaciones`, {
+                message: responseText,
+                requires_response: true,
+            });
             // Optional UX improvements 👇
 
             alert("Respuesta enviada correctamente");

@@ -58,12 +58,13 @@ class CommunicationController extends Controller
                         'path' => $path,
                         'type' => $file->getClientOriginalExtension(),
                         'size' => $file->getSize(),
+                        'pqr_id' => $pqr->id,
                     ]);
                 }
             }
 
             // Enviar email
-            $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
+            $emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
             Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
 
             DB::commit();
@@ -74,48 +75,51 @@ class CommunicationController extends Controller
                 'response_url' => $responseUrl
             ], 201);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollback();
             Log::error('Error creando comunicación: ' . $e->getMessage());
             return response()->json(['error' => 'Error interno del servidor'], 500);
         }
     }
 
-    //Metodo para archivar y desarchivar una comunicación
-public function archiveCommunication(Request $request, string $communicationId):JsonResponse{
-    $user = $request->user();
+    // Metodo para archivar y desarchivar una comunicación
+    public function archiveCommunication(Request $request, string $communicationId): JsonResponse
+    {
+        $user = $request->user();
 
-    // Buscar la comunicación con su PQR
-    $communication = comunication::with('pqr')->find($communicationId);
+        // Buscar la comunicación con su PQR
+        $communication = comunication::with('pqr')->find($communicationId);
 
-    if (!$communication) {
-        return response()->json(['error' => 'Comunicación no encontrada'], 404);
-    }
-
-    $pqr = $communication->pqr;
-
-    // Validar permisos: Solo Admin o la Dependencia asignada
-    if (!$user->hasRole('Admin')) {
-        if (!$user->hasRole('Dependencia') || $pqr->dependency_id !== $user->dependency_id) {
-            return response()->json(['error' => 'No autorizado para archivar esta comunicación'], 403);
+        if (!$communication) {
+            return response()->json(['error' => 'Comunicación no encontrada'], 404);
         }
-    }
 
-    // Alternar el estado de archivado
-    if ($communication->archived) {
-        $communication->unarchive();
-        $message = 'Comunicación desarchivada exitosamente';
-    } else {
-        $communication->archive();
-        $message = 'Comunicación archivada exitosamente';
-    }
+        $pqr = $communication->pqr;
 
-    return response()->json([
-        'data' => $communication->fresh(),
-        'message' => $message,
-        'archived' => $communication->archived
-    ], 200);
-}
+        // Validar permisos: Solo Admin o la Dependencia asignada
+        if (!$user->hasRole('Admin')) {
+            if (!$user->hasRole('Dependencia') || $pqr->dependency_id !== $user->dependency_id) {
+                return response()->json(['error' => 'No autorizado para archivar esta comunicación'], 403);
+            }
+        }
+
+        // Alternar el estado de archivado
+        if ($communication->archived) {
+            $communication->unarchive();
+            $message = 'Comunicación desarchivada exitosamente';
+        }
+        else {
+            $communication->archive();
+            $message = 'Comunicación archivada exitosamente';
+        }
+
+        return response()->json([
+            'data' => $communication->fresh(),
+            'message' => $message,
+            'archived' => $communication->archived
+        ], 200);
+    }
 
     // Método para mostrar el formulario de respuesta (acceso público por UUID)
     public function showResponseForm(string $uuid): JsonResponse
@@ -129,12 +133,12 @@ public function archiveCommunication(Request $request, string $communicationId):
         }
 
         // Verificar si el UUID ha expirado
-        if ($comunication->response_uuid_expires_at && now()->isAfter($comunication->response_uuid_expires_at)) {
+        if ($comunication->response_expires_at && now()->isAfter($comunication->response_expires_at)) {
             return response()->json(['error' => 'Este enlace de respuesta ha expirado'], 410);
         }
 
         // Verificar si ya fue usado
-        if ($comunication->response_uuid_used_at) {
+        if ($comunication->response_used) {
             return response()->json(['error' => 'Este enlace de respuesta ya fue utilizado'], 410);
         }
 
@@ -152,19 +156,20 @@ public function archiveCommunication(Request $request, string $communicationId):
     public function processResponse(Request $request, string $uuid): JsonResponse
     {
         $comunication = comunication::with('pqr')->where('response_uuid', $uuid)->first();
-        $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($comunication->pqr_id);
 
         if (!$comunication) {
             return response()->json(['error' => 'Enlace de respuesta no válido'], 404);
         }
 
+        $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($comunication->pqr_id);
+
         // Verificar si el UUID ha expirado
-        if ($comunication->response_uuid_expires_at && now()->isAfter($comunication->response_uuid_expires_at)) {
+        if ($comunication->response_expires_at && now()->isAfter($comunication->response_expires_at)) {
             return response()->json(['error' => 'Este enlace de respuesta ha expirado'], 410);
         }
 
         // Verificar si ya fue usado
-        if ($comunication->response_uuid_used_at) {
+        if ($comunication->response_used) {
             return response()->json(['error' => 'Este enlace de respuesta ya fue utilizado'], 410);
         }
 
@@ -193,13 +198,13 @@ public function archiveCommunication(Request $request, string $communicationId):
                         'path' => $path,
                         'type' => $file->getClientOriginalExtension(),
                         'size' => $file->getSize(),
+                        'pqr_id' => $pqr->id,
                     ]);
                 }
             }
 
             // Marcar el UUID como usado
-            $comunication->updated_at = now();
-            $comunication->save();
+            $comunication->markResponseAsUsed();
 
             DB::commit();
 
@@ -208,10 +213,11 @@ public function archiveCommunication(Request $request, string $communicationId):
                 'message' => 'Respuesta enviada exitosamente'
             ], 201);
 
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             DB::rollback();
             Log::error('Error procesando respuesta: ' . $e->getMessage());
-            return response()->json(['error' =>  $e->getMessage()], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
