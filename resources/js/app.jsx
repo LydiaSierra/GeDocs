@@ -17,7 +17,7 @@ import { DependenciesProvider } from "./context/DependenciesContext/Dependencies
 
 import { Toaster } from "sonner";
 
-const appName = import.meta.env.VITE_APP_NAME || "Laravel";
+const appName = "GeDocs"
 
 createInertiaApp({
     title: (title) => ` ${appName}`,
