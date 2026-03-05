@@ -38,7 +38,7 @@ function SettingsBar() {
                 </NavLink>
 
                 {/* Users */}
-                {rol === "Admin" && (
+                {(rol === "Admin" || rol === "Instructor") && (
                     <div className="w-5/5 flex flex-col items-start gap-5 p-1">
                         <h1 className="self-start text-md text-[#848484]">
                             Usuarios
@@ -60,34 +60,39 @@ function SettingsBar() {
                                 </div>
                             </NavLink>
 
-                            <NavLink
-                                href={route("instructor")}
-                                active={route().current("instructor")}
-                            >
-                                <div
-                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg
-                             font-medium hover:underline ${
-                                 url === "/users/instructor" ? "underline" : ""
-                             }`}
-                                    onClick={() => {
-                                        setContent("Instructor");
-                                    }}
+                            {rol === "Admin" && (
+                                <NavLink
+                                    href={route("instructor")}
+                                    active={route().current("instructor")}
                                 >
-                                    <ListBulletIcon className="text-[#848484] size-8" />
-                                    Instructores
-                                </div>
-                            </NavLink>
+                                    <div
+                                        className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg
+                                 font-medium hover:underline ${
+                                     url === "/users/instructor" ? "underline" : ""
+                                 }`}
+                                        onClick={() => {
+                                            setContent("Instructor");
+                                        }}
+                                    >
+                                        
+                                        <ListBulletIcon className="text-[#848484] size-8" />
+                                        Instructores
+                                    </div>
+                                </NavLink>
+                            )}
 
-                            <NavLink href={route("sheets")}>
-                                <div
-                                    className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
-                                        url === "/sheets" ? "underline" : ""
-                                    }`}
-                                >
-                                    <UserCircleIcon className="text-[#848484] size-8" />
-                                    Fichas
-                                </div>
-                            </NavLink>
+                            {rol === "Admin" && (
+                                <NavLink href={route("sheets")}>
+                                    <div
+                                        className={`flex flex-row items-center cursor-pointer gap-3 w-full text-[#010515] text-lg font-medium hover:underline ${
+                                            url === "/sheets" ? "underline" : ""
+                                        }`}
+                                    >
+                                        <UserCircleIcon className="text-[#848484] size-8" />
+                                        Fichas
+                                    </div>
+                                </NavLink>
+                            )}
                         </div>
                     </div>
                 )}

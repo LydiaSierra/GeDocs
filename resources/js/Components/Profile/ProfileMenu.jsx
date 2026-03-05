@@ -31,7 +31,7 @@ function ProfileMenu({
                 </Link>
             </div>
 
-            {rol === "Admin" && (
+            {(rol === "Admin" || rol === "Instructor") && (
                 <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                     <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
                         Usuarios
@@ -47,23 +47,27 @@ function ProfileMenu({
                             </div>
                         </Link>
 
-                        <Link href={route("instructor")}>
-                            <div
-                                className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/users/instructor" ? "underline" : ""}`}
-                            >
-                                <ListBulletIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                                Instructores
-                            </div>
-                        </Link>
+                        {rol === "Admin" && (
+                            <Link href={route("instructor")}>
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/users/instructor" ? "underline" : ""}`}
+                                >
+                                    <ListBulletIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Instructores
+                                </div>
+                            </Link>
+                        )}
 
-                        <Link href={route("sheets")}>
-                            <div
-                                className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/sheets" ? "underline" : ""}`}
-                            >
-                                <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                                Fichas
-                            </div>
-                        </Link>
+                        {rol === "Admin" && (
+                            <Link href={route("sheets")}>
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/sheets" ? "underline" : ""}`}
+                                >
+                                    <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Fichas
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
@@ -105,16 +109,6 @@ function ProfileMenu({
                             Dependencias
                         </div>
                     </Link>
-
-                    <div className="flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                        <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                        Series y Subseries
-                    </div>
-
-                    <div className="flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                        <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                        Secciones y Subsecciones
-                    </div>
                 </div>
             </div>
 
