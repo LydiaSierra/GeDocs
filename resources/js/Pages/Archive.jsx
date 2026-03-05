@@ -1,5 +1,5 @@
-import ArchiveTable from "@/components/ArchiveTable/ArchiveTable";
-import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
+import ArchiveTable from "@/Components/ArchiveTable/ArchiveTable";
+import { InputSearch } from "@/Components/ArchiveExplorer/InputSearch";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 
 export default function Archive() {
