@@ -1,9 +1,10 @@
-import { ArchiveDataContext } from '@/context/ArchiveExplorer/ArchiveDataContext';
+// UploadModal provides a modal dialog for uploading files to the current folder, supporting drag-and-drop and file type validation.
+import { ExplorerDataContext } from '@/context/Explorer/ExplorerDataContext';
 import { PlusIcon } from '@heroicons/react/24/solid';
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 
 const UploadModal = () => {
-    const { uploadFiles, currentFolder } = useContext(ArchiveDataContext)
+    const { uploadFiles, currentFolder } = useContext(ExplorerDataContext)
     const [dragActive, setdragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([])
     const [error, seterror] = useState("")
@@ -42,6 +43,7 @@ const UploadModal = () => {
         handleFiles(e.dataTransfer.files);
 
     }
+
 
     return (
         <dialog id='uploadFile' className='modal'>
@@ -88,9 +90,9 @@ const UploadModal = () => {
 
                 <div className="mt-6 flex justify-end gap-3">
                     <button
-                        className="px-4 py-2 rounded bg-gray-300"
+                        className="px-4 py-2 rounded bg-gray-300 cursor-pointer"
                         onClick={() => {
-                            document.getElementById("uploadFile").close();
+                            document.getElementById('uploadFile').close();
                             setSelectedFiles([])
                             seterror("");
                         }}
@@ -107,7 +109,7 @@ const UploadModal = () => {
                                 try {
                                     setIsLoading(true);
                                     await uploadFiles(currentFolder?.id ?? null, selectedFiles);
-                                    document.getElementById("uploadFile").close()
+                                    document.getElementById('uploadFile').close();
                                     setSelectedFiles([]);
                                     seterror("");
                                 } catch (err) {

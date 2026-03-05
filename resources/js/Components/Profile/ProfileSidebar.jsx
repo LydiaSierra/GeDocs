@@ -13,20 +13,18 @@ const ProfileSidebar = ({ className = "" }) => {
     const [loadingPhoto, setLoadingPhoto] = useState(true)
 
     useEffect(()=>{
-        if(user.profile_photo){
-            setLoadingPhoto(true);
-        }else{
+        if(!user.profile_photo){
             setLoadingPhoto(false)
         }
     }, [])
 
     const UploatPhoto = async (e) => {
-        try {
-            let toastId;
-            toastId =  toast.loading(user.profile_photo ? "Actualizando Imagen" : "Subiendo imagen");
-            const file = e.target.files[0]
-            if (!file) return;
+        const file = e.target.files[0];
+        if (!file) return;
 
+        const toastId = toast.loading(user.profile_photo ? "Actualizando Imagen" : "Subiendo imagen");
+
+        try {
             const form = new FormData();
             form.append("profile_photo", file);
 
@@ -35,17 +33,15 @@ const ProfileSidebar = ({ className = "" }) => {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            toast.success(user.profile_photo ? "Foto actualizada" : "Foto subida")
             toast.dismiss(toastId);
+            toast.success(user.profile_photo ? "Foto actualizada" : "Foto subida");
             router.reload({ only: ["auth"] });
         } catch (err) {
-            toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion")
-            throw new Error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion");
-
+            toast.dismiss(toastId);
+            toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la peticion");
         } finally {
-            setLoadingPhoto(false)
+            setLoadingPhoto(false);
         }
-
     }
     return (
         <aside
@@ -75,7 +71,7 @@ const ProfileSidebar = ({ className = "" }) => {
 
 
 
-                    <div enctype="multipart/form-data">
+                    <div encType="multipart/form-data">
                         <label htmlFor="photo" className="absolute z-10 -bottom-3 -right-3 p-2 bg-primary text-white rounded-lg cursor-pointer" >
                             <PencilIcon className="size-6 " />
                         </label>
@@ -85,7 +81,7 @@ const ProfileSidebar = ({ className = "" }) => {
 
 
 
-                <h2 className="text-md font-medium">{user.name}</h2>
+                <h2 data-testid="user-email" className="text-md font-medium">{user.name}</h2>
 
                 <p className="text-sm text-gray-500">{user.email}</p>
             </div>

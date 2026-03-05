@@ -26,13 +26,8 @@ Route::middleware('auth')->group(function () {
             'notificationId' => null
         ])
     )->name('notifications.index');
-    //Gestion Admin General
     
-    // Gestion de Instructor
-    Route::get(
-        '/users/instructor',
-        fn() => Inertia::render('Users')
-    )->name('instructor');
+    //Gestion Admin General
 
     // Gestion de Aprendices
     Route::get(
@@ -40,8 +35,21 @@ Route::middleware('auth')->group(function () {
         fn() => Inertia::render('Users')
     )->name('aprendiz');
 
-
-
+    //Vista de notificaciones de los aprendices
+    Route::get(
+        '/notifications/aprendiz',
+        fn() => Inertia::render('NotificationsAprendiz', [
+            'notificationId' => null
+        ])
+    )->name('notifications.aprendiz');
+    
+    //Gestion Admin General
+    
+    // Gestion de Instructor
+    Route::get(
+        '/users/instructor',
+        fn() => Inertia::render('Users')
+    )->name('instructor');
 
     //Vista de una sola notificacion pasando el id
     Route::get(

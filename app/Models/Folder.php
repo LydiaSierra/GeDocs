@@ -12,6 +12,7 @@ class Folder extends Model
     protected $fillable = [
         'name',
         'parent_id',
+        'active',
 
         'folder_code',
 
@@ -24,7 +25,7 @@ class Folder extends Model
     }
     public function children()
     {
-        return $this->hasMany(Folder::class, 'parent_id', 'id');
+        return $this->hasMany(Folder::class, 'parent_id');
     }
     public function files()
     {

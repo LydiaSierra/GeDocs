@@ -1,30 +1,24 @@
-import {InputSearch} from "@/components/ArchiveExplorer/InputSearch";
-import {useContext, useEffect, useState} from "react";
-import {DashboardLayout} from "@/Layouts/DashboardLayout";
+import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
-import {ArchiveDataContext} from "@/context/ArchiveExplorer/ArchiveDataContext";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
-import {ModalDetails} from "@/Components/ArchiveExplorer/Modals/ModalDetails";
-import {ArchiveUIContext} from "@/context/ArchiveExplorer/ArchiveUIContext";
+import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
-import {usePage} from "@inertiajs/react";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
-import {ExclamationTriangleIcon} from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
+import { useExplorerData } from "@/Hooks/useExplorer";
 
 export default function Explorer() {
     const {
         openFolder,
         setHistoryStack,
         fetchFolders,
-        currentFolder,
         getAllFolders,
-    } = useContext(ArchiveDataContext);
-    const {selectedItem} = useContext(ArchiveUIContext);
-    const [openModalUpload, setopenModalUpload] = useState(false);
-    const role = usePage().props.auth.user.roles[0].name
-    const canEdit = role === "Admin" || role === "Instructor"
-
-
+        deleteSelectionItemsMixed,
+        selectedItems
+    } = useExplorerData();
     const [showPdfToast, setShowPdfToast] = useState(false);
 
     useEffect(() => {
@@ -38,38 +32,21 @@ export default function Explorer() {
             fetchFolders();
         }
         getAllFolders()
-
     }, [])
-
 
     return (
         <>
             <DashboardLayout>
-                <div className="bg-white h-full rounded-lg p-2 relative flex flex-col min-h-0 overflow-x-hidden">
-                    <div className="flex justify-between items-center flex-wrap gap-4 ">
-                        <InputSearch/>
-                        <div className="flex flex-wrap items-center gap-2 ">
-                            {currentFolder &&
-                                <button className="py-2 px-4 rounded-md bg-primary text-white cursor-pointer"
-                                        onClick={() => {
-                                            setopenModalUpload(true)
-                                        }}
-                                >
-                                    Subir Archivo
-                                </button>
-                            }
-                            {canEdit &&
-                                <button
-                                    className="py-2 px-4 rounded-md border border-primary text-primary cursor-pointer"
-                                    onClick={() => document.getElementById('createFolder').showModal()
-                                    }>
-                                    Nueva Carpeta
-                                </button>
-                            }
-                        </div>
-
+                <div className="bg-white h-full rounded-lg p-2 relative flex flex-col min-h-0 overflow-x-hidden ">
+                    <div className="md:hidden flex justify-center items-center relative bg-white border-b border-gray-300 rounded-br-md rounded-bl-md p-4 mb-4">
+                        <ArrowLeftCircleIcon className="size-8 absolute left-5 top-1/2 -translate-y-1/2" onClick={() => {
+                            window.history.back()
+                        }} />
+                        <h1>Explora tus archivos</h1>
                     </div>
-                    <ContainerFolders/>
+                    <InputSearch />
+
+                    <ContainerFolders />
 
                     <dialog id="my_modal_1" className="modal w-full">
                         <div
@@ -82,7 +59,7 @@ export default function Explorer() {
                             <h1 className="text-2xl text-center my-2 font-bold">
                                 Formulario PDF
                             </h1>
-                            <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)}/>
+                            <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)} />
                             <div className="modal-action">
                                 <div className="modal-action">
                                     <button
@@ -102,15 +79,13 @@ export default function Explorer() {
 
                     </dialog>
 
-                    {openModalUpload && (
-                        <UploadModal onOpen={setopenModalUpload}/>
-                    )
-                    }
+                    <UploadModal />
 
-                    {selectedItem &&
-                        <ModalDetails/>
-                    }
-                    <ModalCreateOrEditFolder/>
+                    <ModalDetails />
+
+                    <ModalCreateOrEditFolder />
+
+                    <InformationDrawer />
 
                     <dialog id="confirmDeleteFolder" className="modal">
                         <div className="modal-box">
@@ -120,22 +95,23 @@ export default function Explorer() {
                                 ADVERTENCIA!
                             </h3>
                             <p className="py-4 font-bold text-center">
-                                Si elimina esta carpeta, se eliminarán todos los archivos y subcarpetas dentro de ella.
+                                Este segura(o) de eliminar {selectedItems.length > 1 ? "estos elementos" : "este elemento"}
                             </p>
                             <div className="modal-action">
                                 <form method="dialog" className="flex justify-center items-center w-full">
                                     <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
-                                    <button className="btn bg-red-600  text-white m-2" onClick={() => deleteFolder(folder.id)}>Eliminar</button>
+                                    <button className="btn bg-red-600  text-white m-2" onClick={deleteSelectionItemsMixed}>Eliminar</button>
                                 </form>
                             </div>
                         </div>
                     </dialog>
 
-                </div>
+
+                </div >
 
 
 
-            </DashboardLayout>
+            </DashboardLayout >
 
         </>
     );
