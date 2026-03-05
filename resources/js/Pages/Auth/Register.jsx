@@ -5,6 +5,7 @@ import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
+import { useEffect, useRef } from "react";
 
 export default function Register({ sheets }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -17,6 +18,23 @@ export default function Register({ sheets }) {
         password: "",
         password_confirmation: "",
     });
+
+    const toastIdRef = useRef(null);
+
+    useEffect(() => {
+        if (errors.email) {
+            toast.error(errors.email);
+        }
+        if (errors.document_number) {
+            toast.error(errors.document_number);
+        }
+        if (errors.password) {
+            toast.error("Error con la contraseña, verifica los datos");
+        }
+        if (errors.technical_sheet) {
+            toast.error("La ficha seleccionada no es válida");
+        }
+    }, [errors]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -41,29 +59,16 @@ export default function Register({ sheets }) {
             return toast.error("Las contraseñas no coinciden");
         }
 
-        let toastId;
-
         post(route("register"), {
             onStart: () => {
-                toastId = toast.loading("Registrando usuario...");
+                toastIdRef.current = toast.loading("Registrando usuario...");
             },
             onSuccess: () => {
-                if (toastId) toast.dismiss(toastId);
+                toast.dismiss(toastIdRef.current);
                 toast.success("Solicitud de Registro Enviada");
             },
-            onError: (errors) => {
-                if (toastId) toast.dismiss(toastId);
-                if (errors.email) {
-                    toast.error("Este correo electrónico ya está registrado");
-                } else if (errors.document_number) {
-                    toast.error("Este número de documento ya está registrado");
-                } else if (errors.password) {
-                    toast.error("Error con la contraseña, verifica los datos");
-                } else if (errors.technical_sheet) {
-                    toast.error("La ficha seleccionada no es válida");
-                } else {
-                    toast.error("No se pudo registrar el usuario");
-                }
+            onError: () => {
+                toast.dismiss(toastIdRef.current);
             },
             onFinish: () => {
                 reset("password", "password_confirmation");

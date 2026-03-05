@@ -60,7 +60,7 @@ export default function ArchiveTable() {
                                     <tr
                                         key={mail.id}
                                         onClick={() => setSelectedMail(mail)}
-                                        className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 hover:bg-senaLightBlue text-center hover:bg-accent"
+                                        className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 text-center hover:bg-accent/50"
                                     >
                                         <td className="py-3 rounded-l-md">{mail.id}</td>
                                         <td className="truncate max-w-[200px]">{mail.affair}</td>

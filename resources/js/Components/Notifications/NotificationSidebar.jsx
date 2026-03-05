@@ -86,9 +86,9 @@ const NotificationSidebar = ({ url }) => {
                                             isSelected ? null : item.id,
                                         );
                                     }}
-                                    className={`flex flex-row w-full h-auto border-y border-x-none cursor-pointer relative p-2 mt-1.5 rounded-xl hover:bg-[#6CF1F5]
+                                    className={`flex flex-row w-full h-auto border-y border-x-none cursor-pointer relative p-2 mt-1.5 rounded-xl hover:bg-[#6CF1F5]/50
                                 ${isRead ? "text-[#848484]" : "text-black font-bold "}
-                                ${isSelected ? "bg-[#6CF1F5]" : "bg-white"} ${isActive ? "text-green-800" : ""}`}
+                                ${isSelected ? "bg-[#6CF1F5]/50" : "bg-white"} ${isActive ? "text-green-800" : ""}`}
                                 >
                                     <div
                                         className={`"w-full flex flex-col items-start gap-1" }`}
@@ -118,13 +118,15 @@ const NotificationSidebar = ({ url }) => {
                                         ).toLocaleDateString()}
                                     </p>
 
-                                    <p className={`hidden md:block w-fit h-fit absolute right-3 bottom-3 ${isRejected ? "text-red-400" : isActive ? "text-green-800" : "text-gray-500"}`}>
-                                        {isRejected
-                                            ? "Rechazada"
-                                            : isActive
-                                              ? "Aceptada"
-                                              : "Pendiente"}
-                                    </p>
+                                    {!notificationSeleted && (
+                                        <p className={`hidden md:block w-fit h-fit absolute right-3 bottom-3 ${isRejected ? "text-red-400" : isActive ? "text-green-800" : "text-gray-500"}`}>
+                                            {isRejected
+                                                ? "Rechazada"
+                                                : isActive
+                                                  ? "Aceptada"
+                                                  : "Pendiente"}
+                                        </p>
+                                    )}
 
                                     <PlusCircleIcon
                                         className={`${item.read_at ? "hidden" : "w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute -top-1.5 right-0"}`}

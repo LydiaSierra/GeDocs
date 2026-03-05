@@ -98,7 +98,7 @@ export const UserList = ({ url }) => {
                                                 ShowInformation(item.id)
                                             }
                                             className=" lg:bg-white bg-none lg:border-none border-y border-solid border-[#DBDBDB]
-                                            hover:bg-accent text-center cursor-pointer h-15 "
+                                            hover:bg-accent/50 text-center cursor-pointer h-15 "
                                         >
                                             <td className="lg:pl-5 pl-2 lg:text-xl text-xs sm:text-2xs font-normal md:rounded-l-[7px] rounded-tl-[7px]">
                                                 <div className="truncate h-full flex flex-row items-center justify-start lg:gap-5 gap-3">
