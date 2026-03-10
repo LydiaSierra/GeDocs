@@ -9,9 +9,9 @@ import { toast } from "sonner";
 // Componente principal
 const DependencyScheme = ({ onPdfGenerated }) => {
 
-    // ------------------------------
+    
     // Función que maneja la generación del PDF
-    // ------------------------------
+    
     const handleGeneratePdf = async (e) => {
         e.preventDefault();
         document.getElementById("my_modal_1").close();
@@ -49,7 +49,7 @@ const DependencyScheme = ({ onPdfGenerated }) => {
             toast.success("PDF Generado correctamente");
 
         } catch (error) {
-            console.error("Error generando el PDF:", error.message);
+            console.error("Error generando el PDF:",  error.message);
         }
     };
 

@@ -158,11 +158,7 @@
         @endif
     </div>
 
-    <!-- <div class="top-bar clearfix">
-        <div class="bar-SenaGreen"></div>
-        <div class="bar-blue"></div>
-        <div class="bar-SenaGreen-right"></div>
-    </div> -->
+    
     <br>
     <div class="footer">
         <div>
