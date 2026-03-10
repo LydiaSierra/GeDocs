@@ -26,7 +26,7 @@ export default function UpdateDependencie({ dependency }) {
 
             <button
                 onClick={handleUpdate}
-                className={`btn btn-warning btn-sm bg-green-500 ${
+                className={`btn btn-primary btn-sm ${
                     loading ? "btn-disabled" : ""
                 }`}
             >

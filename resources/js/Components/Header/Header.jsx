@@ -44,7 +44,7 @@ export default function Header() {
     };
 
     return (
-        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-10 w-full">
+        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-full">
             {/* HAMBURGER */}
             {shouldShowHamburger && (
                 <div className="dropdown lg:hidden">
