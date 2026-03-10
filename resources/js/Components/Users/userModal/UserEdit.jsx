@@ -92,14 +92,15 @@ function UserEdit() {
                 email,
                 estado,
                 idSelected.id,
+                selectedSheets
             );
             toast.success("Información actualizada");
         } catch (err) {
             toast.error(
                 err?.response?.data?.message ||
-                    err?.message ||
-                    err ||
-                    "Error al hacer la petición",
+                err?.message ||
+                err ||
+                "Error al hacer la petición",
             );
         } finally {
             if (toastId) {
@@ -279,11 +280,10 @@ function UserEdit() {
                                                     toggleSheet(sheet.id)
                                                 }
                                                 className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
-                                                ${
-                                                    isSelected
+                                                ${isSelected
                                                         ? "bg-primary text-white"
                                                         : "hover:bg-gray-100"
-                                                }
+                                                    }
                                             `}
                                             >
                                                 <span className="truncate">

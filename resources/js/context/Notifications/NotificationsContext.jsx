@@ -90,25 +90,43 @@ export function NotificationsProvider({ children }) {
                 prev.map((n) =>
                     n.id === notificationId
                         ? {
-                              ...n,
-                              data: {
-                                  ...n.data,
-                                  user: {
-                                      ...n.data.user,
-                                      status,
-                                  },
-                              },
-                          }
+                            ...n,
+                            data: {
+                                ...n.data,
+                                user: {
+                                    ...n.data.user,
+                                    status,
+                                },
+                            },
+                        }
                         : n,
                 ),
             );
         } catch (err) {
             console.error(
                 err?.response?.data ||
-                    err.message ||
-                    err ||
-                    "Error actualizando estado del usuario",
+                err.message ||
+                err ||
+                "Error actualizando estado del usuario",
             );
+        }
+    };
+
+    const deleteUserAndNotification = async (notificationId, userId) => {
+        try {
+            const response = await api.delete(`/api/users/${userId}`);
+
+            if (response.data.success) {
+                setNotifications((prev) =>
+                    prev.filter((n) => n.id !== notificationId)
+                );
+                setNotificationSeleted(null);
+            }
+        } catch (err) {
+            console.error(
+                err?.response?.data || err.message || err || "Error eliminando usuario y notificación"
+            );
+            throw err;
         }
     };
 
@@ -127,6 +145,7 @@ export function NotificationsProvider({ children }) {
                 notificationSeleted,
                 setNotificationSeleted,
                 updateUserStatusFromNotification,
+                deleteUserAndNotification,
                 fetchNotifications,
             }}
         >

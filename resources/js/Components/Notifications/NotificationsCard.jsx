@@ -13,6 +13,7 @@ const NotificationCard = () => {
         loadingDetailsNotification,
         closeDetails,
         updateUserStatusFromNotification,
+        deleteUserAndNotification,
         visibleDetails
     } = useContext(NotificationsContext);
 
@@ -127,9 +128,10 @@ const NotificationCard = () => {
                         <button
                             onClick={async () => {
                                 try {
+                                    console.log(visibleDetails?.data?.user?.id);
                                     let toastId = toast.loading("Rechazando a " + visibleDetails?.data?.user?.name);
-                                    await updateUserStatusFromNotification(visibleDetails?.id, "rejected");
-                                    toast.success("Usuario rechazado");
+                                    await deleteUserAndNotification(visibleDetails?.id, visibleDetails?.data?.user?.id);
+                                    toast.success("Usuario rechazado y eliminado");
                                     toast.dismiss(toastId)
                                 } catch (err) {
                                     toast.error(err.response?.data?.message || "Error al rechazar usuario");
@@ -138,7 +140,6 @@ const NotificationCard = () => {
                             }}
                             className="cursor-pointer border border-red-500 p-1.5 hover:bg-red-400 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs"
                         >
-                            {" "}
                             Rechazar
                         </button>
                     }
