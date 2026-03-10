@@ -4,7 +4,7 @@ import InboxSidebar from "@/Components/InboxSidebar/InboxSidebar";
 import SheetsSidebar from "@/Components/Sheets/SheetsSidebar";
 import Header from "@/Components/Header/Header";
 
-const ProfileLayout = ({ children }) => {
+const SheetsLayout = ({ children }) => {
     return (
         <>
             <div className="bg-gray-100">
@@ -24,4 +24,4 @@ const ProfileLayout = ({ children }) => {
     );
 };
 
-export default ProfileLayout;
+export default SheetsLayout;

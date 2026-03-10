@@ -8,6 +8,7 @@ import {Head, Link, router, useForm} from '@inertiajs/react';
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import PasswordResetModal from "@/Components/PasswordResetModal.jsx";
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export default function Login({status, canResetPassword}) {
     const {data, setData, post, processing, errors, reset} = useForm({
@@ -16,11 +17,40 @@ export default function Login({status, canResetPassword}) {
         remember: false,
     });
 
+    useEffect(() => {
+        if (status) {
+            toast.info(status);
+        }
+    }, [status]);
+
     const submit = (e) => {
         e.preventDefault();
 
+        if(!data.email || !data.password){
+            toast.error("Por favor complete todos los campos");
+            return;
+        }
+
+        let toastId;
+
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onStart: () => {
+                toastId = toast.loading("Verificando información");
+            },
+            onError: (errors) => {
+                if (toastId) toast.dismiss(toastId);
+                if (errors.email) {
+                    toast.error("Correo o contraseña incorrectos");
+                } else if (errors.password) {
+                    toast.error("Ingrese una contraseña válida");
+                } else {
+                    toast.error("Error en el ingreso al sistema");
+                }
+            },
+            onFinish: () => {
+                reset('password')
+                if (toastId) toast.dismiss(toastId);
+            }
         });
     };
 
@@ -29,7 +59,7 @@ export default function Login({status, canResetPassword}) {
             <Head title="Log in"/>
 
             {status && (
-                toast.info(status)
+                <div></div>
             )}
 
             <form onSubmit={submit}>

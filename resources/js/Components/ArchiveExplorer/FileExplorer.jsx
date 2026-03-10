@@ -1,25 +1,19 @@
-import { useContext } from "react";
-import { ArchiveUIContext } from "@/context/ArchiveExplorer/ArchiveUIContext.jsx";
-import { RightClickContext } from "@/context/ArchiveExplorer/RightClickContext.jsx";
-import { ArchiveDataContext } from "@/context/ArchiveExplorer/ArchiveDataContext.jsx";
-
+// FileExplorer is responsible for rendering the list or grid of files within the current folder. It manages file selection, preview, and file-specific actions in the explorer.
 import {
-    ArrowDownTrayIcon,
-    EllipsisVerticalIcon,
-    InformationCircleIcon,
     DocumentIcon,
     PhotoIcon,
 } from "@heroicons/react/24/solid";
-import { Link } from "@inertiajs/react";
+import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
+import MenuOptions from "./MenuOptions";
+import ButtonDrawerInformation from "./Modals/ButtonDrawerInformation";
 
 const File = ({ file }) => {
-    const { gridView, showDetails } = useContext(ArchiveUIContext);
-    const { deleteFile } = useContext(ArchiveDataContext);
+    const { gridView } = useExplorerUI();
+    const { selectItem, selectedItems, isMultipleSelection, isSelected } = useExplorerData();
 
     const open = () => {
         window.open(file.url, "_blank");
     };
-
 
     return (
         <>
@@ -27,17 +21,21 @@ const File = ({ file }) => {
                 /** GRID VIEW **/
                 <div
                     key={file.id}
-                    className="cursor-pointer border-b lg:border lg:rounded-lg shadow-sm bg-white hover:shadow-md relative hover:bg-[#E8F9FB] transition p-2 lg:p-4 flex lg:flex-col text-center select-none items-center justify-between"
+                    onClick={(e) => selectItem(file.id, 'file', e)}
+                    className={`cursor-pointer relative border-b lg:border rounded-lg shadow-sm hover:shadow-md transition p-2 text-center select-none items-center justify-between ${isSelected(file.id, 'file') ? "bg-primary/30" : "bg-white hover:bg-primary/20"}`}
                     onDoubleClick={open}
                 >
+                    {(isMultipleSelection && selectedItems.length > 0) &&
+                        <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary absolute left-2 top-2" checked={isSelected(file.id, 'file')} />
+                    }
                     {/* ICON + NAME */}
-                    <div className="flex lg:flex-col items-center gap-3 w-full select-none">
+                    <div className="flex flex-col items-center gap-3 w-full select-none">
 
                         {file.is_image ? (
                             <PhotoIcon className="w-8 text-blue-500" />
                         ) : file.is_pdf ? (
                             <div className="w-12 h-14">
-                                <iframe src={file.url} frameborder="0" className="w-full h-full object-cover"></iframe>
+                                <iframe src={file.url} frameBorder="0" className="w-full h-full object-cover"></iframe>
                             </div>
                         ) : (
                             <DocumentIcon className="w-8 text-gray-800" />
@@ -49,14 +47,15 @@ const File = ({ file }) => {
                     </div>
 
                     {/* OPTIONS BUTTON */}
-                    <div className={`dropdown dropdown-bottom dropdown-end ${gridView ? "absolute right-2 left-2" : "relative"}`}>
-                        <button tabIndex={"-1"} role="button" className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
-                            <EllipsisVerticalIcon className="w-6" />
-                        </button>
-                        <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                            <li><a href={file.url} download={file.name}>Descargar</a></li>
-                            <li><button onClick={() => showDetails(file)}>Detalles</button></li>
-                        </ul>
+                    <div className={`${gridView ? "absolute top-2 right-2" : "relative"}`}>
+                        <>
+                            <div className="hidden md:inline-block">
+                                <MenuOptions />
+                            </div>
+                            <div className="md:hidden">
+                                <ButtonDrawerInformation />
+                            </div>
+                        </>
                     </div>
 
                 </div>
@@ -65,40 +64,55 @@ const File = ({ file }) => {
                 <div className="flex flex-col">
                     <div
                         key={file.id}
-                        className="flex justify-between border-b border-gray-400 px-2 py-4 cursor-pointer hover:bg-gray-100  select-none"
+                        onClick={(e) => selectItem(file.id, 'file', e)}
+
+                        className={`flex justify-between border-b border-gray-400 px-2 py-3 cursor-pointer select-none ${isSelected(file.id, "file") ? "bg-primary/30" : "bg-white hover:bg-primary/20"} `}
                     >
 
-                        <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium"}`}>
+
+                        <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium min-w-0 w-full"}`}>
+                            {(isMultipleSelection && selectedItems.length > 0) &&
+                                <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" checked={isSelected(file.id, "file")} />
+                            }
                             {file.is_image ? (
                                 <PhotoIcon className="w-8 text-blue-500" />
                             ) : file.is_pdf ? (
                                 <div className="w-12 h-14">
-                                    <iframe src={file.url} frameborder="0" className="w-full h-full object-cover"></iframe>
+                                    <iframe src={file.url} frameBorder="0" className="w-full h-full object-cover"></iframe>
                                 </div>
                             ) : (
                                 <DocumentIcon className="w-8 text-gray-800" />
                             )}
 
-                            <p className="hover:underline" onDoubleClick={open}>{file.name}</p>
+                            <span className="text-gray-600 shrink-0">{file.file_code}</span>
+                            <span className="shrink-0">-</span>
+                            <div className="flex flex-col md:flex-row max-w-1/2 md:max-w-full">
+                                <span className="truncate w-full">{file.name}</span>
+                                <p className="w-26 md:hidden text-xs text-gray-500">--</p>
+                            </div>
                         </div>
 
                         <div className="flex gap-5 items-center">
-                            <p>{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-
-                            <div className="dropdown dropdown-bottom dropdown-end">
-                                <button tabIndex={"-1"} role="button" className="p-1 rounded-full hover:bg-gray-300 cursor-pointer">
-                                    <EllipsisVerticalIcon className="w-6" />
-                                </button>
-                                <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                                    <li><a href={file.url} download={file.name}>Descargar</a></li>
-                                    <li><button onClick={() => showDetails(file)}>Detalles</button></li>
-                                </ul>
-                            </div>
+                            <p className="w-26 hidden md:inline-block text-gray-500">--</p>
+                            <p>{new Date(file.created_at).toLocaleDateString()}</p>
+                            {!isMultipleSelection &&
+                                <>
+                                    <div className="hidden md:inline-block">
+                                        <MenuOptions />
+                                    </div>
+                                    <div className="md:hidden">
+                                        <ButtonDrawerInformation />
+                                    </div>
+                                </>
+                            }
                         </div>
                     </div>
                 </div>
             )}
         </>
+
+
+        // <li><a href={file.url} download={file.name}>Descargar</a></li>
     );
 };
 

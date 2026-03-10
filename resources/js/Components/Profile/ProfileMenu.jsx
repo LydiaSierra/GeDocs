@@ -13,7 +13,8 @@ function ProfileMenu({
     openObject1,
 }) {
     const { url, props } = usePage();
-    const rol = props.auth.user.roles[0].name;
+    const { auth } = usePage().props;
+    const rol = auth.user.roles[0].name;
 
     const showEditProfile = route().current("profile.edit");
 
@@ -30,7 +31,7 @@ function ProfileMenu({
                 </Link>
             </div>
 
-            {rol === "Admin" && (
+            {(rol === "Admin" || rol === "Instructor") && (
                 <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                     <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
                         Usuarios
@@ -46,56 +47,53 @@ function ProfileMenu({
                             </div>
                         </Link>
 
-                        <Link href={route("instructor")}>
-                            <div
-                                className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/users/instructor" ? "underline" : ""}`}
-                            >
-                                <ListBulletIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                                Instructores
-                            </div>
-                        </Link>
+                        {rol === "Admin" && (
+                            <Link href={route("instructor")}>
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/users/instructor" ? "underline" : ""}`}
+                                >
+                                    <ListBulletIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Instructores
+                                </div>
+                            </Link>
+                        )}
 
-                        <Link href={route("sheets")}>
-                            <div
-                                className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/sheets" ? "underline" : ""}`}
-                            >
-                                <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                                Fichas
-                            </div>
-                        </Link>
+                        {rol === "Admin" && (
+                            <Link href={route("sheets")}>
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/sheets" ? "underline" : ""}`}
+                                >
+                                    <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Fichas
+                                </div>
+                            </Link>
+                        )}
                     </div>
                 </div>
             )}
 
-            <div className="w-full flex flex-col items-start gap-3 md:gap-4">
-                <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
-                    Solicitudes
-                </h1>
+            {(rol === "Admin" || rol === "Instructor") && (
+                    <div className="w-full flex flex-col items-start gap-3 md:gap-4">
+                        <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
+                            Solicitudes
+                        </h1>
 
-                <div className="flex flex-col gap-2 md:gap-3">
-                    {rol !== "Dependencia" && (
-                        <Link href={route("notifications.index")}>
-                            <div
-                                className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${url === "/notifications" ? "underline" : ""}`}
-                            >
-                                <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                                Aprendices
-                            </div>
-                        </Link>
-                    )}
-
-                    {rol === "Admin" && (
-                        <Link href={route("notifications.index")}>
-                            <div
-                                className="flex items-center gap-3 w-full text-[#010515] cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg"
-                            >
-                                <UserCircleIcon className="text-[#848484] w-6 h-6 md:w-7 md:h-7" />
-                                Instructores
-                            </div>
-                        </Link>
-                    )}
-                </div>
-            </div>
+                        <div className="flex flex-col gap-2 md:gap-3">
+                            <Link href={route("notifications.index")}>
+                                <div
+                                    className={`flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg ${
+                                        url === "/notifications"
+                                            ? "underline"
+                                            : ""
+                                    }`}
+                                >
+                                    <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
+                                    Solicitudes
+                                </div>
+                            </Link>
+                        </div>
+                    </div>
+                )}
 
             <div className="w-full flex flex-col items-start gap-3 md:gap-4">
                 <h1 className="text-[#848484] text-base md:text-lg lg:text-xl">
@@ -111,17 +109,6 @@ function ProfileMenu({
                             Dependencias
                         </div>
                     </Link>
-
-                    <div className="flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                        <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                        Series y Subseries
-                    </div>
-
-                    <div className="flex items-center gap-3 cursor-pointer font-medium hover:underline text-sm md:text-base lg:text-lg">
-                        <UserCircleIcon className="w-6 h-6 md:w-7 md:h-7 text-[#848484]" />
-                        Secciones y Subsecciones
-                    </div>
-
                 </div>
             </div>
 

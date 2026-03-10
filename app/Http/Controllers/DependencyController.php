@@ -13,17 +13,17 @@ class DependencyController extends Controller
     public function index()
     {
         //
-        $dependencies = Dependency::get();
-        if(!$dependencies){
+        $dependencies = Dependency::with('sheetNumber')->get();
+        if (!$dependencies) {
             return response()->json([
-                "status"=> "error",
-                "message"=> "No hay dependencias",
-            ],404);
+                "status" => "error",
+                "message" => "No hay dependencias",
+            ], 404);
         }
         return response()->json([
-            "message"=> "Dependencias obtenidas exitosamente",
-            "dependencies"=>$dependencies
-        ],200);
+            "message" => "Dependencias obtenidas exitosamente",
+            "dependencies" => $dependencies
+        ], 200);
     }
 
     /**
@@ -31,7 +31,7 @@ class DependencyController extends Controller
      */
     public function create()
     {
-        //
+    //
     }
 
     /**
@@ -42,7 +42,7 @@ class DependencyController extends Controller
         $user = $request->user();
 
         $validate = $request->validate([
-            "name"=> "required|string|max:255",
+            "name" => "required|string|max:255",
             "sheet_number_id" => "nullable|exists:sheet_numbers,id"
         ]);
 
@@ -52,9 +52,11 @@ class DependencyController extends Controller
         // Prioridad: 1) Ficha del usuario, 2) Enviada en JSON
         if ($sheet) {
             $sheetId = $sheet->id;
-        } elseif (isset($validate['sheet_number_id'])) {
+        }
+        elseif (isset($validate['sheet_number_id'])) {
             $sheetId = $validate['sheet_number_id'];
-        } else {
+        }
+        else {
             return response()->json([
                 "success" => false,
                 "message" => "Debe proporcionar un sheet_number_id o tener una ficha asignada"
@@ -68,9 +70,9 @@ class DependencyController extends Controller
         ]);
 
         return response()->json([
-            "message"=> "Dependencia creada con exito",
+            "message" => "Dependencia creada con exito",
             "dependency" => $dependency
-        ],200);
+        ], 200);
     }
 
     /**
@@ -106,7 +108,7 @@ class DependencyController extends Controller
         //Busca la dependencia con el id
         $dependency = Dependency::find($id);
 
-        if(!$dependency){
+        if (!$dependency) {
             return response()->json([
                 "message" => "Depenedencia no encontrada"
             ], 404);
@@ -118,10 +120,10 @@ class DependencyController extends Controller
 
         $dependency->update($validate);
         return response()->json([
-            "success"=>true,
-            "message"=> "Dependencia actualizada exitosamente",
+            "success" => true,
+            "message" => "Dependencia actualizada exitosamente",
             "dependency" => $dependency
-        ],200);
+        ], 200);
     }
 
     /**
@@ -131,16 +133,16 @@ class DependencyController extends Controller
     {
         //
         $dependency = Dependency::find($id);
-        if(!$dependency){
+        if (!$dependency) {
             return response()->json([
-                "status"=> "error",
-                "message"=> "Dependencia no encontrada"],404);
+                "status" => "error",
+                "message" => "Dependencia no encontrada"], 404);
         }
 
         $dependency->delete();
 
         return response()->json([
-            "success"=>true,
-            "message"=> "Dependencia eliminada"],200);
+            "success" => true,
+            "message" => "Dependencia eliminada"], 200);
     }
 }

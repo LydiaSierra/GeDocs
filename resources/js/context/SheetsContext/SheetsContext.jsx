@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 import api from "@/lib/axios";
 
 export const SheetsContext = createContext();
@@ -58,15 +58,13 @@ export function SheetsProvider({ children }) {
         }
     };
 
-    
-
     return (
         <SheetsContext.Provider
             value={{
                 sheets,
                 fetchSheets,
                 deleteSheet,
-                editSheet, 
+                editSheet,
             }}
         >
             {children}

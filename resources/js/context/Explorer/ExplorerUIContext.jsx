@@ -1,16 +1,14 @@
 
 import { createContext, useEffect, useState, useCallback } from "react";
 
-export const ArchiveUIContext = createContext();
+export const ExplorerUIContext = createContext();
 
-export function ArchiveUIProvider({ children }) {
+export function ExplorerUIProvider({ children }) {
 
   // States for the UI management like the grid view and modal details 
   const [gridView, setGridView] = useState(false);
   const [showDropFolders, setShowDropFolders] = useState(false)
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [inputSearchTerm, setInputSearchTerm] = useState("")
 
 
 
@@ -37,11 +35,6 @@ export function ArchiveUIProvider({ children }) {
     return `${(size / Math.pow(1024, index)).toFixed(2)} ${units[index]}`;
   }, []);
   // Handle the opening and closing of the modal details, setting the selected item accordingly
-  const showDetails = (item) => {
-    setSelectedItem(item);
-    console.log(item);
-
-  };
 
   const toggleDropFolders = useCallback(() => {
     setShowDropFolders(!showDropFolders);
@@ -52,22 +45,19 @@ export function ArchiveUIProvider({ children }) {
 
   // Provide the context values to the children components
   return (
-    <ArchiveUIContext.Provider
+    <ExplorerUIContext.Provider
       value={{
         gridView,
-        selectedItem,
+        inputSearchTerm,
+        setInputSearchTerm,
         toggleGridView,
-        showDetails,
         formatSize,
-        setSelectedItem,
         toggleDropFolders,
         showDropFolders,
-        selectedFolder,
-        setSelectedFolder
       }}
     >
       {children}
-    </ArchiveUIContext.Provider>
+    </ExplorerUIContext.Provider>
   );
 }
 
