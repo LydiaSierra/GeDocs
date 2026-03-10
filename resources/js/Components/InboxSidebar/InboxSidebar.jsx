@@ -3,7 +3,7 @@ import {
     FunnelIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
-import InboxMailCard from "@/components/InboxMailCard/InboxMailCard";
+import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
 import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
 
