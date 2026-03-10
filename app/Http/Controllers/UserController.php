@@ -109,6 +109,8 @@ class UserController extends Controller
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)    {
+
+        $authUser = $request->user();
         $user = User::with('sheetNumbers')->find($id);
 
         if (!$user) {
@@ -116,6 +118,16 @@ class UserController extends Controller
                 "success" => false,
                 "message" => "Usuario no encontrado"
             ], 404);
+        }
+
+        //Verificar si la solicitud de actualizacion la hace un instructor para un aprendiz
+        if($authUser->hasRole("Instructor")){
+            if(!$user->hasRole("Aprendiz") ){
+                return response()->json([
+                    "sucess"=>false,
+                    "message"=>"No tienes permiso para editar este usuario",
+                ],403);
+            }
         }
 
         $validate = $request->validate([
