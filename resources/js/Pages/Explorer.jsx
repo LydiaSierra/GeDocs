@@ -1,4 +1,4 @@
-import { InputSearch } from "@/components/ArchiveExplorer/InputSearch";
+import { InputSearch } from "@/Components/ArchiveExplorer/InputSearch";
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";

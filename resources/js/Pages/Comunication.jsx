@@ -1,10 +1,9 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Head, Link } from "@inertiajs/react";
-import ApplicationLogo from "@/Components/ApplicationLogo";
-import { 
-    CheckCircleIcon, 
-    PaperClipIcon, 
+import {
+    CheckCircleIcon,
+    PaperClipIcon,
     ArrowPathIcon,
     ChatBubbleLeftRightIcon,
     DocumentTextIcon,
@@ -49,7 +48,7 @@ export default function Comunication({ pqrID }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (response.trim().length < 10) {
             addToast("error", "La respuesta debe tener al menos 10 caracteres.");
             return;
@@ -58,7 +57,7 @@ export default function Comunication({ pqrID }) {
         setIsSubmitting(true);
         const data = new FormData();
         data.append("message", response);
-        
+
         attachments.forEach((file) => {
             data.append("attachments[]", file);
         });
@@ -149,7 +148,7 @@ export default function Comunication({ pqrID }) {
             <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
 
                 <div className="bg-gray-50 px-6 sm:px-10 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between gap-4">
-                    
+
                     <div>
                         <span className="text-xs uppercase tracking-widest font-semibold text-gray-400">
                             Radicado
@@ -195,7 +194,7 @@ export default function Comunication({ pqrID }) {
                     {/* Formulario */}
                     <form onSubmit={handleSubmit} className="space-y-8">
 
-                       
+
                         <div className="space-y-2">
                             <label className="font-semibold text-gray-700">
                                 Escriba su respuesta de manera formal
@@ -249,7 +248,7 @@ export default function Comunication({ pqrID }) {
                             />
                         </div>
 
-                      
+
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
 
                             <button

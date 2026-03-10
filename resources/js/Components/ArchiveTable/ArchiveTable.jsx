@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import ArchiveMailModal from "@/components/ArchiveMailModal/ArchiveMailModal";
+import ArchiveMailModal from "@/Components/ArchiveMailModal/ArchiveMailModal";
 import api from "@/lib/axios.js";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import EmptyState from "../EmptyState";
