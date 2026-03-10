@@ -47,12 +47,12 @@ export default function ArchiveTable() {
                         <table className="w-full table-auto border-separate border-spacing-y-2">
                             <thead className="sticky top-0">
                                 <tr className="bg-gray-500 text-white">
-                                    <th className="py-3 rounded-l-md">ID</th>
+                                    <th className="py-1.5 md:py-3 rounded-l-md">ID</th>
                                     <th>Título</th>
-                                    <th>Solicitante</th>
+                                    <th className="hidden md:table-cell">Solicitante</th>
                                     <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th className="rounded-r-md">Fecha</th>
+                                    <th className="rounded-r-md md:rounded-r-none">Estado</th>
+                                    <th className="rounded-r-md hidden md:table-cell">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -62,12 +62,12 @@ export default function ArchiveTable() {
                                         onClick={() => setSelectedMail(mail)}
                                         className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 text-center hover:bg-accent/50"
                                     >
-                                        <td className="py-3 rounded-l-md">{mail.id}</td>
+                                        <td className="py-1.5 md:py-3 rounded-l-md">{mail.id}</td>
                                         <td className="truncate max-w-[200px]">{mail.affair}</td>
-                                        <td>{mail.sender_name}</td>
+                                        <td>{mail.sender_name || 'Sin nombre'}</td>
                                         <td>{mail.request_type}</td>
-                                        <td>{mail.response_status}</td>
-                                        <td className="rounded-r-md">{new Date(mail.created_at).toLocaleDateString()}</td>
+                                        <td className="rounded-r-md md:rounded-r-none">{mail.response_status}</td>
+                                        <td className="rounded-r-md hidden md:table-cell">{new Date(mail.created_at).toLocaleDateString()}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -82,28 +82,6 @@ export default function ArchiveTable() {
                 }
 
             </div>
-
-            {/* MOBILE
-            <div className="md:hidden space-y-3">
-                {mails.length === 0 &&
-                    <div className=" relative h-[50vh]">
-                        <EmptyState text={"No hay email archivados"} />
-                    </div>
-                }
-                {mails.map(mail => (
-                    <div
-                        key={mail.id}
-                        onClick={() => setSelectedMail(mail)}
-                        className="bg-gray-100 p-3 rounded-lg shadow cursor-pointer mt-3"
-                    >
-                        <p><b>ID:</b> {mail.id}</p>
-                        <p><b>Título:</b> {mail.affair}</p>
-                        <p><b>Solicitante:</b> {mail.sender_name}</p>
-                        <p><b>Estado:</b> {mail.response_status}</p>
-                    </div>
-                ))}
-            </div> */}
-
             {/* MODAL */}
             {selectedMail && (
                 <ArchiveMailModal
