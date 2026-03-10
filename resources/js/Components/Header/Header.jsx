@@ -137,7 +137,7 @@ export default function Header() {
                         role="button"
                         className="cursor-pointer rounded-full bg-gray-200 w-10 h-10 overflow-hidden"
                     >
-                        {user?.profile_photo ? (
+                        {user?.profile_photo && user?.profile_photo !==null && user?.profile_photo !== "" ? (
                             <img
                                 src={user.profile_photo}
                                 onLoad={() => setLoadingPhoto(false)}
@@ -145,6 +145,7 @@ export default function Header() {
                                 className={`w-full h-full object-cover ${
                                     loadingPhoto ? "opacity-0" : "opacity-100"
                                 }`}
+                                alt={`Foto de perfil de ${user?.name}`}
                             />
                         ) : (
                             <UserIcon className="w-full h-full p-2 text-gray-400" />

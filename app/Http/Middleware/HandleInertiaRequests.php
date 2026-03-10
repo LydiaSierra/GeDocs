@@ -35,7 +35,11 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user() ? $request->user()->load("roles") : [],
             ],
             "notifications" => $request->user() ? $request->user()->notifications : null,
-            'pending' => fn() => $request->session()->get('pending'),
+            'flash' => fn() => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'status' => $request->session()->get('status'),
+            ],
         ];
     }
 }

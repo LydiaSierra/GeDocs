@@ -32,7 +32,7 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'role' => 'required|string|in:Aprendiz,Instructor',
-            'technical_sheet_id' => 'nullable|exists:technical_sheets,id',
+            'technical_sheet_id' => 'nullable|exists:sheets_numbers,id',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -60,9 +60,7 @@ class RegisteredUserController extends Controller
             }
             if ($user->status === "pending") {
                 Auth::logout();
-                return redirect()->route('login')->with('pending', [
-                    'message' => "Instructor. Tu cuenta sera revisada por el administrador",
-                ]);
+                return redirect()->route('login')->with(["status" => "Instructor. Tu cuenta sera revisada por el administrador"]);
             }
         }
 
