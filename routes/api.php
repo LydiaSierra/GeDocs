@@ -48,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/users', [UserController::class , 'index']);
             Route::get('/users/{id}', [UserController::class , 'show']);
             Route::get('/users/search/filter', [UserController::class , 'userByFilter']);
+            Route::put('/users/{id}', [UserController::class , 'update']);
 
             // ================== FOLDERS ROUTES ==================
             // Creates a new folder
@@ -89,7 +90,6 @@ Route::middleware('auth:sanctum')->group(function () {
         // ONLY ADMIN
         Route::middleware('role:Admin')->group(function () {
             Route::post('/users', [UserController::class , 'store']);
-            Route::put('/users/{id}', [UserController::class , 'update']);
             Route::delete('/users/{id}', [UserController::class , 'destroy']);
 
 
