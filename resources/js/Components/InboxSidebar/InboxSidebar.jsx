@@ -34,15 +34,16 @@ export default function InboxSidebar() {
         <div
             className={`
         w-full
-        md:min-w-[450px]
-        lg:w-1/3
+        lg:w-[400px]
+        xl:w-1/3
         bg-white
         flex flex-col
         rounded-lg
         h-full
-        md:ml-1
-        md:p-3
+        lg:ml-1
+        p-3 pb-[50px] md:pb-3
         transition-all duration-300 ease-in-out
+        flex-shrink-0
         ${selectedMail ? "hidden lg:flex" : "flex"}
     `}
         >
@@ -96,7 +97,7 @@ export default function InboxSidebar() {
 
             <div
                 id="mail-card-scrollarea"
-                className="p-2 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full"
+                className="p-3 md:pb-3 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full h-full"
             >
                 {loading ? (
                     <div className={"flex flex-col gap-2"}>

@@ -44,7 +44,7 @@ export default function Header() {
     };
 
     return (
-        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-10 w-screen">
+        <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-full">
             {/* HAMBURGER */}
             {shouldShowHamburger && (
                 <div className="dropdown lg:hidden">
@@ -152,13 +152,13 @@ export default function Header() {
                         )}
                     </div>
 
-                    <ul className="menu dropdown-content bg-base-100 rounded-box mt-3 p-2 shadow z-50">
-                        <li className="px-3 py-2">
-                            <p>{user?.name}</p>
-                            <p className="text-xs">{rol}</p>
-                            <p className="text-xs text-gray-500">
-                                {user?.email}
-                            </p>
+                    <ul className="menu dropdown-content bg-base-100 rounded-box mt-3 w-64 p-2 shadow z-50 border border-gray-100">
+                        <li className="px-4 py-3 mb-1 border-b border-base-200 pointer-events-none">
+                            <div className="flex flex-col p-0 bg-transparent gap-0 w-56 overflow-hidden">
+                                <p className="font-bold text-gray-900 truncate w-full block">{user?.name}</p>
+                                <p className="text-[11px] font-semibold text-gray-500 uppercase truncate w-full block">{rol}</p>
+                                <p className="text-xs text-gray-500 truncate w-full block">{user?.email}</p>
+                            </div>
                         </li>
 
                         <li>
@@ -169,7 +169,7 @@ export default function Header() {
                         </li>
 
                         <li>
-                            <button onClick={logout}>
+                            <button onClick={logout} className="text-red-500">
                                 <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />
                                 Cerrar sesión
                             </button>

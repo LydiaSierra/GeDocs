@@ -2,26 +2,47 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ArchiveMailModal from "@/Components/ArchiveMailModal/ArchiveMailModal";
 import api from "@/lib/axios.js";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon, MagnifyingGlassIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import EmptyState from "../EmptyState";
 
 export default function ArchiveTable() {
     const [mails, setMails] = useState([]);
+    const [filteredMails, setFilteredMails] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [selectedMail, setSelectedMail] = useState(null);
     const [loading, setLoading] = useState(false);
 
-
     useEffect(() => {
-        setLoading(true)
+        setLoading(true);
         api.get("/api/pqrs?archived=true")
             .then(res => {
-                setMails(res.data.data ?? res.data)
-                setLoading(false)
-
-
+                const data = res.data.data ?? res.data;
+                setMails(data);
+                setFilteredMails(data);
+                setLoading(false);
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
     }, []);
+
+    useEffect(() => {
+        const lowerSearch = searchTerm.toLowerCase().trim();
+        if (lowerSearch === "") {
+            setFilteredMails(mails);
+            return;
+        }
+
+        const filtered = mails.filter(mail => 
+            mail.affair?.toLowerCase().includes(lowerSearch) ||
+            mail.description?.toLowerCase().includes(lowerSearch) ||
+            mail.id?.toString().includes(lowerSearch) ||
+            mail.sender_name?.toLowerCase().includes(lowerSearch)
+        );
+        setFilteredMails(filtered);
+    }, [searchTerm, mails]);
 
     const unarchiveMail = async (id) => {
         await axios.patch(`/api/pqrs/${id}`, { archived: false });
@@ -31,8 +52,27 @@ export default function ArchiveTable() {
 
     return (
         <>
-            {/* DESKTOP */}
-            <div className="overflow-x-auto mt-2.5 md:mt-0">
+            <div className="mb-4">
+                <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full md:w-96 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                    <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2" />
+                    <input
+                        placeholder="Buscar por asunto, id o solicitante..."
+                        type="text"
+                        className="bg-transparent border-none focus:outline-none w-full text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    {searchTerm && (
+                        <XMarkIcon 
+                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer" 
+                            onClick={() => setSearchTerm("")}
+                        />
+                    )}
+                </div>
+            </div>
+
+          
+            <div className="overflow-x-auto mt-2.5 md:mt-0 pb-[30px] md:pb-0">
                 {loading ?
                     <div className={"flex justify-center items-center h-40"}>
 
@@ -44,34 +84,71 @@ export default function ArchiveTable() {
 
                     :
                     <>
-                        <table className="w-full table-auto border-separate border-spacing-y-2">
-                            <thead className="sticky top-0">
-                                <tr className="bg-gray-500 text-white">
-                                    <th className="py-3 rounded-l-md">ID</th>
-                                    <th>Título</th>
-                                    <th>Solicitante</th>
-                                    <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th className="rounded-r-md">Fecha</th>
+                        <table className="w-full table-fixed md:table-auto border-collapse">
+                            <thead className="sticky top-0 z-10 bg-white border-b border-gray-300">
+                                <tr className="text-gray-600 uppercase text-[10px] md:text-sm">
+                                    <th className="py-4 px-2 md:px-4 text-left font-bold w-[65%] md:w-auto">Asunto / ID</th>
+                                    <th className="hidden lg:table-cell px-4 text-left font-bold">Solicitante / Tipo</th>
+                                    <th className="px-2 md:px-4 text-center md:text-left font-bold w-[35%] md:w-auto">Estado</th>
+                                    <th className="hidden sm:table-cell px-4 text-right font-bold">Fecha</th>
+                                    <th className="w-8 md:hidden"></th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {mails.map(mail => (
+                            <tbody className="bg-white">
+                                {filteredMails.map(mail => (
                                     <tr
                                         key={mail.id}
                                         onClick={() => setSelectedMail(mail)}
-                                        className="cursor-pointer odd:bg-gray-100 even:bg-gray-200 text-center hover:bg-accent/50"
+                                        className="cursor-pointer border-b border-gray-100 transition-colors bg-white hover:bg-primary/5 select-none"
                                     >
-                                        <td className="py-3 rounded-l-md">{mail.id}</td>
-                                        <td className="truncate max-w-[200px]">{mail.affair}</td>
-                                        <td>{mail.sender_name}</td>
-                                        <td>{mail.request_type}</td>
-                                        <td>{mail.response_status}</td>
-                                        <td className="rounded-r-md">{new Date(mail.created_at).toLocaleDateString()}</td>
+                                        <td className="py-4 px-2 md:px-4">
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <div className="p-1.5 md:p-2 bg-gray-50 rounded text-gray-400 shrink-0 hidden xs:block">
+                                                    <DocumentTextIcon className="size-4 md:size-5" />
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <div className="flex items-center gap-1.5 md:gap-2">
+                                                        <span className="font-bold text-gray-800 truncate text-xs md:text-sm">
+                                                            {mail.affair}
+                                                        </span>
+                                                        <span className="text-[10px] text-gray-400 font-medium shrink-0">#{mail.id}</span>
+                                                    </div>
+                                                    <span className="text-[10px] text-gray-500 lg:hidden truncate opacity-80">
+                                                        {mail.sender_name?.split(' ')[0]} • {mail.request_type}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="hidden lg:table-cell text-left px-4">
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-sm font-medium text-gray-600 truncate">{mail.sender_name || 'Sin nombre'}</span>
+                                                <span className="text-[10px] text-gray-400 capitalize truncate">{mail.request_type}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-2 md:px-4 text-center md:text-left">
+                                            <span className={`text-[10px] md:text-xs font-bold uppercase tracking-tighter md:tracking-wider ${
+                                                mail.response_status === 'Finalizado' 
+                                                ? 'text-green-600' 
+                                                : 'text-green-900'
+                                            }`}>
+                                                {mail.response_status}
+                                            </span>
+                                        </td>
+                                        <td className="hidden sm:table-cell px-4 text-right text-xs md:text-sm text-gray-500 tabular-nums">
+                                            {new Date(mail.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                        </td>
+                                        <td className="px-2 text-right md:hidden">
+                                            <ChevronRightIcon className="w-4 h-4 text-gray-300 inline" />
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+                        {filteredMails.length === 0 && mails.length > 0 &&
+                            <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
+                                <p>No se encontraron resultados para "{searchTerm}"</p>
+                            </div>
+                        }
                         {mails.length === 0 &&
                             <div className=" relative h-[50vh]">
                                 <EmptyState text={"No hay email archivados"} />
@@ -82,29 +159,7 @@ export default function ArchiveTable() {
                 }
 
             </div>
-
-            {/* MOBILE
-            <div className="md:hidden space-y-3">
-                {mails.length === 0 &&
-                    <div className=" relative h-[50vh]">
-                        <EmptyState text={"No hay email archivados"} />
-                    </div>
-                }
-                {mails.map(mail => (
-                    <div
-                        key={mail.id}
-                        onClick={() => setSelectedMail(mail)}
-                        className="bg-gray-100 p-3 rounded-lg shadow cursor-pointer mt-3"
-                    >
-                        <p><b>ID:</b> {mail.id}</p>
-                        <p><b>Título:</b> {mail.affair}</p>
-                        <p><b>Solicitante:</b> {mail.sender_name}</p>
-                        <p><b>Estado:</b> {mail.response_status}</p>
-                    </div>
-                ))}
-            </div> */}
-
-            {/* MODAL */}
+            
             {selectedMail && (
                 <ArchiveMailModal
                     mail={selectedMail}
