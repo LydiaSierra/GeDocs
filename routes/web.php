@@ -66,8 +66,13 @@ Route::middleware('auth')->group(function () {
         ->name('archive');
 
     //Direccion a Formulario
-    Route::get('/form', fn() => Inertia::render('Form'))
-        ->name('form');
+    Route::get('/form', function () {
+    $dependencies = \App\Models\Dependency::select('id', 'name')->get();
+    return Inertia::render('Form', [
+        'dependencies' => $dependencies,
+    ]);
+
+})->name('form');
 
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))
