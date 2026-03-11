@@ -23,16 +23,19 @@ const SelectDependecyOrNumberSheet = () => {
 
     const getButtonText = () => {
         if (mailContext && mailContext.activeScopeFilter) {
-            return `Filtrando: ${mailContext.activeScopeFilter.name}`;
+            return `${mailContext.activeScopeFilter.name}`;
         }
-        return "Selecciona una ficha y/o dependencia";
+        return "Ficha y/o dependencia";
     };
 
+    if (route().current() !== 'inbox') {
+        return null;
+    }
+
     return (
-        <div>
             <Menu
                 menuButton={
-                    <MenuButton className="cursor-pointer p-2 border border-gray-200 rounded-md flex items-center gap-2">
+                    <MenuButton className="cursor-pointer w-max p-2 border border-gray-200 rounded-md flex items-center gap-2 text-md font-medium">
                         {getButtonText()}
                         {mailContext?.activeScopeFilter && (
                             <button
@@ -79,7 +82,6 @@ const SelectDependecyOrNumberSheet = () => {
                     )
                 ))}
             </Menu>
-        </div>
     )
 }
 

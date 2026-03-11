@@ -13,10 +13,9 @@ class Folder extends Model
         'name',
         'parent_id',
         'active',
-
         'folder_code',
-
         'department',
+        'sheet_number_id',
     ];
 
     public function parent()
@@ -30,6 +29,11 @@ class Folder extends Model
     public function files()
     {
         return $this->hasMany(File::class);
+    }
+
+    public function sheetNumber()
+    {
+        return $this->belongsTo(Sheet_number::class);
     }
 
     public function folder()

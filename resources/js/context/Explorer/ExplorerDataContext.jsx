@@ -44,16 +44,24 @@ export function ExplorerDataProvider({ children }) {
     // Each entry is a folder ID
     const [historyStack, setHistoryStack] = useState([]);
 
+    // Tracks the currently selected sheet (ficha) for filtering
+    const [activeSheetId, setActiveSheetId] = useState(null);
+
 
     // Fetch folders and files from the API depending on the current folder (parentId)
-    const fetchFolders = async (parentId = null) => {
+    const fetchFolders = async (parentId = null, sheetId = null) => {
         try {
             setLoading(true);
 
-            // Determine the API endpoint based on whether we are inside a folder or in the root
+            // Build request params
+            const params = {};
+            const effectiveSheetId = sheetId ?? activeSheetId;
+            if (effectiveSheetId) {
+                params.sheet_number_id = effectiveSheetId;
+            }
 
             // Make the API request
-            const res = await api.get("/api/folders");
+            const res = await api.get("/api/folders", { params });
 
             // If the response is successful, update folders and files
             if (res.data.success === true) {
@@ -136,7 +144,7 @@ export function ExplorerDataProvider({ children }) {
         } catch (err) {
             setLoadingAllFolders(false)
             throw new Error("Error al hacer la petición: ", err.message || err);
-           
+
         }
     }
 
@@ -172,7 +180,14 @@ export function ExplorerDataProvider({ children }) {
         let toastId;
         try {
             toastId = toast.loading("Creando Carpeta");
-            const res = await api.post(`/api/folders`, data);
+
+            // Attach current sheet if creating at root level and a sheet is active
+            const folderData = { ...data };
+            if (!folderData.parent_id && activeSheetId) {
+                folderData.sheet_number_id = activeSheetId;
+            }
+
+            const res = await api.post(`/api/folders`, folderData);
 
             if (!res.data.success) {
                 toast.error(res.data?.message || "Error")
@@ -510,8 +525,9 @@ export function ExplorerDataProvider({ children }) {
                 updateFolder,
                 setcurrentFolder,
                 selectedItems,
-                deleteSelection
-
+                deleteSelection,
+                activeSheetId,
+                setActiveSheetId,
             }}
         >
             {children}

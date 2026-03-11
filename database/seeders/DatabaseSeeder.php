@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleSeeder::class,
-            FoldersSeeder::class,
         ]);
 
         //Usuario admin
@@ -78,7 +77,7 @@ class DatabaseSeeder extends Seeder
             SheetSeeder::class
         ]);
 
-     //Dependencias
+        //Dependencias
         // Busca una ficha existente para asociar dependencias adicionales
         $sheet = Sheet_number::first();
 
@@ -103,6 +102,7 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
+            FoldersSeeder::class,
             PQRSeeder::class,
         ]);
     }

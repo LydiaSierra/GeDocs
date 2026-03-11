@@ -49,10 +49,6 @@ export default function InboxSidebar() {
     `}
         >
             <div className="w-full flex flex-col">
-                 <div
-                    className={"lg:hidden flex justify-end mb-2"}>
-                    <SelectDependecyOrNumberSheet />
-                </div>
                 <h2 className="font-bold text-2xl mb-2 text-center">
                     Bandeja de Entrada
                 </h2>
@@ -79,8 +75,8 @@ export default function InboxSidebar() {
                             <input
                                 key={cat.value}
                                 className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${filters.includes(cat.value)
-                                        ? "bg-primary text-white hover:bg-primary"
-                                        : "bg-gray-100 hover:bg-gray-200"
+                                    ? "bg-primary text-white hover:bg-primary"
+                                    : "bg-gray-100 hover:bg-gray-200"
                                     }`}
                                 type="checkbox"
                                 aria-label={cat.label}
@@ -90,13 +86,16 @@ export default function InboxSidebar() {
                         ))}
                     </div>
                 </div>
+                <div className="flex justify-between p-2 items-center">
+                    <h3
+                        id="inbox-date"
+                        className="text-start px-2 my-4 font-bold capitalize"
+                    >
+                        {currentMonthYear}
+                    </h3>
 
-                <h3
-                    id="inbox-date"
-                    className="text-start w-full px-2 my-4 font-bold capitalize"
-                >
-                    {currentMonthYear}
-                </h3>
+                    <SelectDependecyOrNumberSheet />
+                </div>
             </div>
 
             <div
