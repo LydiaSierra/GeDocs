@@ -1,11 +1,14 @@
-import { CheckCircleIcon, PaperClipIcon } from "@heroicons/react/24/solid";
-import { useState, useEffect } from "react";
+import { PaperClipIcon } from "@heroicons/react/24/solid";
+import { useState, lazy, Suspense } from "react";
 import axios from "axios";
 import { Link } from "@inertiajs/react";
 
-export default function Form() {
+const CheckCircleIcon = lazy(() =>
+    import("@heroicons/react/24/solid").then((m) => ({ default: m.CheckCircleIcon }))
+);
+
+export default function Form({ dependencies = []}) {
     const [toasts, setToasts] = useState([]);
-    const [dependencies, setDependencies] = useState([]);
     const [submitted, setSubmitted] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -20,19 +23,6 @@ export default function Form() {
         dependency_id: "",
         attachments: [],
     });
-
-    const fetchDependencies = async () => {
-        try {
-            const res = await axios.get("/api/dependencies");
-            setDependencies(res.data.dependencies || []);
-        } catch (error) {
-            console.error("Error fetching dependencies:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchDependencies();
-    }, []);
 
     const addToast = (type, message) => {
         const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -108,7 +98,9 @@ export default function Form() {
         return (
             <div className="bg-senaGray min-h-screen flex items-center justify-center px-4">
                 <div className="bg-white rounded-xl p-8 sm:p-10 w-full max-w-lg text-center shadow-md">
-                    <CheckCircleIcon className="w-20 h-20 text-primary mx-auto mb-4" />
+                    <Suspense fallback={null}>
+                        <CheckCircleIcon className="w-20 h-20 text-primary mx-auto mb-4" />
+                    </Suspense>
                     <h1 className="text-2xl font-bold text-senaDarkGreen mb-2">
                         ¡PQRS enviada con éxito!
                     </h1>
@@ -190,8 +182,9 @@ export default function Form() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full lg:w-4/5 xl:w-3/4">
 
                                 <div>
-                                    <label className="label-text">Nombre Completo</label>
+                                    <label htmlFor="sender_name" className="label-text">Nombre Completo</label>
                                     <input
+                                        id="sender_name"
                                         name="sender_name"
                                         type="text"
                                         className="input input-bordered w-full"
@@ -201,8 +194,9 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label className="label-text">Número de Ficha</label>
+                                    <label htmlFor="number" className="label-text">Número de Ficha</label>
                                     <input
+                                        id="number"
                                         name="number"
                                         type="text"
                                         className="input input-bordered w-full"
@@ -212,8 +206,9 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label className="label-text">Tipo de Documento</label>
+                                    <label htmlFor="document_type" className="label-text">Tipo de Documento</label>
                                     <select
+                                        id="document_type"
                                         name="document_type"
                                         className="select select-bordered w-full"
                                         value={formData.document_type}
@@ -226,8 +221,9 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label className="label-text">Número de Documento</label>
+                                    <label htmlFor="document" className="label-text">Número de Documento</label>
                                     <input
+                                        id="document"
                                         name="document"
                                         type="text"
                                         className="input input-bordered w-full"
@@ -237,8 +233,9 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label className="label-text">Correo Electrónico</label>
+                                    <label htmlFor="email" className="label-text">Correo Electrónico</label>
                                     <input
+                                        id="email"
                                         name="email"
                                         type="email"
                                         className="input input-bordered w-full"
@@ -248,8 +245,9 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label className="label-text">Tipo de Solicitud</label>
+                                    <label htmlFor="request_type" className="label-text">Tipo de Solicitud</label>
                                     <select
+                                        id="request_type"
                                         name="request_type"
                                         className="select select-bordered w-full"
                                         value={formData.request_type}
@@ -263,8 +261,9 @@ export default function Form() {
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="label-text">Dependencia</label>
+                                    <label htmlFor="dependency_id" className="label-text">Dependencia</label>
                                     <select
+                                        id="dependency_id"
                                         name="dependency_id"
                                         className="select select-bordered w-full"
                                         value={formData.dependency_id}
@@ -281,8 +280,9 @@ export default function Form() {
                             </div>
 
                             <div className="w-full lg:w-4/5 xl:w-3/4 mt-6">
-                                <label className="label-text">Asunto</label>
+                                <label htmlFor="affair" className="label-text">Asunto</label>
                                 <input
+                                    id="affair"
                                     name="affair"
                                     type="text"
                                     className="input input-bordered w-full"
@@ -292,8 +292,9 @@ export default function Form() {
                             </div>
 
                             <div className="w-full lg:w-4/5 xl:w-3/4 mt-4">
-                                <label className="label-text">Descripción</label>
+                                <label htmlFor="description" className="label-text">Descripción</label>
                                 <textarea
+                                    id="description"
                                     name="description"
                                     className="textarea textarea-bordered w-full"
                                     rows="5"

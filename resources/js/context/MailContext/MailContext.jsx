@@ -1,7 +1,7 @@
-import {createContext, useEffect, useState} from "react";
+import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import api from "@/lib/axios.js";
-import {toast} from "sonner";
+import { toast } from "sonner";
 
 export const MailContext = createContext(null);
 
@@ -11,6 +11,7 @@ export function MailProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeScopeFilter, setActiveScopeFilter] = useState(null);
 
     const loadMailCards = async () => {
         try {
@@ -20,8 +21,8 @@ export function MailProvider({ children }) {
         } catch (err) {
             toast.error(
                 err?.response?.data?.message ||
-                    err.message ||
-                    "Error al hacer la peticion"
+                err.message ||
+                "Error al hacer la peticion"
             );
             throw new Error("Error al hacer la peticion");
         } finally {
@@ -45,8 +46,17 @@ export function MailProvider({ children }) {
             card.affair?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             card.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             card.id?.toString().includes(searchTerm);
-            
-        return matchesFilter && matchesSearch;
+
+        let matchesScope = true;
+        if (activeScopeFilter) {
+            if (activeScopeFilter.type === 'sheet') {
+                matchesScope = card.sheet_number_id === activeScopeFilter.id;
+            } else if (activeScopeFilter.type === 'dependency') {
+                matchesScope = card.dependency_id === activeScopeFilter.id;
+            }
+        }
+
+        return matchesFilter && matchesSearch && matchesScope;
     });
 
     useEffect(() => {
@@ -66,6 +76,8 @@ export function MailProvider({ children }) {
                 toggleFilter,
                 searchTerm,
                 setSearchTerm,
+                activeScopeFilter,
+                setActiveScopeFilter,
                 reloadMailCards: loadMailCards,
             }}
         >

@@ -6,6 +6,7 @@ import {
 import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
 import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
+import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
 export default function InboxSidebar() {
     const {
@@ -48,6 +49,10 @@ export default function InboxSidebar() {
     `}
         >
             <div className="w-full flex flex-col">
+                 <div
+                    className={"lg:hidden flex justify-end mb-2"}>
+                    <SelectDependecyOrNumberSheet />
+                </div>
                 <h2 className="font-bold text-2xl mb-2 text-center">
                     Bandeja de Entrada
                 </h2>
@@ -73,11 +78,10 @@ export default function InboxSidebar() {
                         {categories.map((cat) => (
                             <input
                                 key={cat.value}
-                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${
-                                    filters.includes(cat.value)
+                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${filters.includes(cat.value)
                                         ? "bg-primary text-white hover:bg-primary"
                                         : "bg-gray-100 hover:bg-gray-200"
-                                }`}
+                                    }`}
                                 type="checkbox"
                                 aria-label={cat.label}
                                 checked={filters.includes(cat.value)}

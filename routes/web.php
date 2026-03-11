@@ -14,10 +14,10 @@ Route::middleware('auth')->group(function () {
 
 
     // Inbox principal
-    
-        Route::get('/', fn() => Inertia::render('Inbox'))
+
+    Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
-   
+
 
     //Vista de notificaciones pasando el id
     Route::get(
@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
             'notificationId' => null
         ])
     )->name('notifications.index');
-    
+
     //Gestion Admin General
 
     // Gestion de Aprendices
@@ -42,9 +42,9 @@ Route::middleware('auth')->group(function () {
             'notificationId' => null
         ])
     )->name('notifications.aprendiz');
-    
+
     //Gestion Admin General
-    
+
     // Gestion de Instructor
     Route::get(
         '/users/instructor',
@@ -66,8 +66,13 @@ Route::middleware('auth')->group(function () {
         ->name('archive');
 
     //Direccion a Formulario
-    Route::get('/form', fn() => Inertia::render('Form'))
-        ->name('form');
+    Route::get('/form', function () {
+    $dependencies = \App\Models\Dependency::select('id', 'name')->get();
+    return Inertia::render('Form', [
+        'dependencies' => $dependencies,
+    ]);
+
+})->name('form');
 
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))

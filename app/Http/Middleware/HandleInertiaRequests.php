@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Dependency;
+use App\Models\Sheet_number;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +42,8 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'status' => $request->session()->get('status'),
             ],
+            "sheets" => $request->user() ? ($request->user()->hasRole("Instructor") ? $request->user()->sheetNumbers()->with("dependencies")->get() : Sheet_number::with("dependencies")->get()) : [],
+            // "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],    
         ];
     }
 }

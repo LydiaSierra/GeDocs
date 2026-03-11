@@ -10,14 +10,17 @@ import {
     ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
+import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
 export default function Header() {
     const { url, props } = usePage();
     const user = props?.auth?.user;
     const rol = user?.roles?.[0]?.name;
 
+
     const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
+  
 
     const logout = (e) => {
         e.preventDefault();
@@ -128,7 +131,14 @@ export default function Header() {
 
             {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center">
+
+                <div
+                    className={"hidden lg:inline-block"}>
+                    <SelectDependecyOrNumberSheet />
+                </div>
+
                 {(rol === "Admin" || rol === "Instructor") && <NotificationDropDown />}
+
 
                 {/* USER MENU */}
                 <div className="dropdown dropdown-end">
@@ -137,14 +147,13 @@ export default function Header() {
                         role="button"
                         className="cursor-pointer transition-colors rounded-full bg-gray-200 w-10 h-10 overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2"
                     >
-                        {user?.profile_photo && user?.profile_photo !==null && user?.profile_photo !== "" ? (
+                        {user?.profile_photo && user?.profile_photo !== null && user?.profile_photo !== "" ? (
                             <img
                                 src={user.profile_photo}
                                 onLoad={() => setLoadingPhoto(false)}
                                 onError={() => setLoadingPhoto(false)}
-                                className={`w-full h-full object-cover ${
-                                    loadingPhoto ? "opacity-0" : "opacity-100"
-                                }`}
+                                className={`w-full h-full object-cover ${loadingPhoto ? "opacity-0" : "opacity-100"
+                                    }`}
                                 alt={`Foto de perfil de ${user?.name}`}
                             />
                         ) : (
