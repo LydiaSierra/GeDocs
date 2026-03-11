@@ -14,7 +14,8 @@ import { NotificationsProvider } from "@/context/Notifications/NotificationsCont
 import { UserProvider } from "./context/UserContext/UserContext";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
-
+import '@szhsin/react-menu/dist/index.css';
+import '@szhsin/react-menu/dist/transitions/zoom.css';
 import { Toaster } from "sonner";
 
 const appName = "GeDocs"

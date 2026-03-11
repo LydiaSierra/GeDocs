@@ -10,20 +10,17 @@ import {
     ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
-import { Menu, MenuItem, MenuButton, SubMenu } from '@szhsin/react-menu';
-import '@szhsin/react-menu/dist/index.css';
-import '@szhsin/react-menu/dist/transitions/zoom.css';
+import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
 export default function Header() {
     const { url, props } = usePage();
     const user = props?.auth?.user;
     const rol = user?.roles?.[0]?.name;
-    const sheets = props?.sheets;
-    const dependencies = props?.dependencies;
+
 
     const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
-    console.log(sheets);
+  
 
     const logout = (e) => {
         e.preventDefault();
@@ -135,39 +132,11 @@ export default function Header() {
             {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center">
 
+                <div
+                    className={"hidden lg:inline-block"}>
+                    <SelectDependecyOrNumberSheet />
+                </div>
 
-                <Menu
-                    menuButton={
-                        <MenuButton className="cursor-pointer p-2 border border-gray-200 rounded-md">
-                            Selecciona una ficha y/o dependencia
-                        </MenuButton>
-                    }
-                    transition
-                    position="right"
-                >
-                    {sheets.map((sheet) => (
-                        <SubMenu
-                            key={sheet.id}
-                            label={sheet?.number}
-                            className="p-0"
-                            openTrigger="clickOnly"
-                        >
-                            {sheet.dependencies.map((dependency) => (
-                                <MenuItem key={dependency.id} value={dependency.id}>
-                                    {dependency.name}
-                                </MenuItem>
-                            ))}
-                        </SubMenu>
-                    ))}
-                </Menu>
-                {/* <select name="dependency" id="dependency" className="select select-primary">
-                    <option value="">Selecciona una dependencia</option>
-                    {dependencies.map((dependency) => (
-                        <option key={dependency.id} value={dependency.id}>
-                            {dependency.name}
-                        </option>
-                    ))}
-                </select> */}
                 {(rol === "Admin" || rol === "Instructor") && <NotificationDropDown />}
 
 
