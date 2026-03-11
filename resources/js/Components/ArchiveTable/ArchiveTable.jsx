@@ -126,11 +126,16 @@ export default function ArchiveTable() {
                                             </div>
                                         </td>
                                         <td className="px-2 md:px-4 text-center md:text-left">
-                                            <span className={`text-[10px] md:text-xs font-bold uppercase tracking-tighter md:tracking-wider ${
+                                            <span className={`inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold uppercase tracking-wider ${
                                                 mail.response_status === 'Finalizado' 
                                                 ? 'text-green-600' 
-                                                : 'text-green-900'
+                                                : 'text-amber-600'
                                             }`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                                    mail.response_status === 'Finalizado'
+                                                    ? 'bg-green-500'
+                                                    : 'bg-amber-500'
+                                                }`} />
                                                 {mail.response_status}
                                             </span>
                                         </td>
@@ -145,8 +150,8 @@ export default function ArchiveTable() {
                             </tbody>
                         </table>
                         {filteredMails.length === 0 && mails.length > 0 &&
-                            <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
-                                <p>No se encontraron resultados para "{searchTerm}"</p>
+                            <div className="relative h-[40vh]">
+                                <EmptyState text={`No se encontraron resultados para "${searchTerm}"`} />
                             </div>
                         }
                         {mails.length === 0 &&

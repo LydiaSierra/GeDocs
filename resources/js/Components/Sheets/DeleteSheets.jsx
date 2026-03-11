@@ -1,35 +1,36 @@
 export default function DeleteSheets({ sheetToDelete, deleteSheet }) {
     const handleDelete = () => {
         if (!sheetToDelete) return;
-
         deleteSheet(sheetToDelete.id);
-
-        // Close the delete modal
         document.getElementById("delete_modal")?.close();
-
-        // Ensure the details modal is also closed
         document.getElementById("my_modal_3")?.close();
     };
 
     return (
         <dialog id="delete_modal" className="modal">
-            <div className="modal-box">
-                <h3 className="font-bold text-lg">¿Eliminar ficha?</h3>
+            <div className="modal-box max-w-md rounded-2xl p-0 overflow-hidden">
+                <div className="px-5 sm:px-6 pt-5 pb-2">
+                    <h3 className="font-bold text-lg text-gray-800">¿Eliminar ficha?</h3>
+                    <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                        Esta acción no se puede deshacer. Las dependencias ligadas a la ficha se eliminarán de igual forma.
+                    </p>
+                </div>
 
-                <p className="py-4 text-gray-600">
-                    Esta acción no se puede deshacer. Ten en cuenta que al eliminar, las dependencias ligadas a la ficha se eliminarán de igual forma.
-                </p>
-
-                <div className="modal-action">
+                <div className="px-5 sm:px-6 py-4 flex justify-end gap-3">
                     <form method="dialog">
-                        <button className="btn">Cancelar</button>
+                        <button className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">
+                            Cancelar
+                        </button>
                     </form>
-
-                    <button onClick={handleDelete} className="btn btn-error">
+                    <button
+                        onClick={handleDelete}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                    >
                         Eliminar
                     </button>
                 </div>
             </div>
+            <form method="dialog" className="modal-backdrop"><button>close</button></form>
         </dialog>
     );
 }
