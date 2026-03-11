@@ -161,11 +161,11 @@ export default function Header() {
                         )}
                     </div>
 
-                    <ul className="menu dropdown-content bg-white rounded-2xl mt-3 w-72 p-0 shadow-xl z-50 border border-gray-200 overflow-hidden">
+                    <ul className="menu dropdown-content bg-white rounded-2xl mt-3 w-80 p-0 shadow-xl z-50 border border-gray-200 overflow-hidden">
                         <li className="pointer-events-none border-b border-gray-200 px-4 py-4">
-                            <div className="flex flex-col gap-1 bg-transparent p-0">
-                                <p className="block w-full truncate text-sm font-bold text-[#010515]">{user?.name}</p>
-                                <p className="block w-full truncate text-[11px] font-semibold uppercase text-[#606164]">{rol}</p>
+                            <div className="flex flex-col gap-0.5 bg-transparent p-0 min-w-0">
+                                <p className="block w-full text-sm font-bold text-[#010515] leading-tight break-words line-clamp-2">{user?.name}</p>
+                                <p className="block w-full truncate text-[11px] font-semibold uppercase text-[#606164] mt-1">{rol}</p>
                                 <p className="block w-full truncate text-xs text-[#848484]">{user?.email}</p>
                             </div>
                         </li>
