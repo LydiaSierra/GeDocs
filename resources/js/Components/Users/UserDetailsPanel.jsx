@@ -1,5 +1,5 @@
 import { UserContext } from "@/context/UserContext/UserContext";
-import React, { useContext, useEffect, useCallback } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import UserEditPanel from "./userDetails/UserEditPanel";
 import DeleteConfirm from "./DeleteConfirm";
@@ -13,20 +13,28 @@ function UserDetailsPanel() {
         setIsDelete,
     } = useContext(UserContext);
 
-    const close = useCallback(() => setidSelected(null), [setidSelected]);
+    const dialogRef = useRef(null);
+    const switchingToEditRef = useRef(false);
 
     useEffect(() => {
-        const handleKey = (e) => { if (e.key === "Escape") close(); };
+        const dialog = dialogRef.current;
+        if (!dialog) return;
         if (idSelected && !edit) {
-            document.addEventListener("keydown", handleKey);
-            return () => document.removeEventListener("keydown", handleKey);
+            if (!dialog.open) dialog.showModal();
+        } else {
+            if (dialog.open) dialog.close();
         }
-    }, [idSelected, edit, close]);
+    }, [idSelected, edit]);
 
-    if (!idSelected) return null;
-    if (edit) return <UserEditPanel />;
+    const handleDialogClose = () => {
+        if (switchingToEditRef.current) {
+            switchingToEditRef.current = false;
+            return;
+        }
+        setidSelected(null);
+    };
 
-    const roleName = idSelected.roles?.[0]?.name || "Usuario";
+    const roleName = idSelected?.roles?.[0]?.name || "Usuario";
 
     const title =
         roleName === "Instructor"
@@ -36,23 +44,19 @@ function UserDetailsPanel() {
             : "Detalles de Usuario";
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3"
-            onClick={close}
-        >
-            <div
-                className="relative w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <>
+        {edit && <UserEditPanel />}
+        <dialog ref={dialogRef} className="modal" onClose={handleDialogClose}>
+        {idSelected && !edit && (<>
+            <div className="modal-box max-w-2xl rounded-2xl p-0 overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
                     <h3 className="font-bold text-lg sm:text-xl text-gray-800">{title}</h3>
-                    <button
-                        className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                        onClick={close}
-                    >
-                        <XMarkIcon className="size-5 text-gray-500" />
-                    </button>
+                    <form method="dialog">
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                            <XMarkIcon className="size-5 text-gray-500" />
+                        </button>
+                    </form>
                 </div>
 
                 {/* Body */}
@@ -120,15 +124,17 @@ function UserDetailsPanel() {
                     </button>
                     <button
                         className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity"
-                        onClick={() => { setIsDelete(false); setEdit(true); }}
+                        onClick={() => { switchingToEditRef.current = true; setIsDelete(false); setEdit(true); }}
                     >
                         Editar
                     </button>
                 </div>
-
-                <DeleteConfirm />
             </div>
-        </div>
+            <form method="dialog" className="modal-backdrop"><button>close</button></form>
+        </>)}
+        </dialog>
+        <DeleteConfirm />
+        </>
     );
 }
 
