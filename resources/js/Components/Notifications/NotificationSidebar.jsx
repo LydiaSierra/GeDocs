@@ -45,10 +45,10 @@ const NotificationSidebar = ({ url }) => {
 
     return (
         <div
-            className={`${notificationSeleted ? "grid-cols-3 grid gap-2" : "flex flex-col gap-2"} mt-2 w-full h-full`}
+            className={`${notificationSeleted ? "grid-cols-1 md:grid-cols-3 grid gap-2" : "flex flex-col gap-2"} mt-2 w-full h-full overflow-hidden`}
         >
-            <div className={`col-span-1 h-max-content ${notificationSeleted ? "hidden md:block" : ""}`}>
-                <div className="flex justify-between items-center flex-wrap gap-4 pr-6">
+            <div className={`col-span-1 flex flex-col h-full overflow-hidden ${notificationSeleted ? "hidden md:flex" : "flex"}`}>
+                <div className="flex justify-between items-center flex-wrap gap-4 pr-6 shrink-0">
                     <div className="flex flex-wrap items-center gap-5 w-auto">
                         <h1 className="font-bold text-2xl text-black">
                             Notificaciones de Acceso
@@ -56,7 +56,7 @@ const NotificationSidebar = ({ url }) => {
                     </div>
 
                     <h1
-                        className="cursor-pointer bg-base-content px-3 max-w-content max-h-content rounded-md hover:scale-105 transition-all flex items-center gap-1 text-sm py-1 text-white"
+                        className="cursor-pointer bg-base-content px-3 w-fit h-fit rounded-md hover:scale-105 transition-all flex items-center gap-1 text-sm py-1 text-white"
                         onClick={() => {
                             fetchNotifications();
                         }}
@@ -66,7 +66,7 @@ const NotificationSidebar = ({ url }) => {
                 </div>
 
                 {filteredNotifications.length > 0 ? (
-                    <ul className="flex flex-col overflow-y-scroll gap-3 pr-2 mt-1 rounded-lg h-full">
+                    <ul className="flex flex-col overflow-y-auto gap-3 pr-2 mt-4 rounded-lg flex-1 pb-2">
                         {/* condicionales para estilos dependiendo el estado de la notificacion */}
                         {filteredNotifications.map((item) => {
                             const isSelected = item.id === notificationSeleted;
