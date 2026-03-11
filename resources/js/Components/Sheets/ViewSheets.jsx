@@ -9,7 +9,6 @@ export default function ViewSheets({ sheet }) {
 
     const openEditModal = () => {
         document.getElementById("my_modal_3")?.close();
-
         setTimeout(() => {
             document.getElementById("my_modal_4")?.showModal();
         }, 100);
@@ -17,7 +16,6 @@ export default function ViewSheets({ sheet }) {
 
     const openDeleteModal = () => {
         document.getElementById("my_modal_3")?.close();
-
         setSheetToDelete(sheet);
         setTimeout(() => {
             document.getElementById("delete_modal")?.showModal();
@@ -25,17 +23,12 @@ export default function ViewSheets({ sheet }) {
     };
 
     return (
-        <div className="bg-gray-100 p-6 rounded-lg">
-            <dialog id="my_modal_4" className="modal p-2">
-                <div className="modal-box  p-8">
-                    <form method="dialog">
-                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                            ✕
-                        </button>
-                    </form>
-
+        <div>
+            <dialog id="my_modal_4" className="modal">
+                <div className="modal-box max-w-lg p-0 rounded-2xl overflow-hidden">
                     <EditSheets sheet={sheet} />
                 </div>
+                <form method="dialog" className="modal-backdrop"><button>close</button></form>
             </dialog>
 
             <DeleteSheets
@@ -43,37 +36,38 @@ export default function ViewSheets({ sheet }) {
                 deleteSheet={deleteSheet}
             />
 
-            <h2 className="text-2xl font-semibold mb-4">Detalles de Ficha</h2>
+            <h2 className="font-bold text-lg sm:text-xl text-gray-800 mb-5">Detalles de Ficha</h2>
 
-            <div className="bg-gray-100 p-6 rounded-lg">
-                <div className="grid grid-cols-2 gap-6">
-                    <div>
-                        <p className="text-gray-700 font-medium">
-                            Número Ficha
-                        </p>
-                        <p className="font-semibold">{sheet?.number}</p>
-                    </div>
-
-                    <div>
-                        <p className="text-gray-700 font-medium">Estado</p>
-                        <p className="font-semibold">{sheet?.state}</p>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Número Ficha</p>
+                    <p className="text-sm font-semibold text-gray-800">{sheet?.number}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Estado</p>
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${
+                        sheet?.state?.toLowerCase() === "activa" ? "text-green-600" : "text-amber-600"
+                    }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                            sheet?.state?.toLowerCase() === "activa" ? "bg-green-500" : "bg-amber-500"
+                        }`} />
+                        {sheet?.state}
+                    </span>
                 </div>
             </div>
 
-            <div className="flex justify-center gap-6 mt-6">
-                <button
-                    onClick={openEditModal}
-                    className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
-                >
-                    Editar
-                </button>
-
+            <div className="flex justify-end gap-3">
                 <button
                     onClick={openDeleteModal}
-                    className="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600 transition"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                 >
                     Borrar
+                </button>
+                <button
+                    onClick={openEditModal}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity"
+                >
+                    Editar
                 </button>
             </div>
         </div>

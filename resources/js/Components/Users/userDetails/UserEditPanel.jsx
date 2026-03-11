@@ -1,17 +1,18 @@
 import api from "@/lib/axios";
 import { UserContext } from "@/context/UserContext/UserContext";
-import React, { useContext, useState, useEffect } from "react";
-import { ArrowUturnLeftIcon, CameraIcon } from "@heroicons/react/24/solid";
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
-import { router, usePage } from "@inertiajs/react";
+import { usePage } from "@inertiajs/react";
 
 function UserEditPanel() {
     const { props } = usePage();
     const authRole = props?.auth?.user?.roles?.[0]?.name;
-    // Consume user context state and actions
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
-    // Local form state
+    const dialogRef = useRef(null);
+
     const [nombre, setNombre] = useState("");
     const [documento, setDocumento] = useState("");
     const [numero_documento, setNumeroDocumento] = useState("");
@@ -21,20 +22,23 @@ function UserEditPanel() {
     const [selectedSheets, setSelectedSheets] = useState([]);
 
     useEffect(() => {
+        const dialog = dialogRef.current;
+        if (dialog && !dialog.open) dialog.showModal();
+    }, []);
+
+    useEffect(() => {
         if (idSelected) {
             setNombre(idSelected.name);
             setDocumento(idSelected.type_document);
             setNumeroDocumento(idSelected.document_number);
             setEmail(idSelected.email);
             setEstado(idSelected.status);
-
             if (idSelected.sheet_numbers) {
-                setSelectedSheets(
-                    idSelected.sheet_numbers.map((sheet) => sheet.id),
-                );
+                setSelectedSheets(idSelected.sheet_numbers.map((sheet) => sheet.id));
             }
         }
     }, [idSelected]);
+
     const toggleSheet = (sheetId) => {
         if (selectedSheets.includes(sheetId)) {
             setSelectedSheets(selectedSheets.filter((id) => id !== sheetId));
@@ -43,17 +47,6 @@ function UserEditPanel() {
         }
     };
 
-    const [loadingEdit, setLoadingEdit] = useState(false);
-
-    // Track edit-loading state for the selected user
-
-    useEffect(() => {
-        if (idSelected) {
-            setLoadingEdit(true);
-        } else {
-            setLoadingEdit(false);
-        }
-    }, []);
     useEffect(() => {
         const fetchSheets = async () => {
             if (authRole === 'Instructor') {
@@ -64,18 +57,13 @@ function UserEditPanel() {
                 setSheets(res.data.sheets || []);
             }
         };
-
         fetchSheets();
     }, [authRole]);
 
-    // Call the context update action while handling toast lifecycle
     const UploadUser = async () => {
         let toastId;
-        // Input validation
         if (numero_documento.length > 10) {
-            toast.error(
-                "El número de documento no puede tener más de 10 caracteres",
-            );
+            toast.error("El número de documento no puede tener más de 10 caracteres");
             return;
         }
         if (nombre.length < 3) {
@@ -92,210 +80,122 @@ function UserEditPanel() {
         }
         try {
             toastId = toast.loading("Actualizando información");
-            await UpdateInfo(
-                nombre,
-                documento,
-                numero_documento,
-                email,
-                estado,
-                idSelected.id,
-                selectedSheets
-            );
+            await UpdateInfo(nombre, documento, numero_documento, email, estado, idSelected.id, selectedSheets);
             toast.success("Información actualizada");
         } catch (err) {
-            toast.error(
-                err?.response?.data?.message ||
-                err?.message ||
-                err ||
-                "Error al hacer la petición",
-            );
+            toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la petición");
         } finally {
-            if (toastId) {
-                toast.dismiss(toastId);
-            }
+            if (toastId) toast.dismiss(toastId);
         }
     };
 
-    return (
-        <div className={`modal ${idSelected ? "modal-open" : ""} px-2 sm:px-4`}>
-            <div className="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden">
-                {/* HEADER */}
-                <div className="relative px-4 sm:px-6 py-4 border-b">
-                    <button
-                        className="absolute left-4 top-4 btn btn-circle btn-ghost btn-sm"
-                        onClick={() => setEdit(false)}
-                    >
-                        <ArrowUturnLeftIcon className="w-5 h-5" />
-                    </button>
+    const inputClass = "w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-shadow";
 
-                    <h3 className="text-center font-semibold text-lg sm:text-xl">
-                        {idSelected?.roles[0]?.name === "Instructor"
-                            ? "Editar Instructor"
-                            : "Editar Aprendiz"}
+    return (
+        <dialog ref={dialogRef} className="modal" onClose={() => setEdit(false)}>
+            <div className="modal-box max-w-2xl rounded-2xl p-0 overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
+                    <button
+                        className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        onClick={() => dialogRef.current?.close()}
+                    >
+                        <ArrowUturnLeftIcon className="size-5 text-gray-500" />
+                    </button>
+                    <h3 className="font-bold text-lg sm:text-xl text-gray-800">
+                        {idSelected?.roles[0]?.name === "Instructor" ? "Editar Instructor" : "Editar Aprendiz"}
                     </h3>
+                    <form method="dialog">
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                            <XMarkIcon className="size-5 text-gray-500" />
+                        </button>
+                    </form>
                 </div>
 
-                {/* BODY SCROLLABLE */}
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 bg-gray-50">
-                    {/* Profile */}
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-5">
+                    {/* Profile header */}
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="relative">
+                        <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-gray-100 shrink-0">
                             <img
-                                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover"
+                                className="w-full h-full object-cover"
                                 alt="profile pic"
-                                src={
-                                    idSelected.profile_photo ||
-                                    "/images/default-user-icon.png"
-                                }
+                                src={idSelected.profile_photo || "/images/default-user-icon.png"}
                             />
                         </div>
-                        <h1 className="font-semibold text-base sm:text-lg truncate">
-                            {idSelected?.name}
-                        </h1>
+                        <h2 className="font-semibold text-base sm:text-lg text-gray-800 truncate">{idSelected?.name}</h2>
                     </div>
 
-                    {/* FORM GRID */}
+                    {/* Form grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Base input style */}
-                        {/** This class can be reused across all inputs */}
-                        {/* className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none" */}
-
-                        {/* Name */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium">
-                                Nombres
-                            </label>
-                            <input
-                                type="text"
-                                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none"
-                                value={nombre}
-                                onChange={(e) => setNombre(e.target.value)}
-                            />
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Nombres</label>
+                            <input type="text" className={inputClass} value={nombre} onChange={(e) => setNombre(e.target.value)} />
                         </div>
 
-                        {/* Document type */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium">
-                                Tipo Documento
-                            </label>
-                            <select
-                                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none"
-                                value={documento}
-                                onChange={(e) => setDocumento(e.target.value)}
-                            >
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo Documento</label>
+                            <select className={inputClass} value={documento} onChange={(e) => setDocumento(e.target.value)}>
                                 <option value="">Seleccione</option>
                                 <option value="CC">Cédula</option>
                                 <option value="TI">Tarjeta</option>
                             </select>
                         </div>
 
-                        {/* Document number */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium">
-                                Número Documento
-                            </label>
-                            <input
-                                type="text"
-                                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none"
-                                value={numero_documento}
-                                onChange={(e) =>
-                                    setNumeroDocumento(e.target.value)
-                                }
-                            />
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Número Documento</label>
+                            <input type="text" className={inputClass} value={numero_documento} onChange={(e) => setNumeroDocumento(e.target.value)} />
                         </div>
 
-                        {/* Email */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-sm font-medium">
-                                Correo
-                            </label>
-                            <input
-                                type="email"
-                                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Correo</label>
+                            <input type="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} />
                         </div>
 
-                        {/* Status */}
-                        <div className="flex flex-col gap-1 md:col-span-2">
-                            <label className="text-sm font-medium">
-                                Estado
-                            </label>
-                            <select
-                                className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none"
-                                value={estado}
-                                onChange={(e) => setEstado(e.target.value)}
-                            >
+                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</label>
+                            <select className={inputClass} value={estado} onChange={(e) => setEstado(e.target.value)}>
                                 <option value="">Seleccione estado</option>
                                 <option value="pending">Pendiente</option>
                                 <option value="active">Activo</option>
                             </select>
                         </div>
 
-                        {/* Sheets */}
+                        {/* Sheets selector */}
                         <div className="flex flex-col gap-2 md:col-span-2">
-                            <label className="text-sm font-medium">
-                                Asignar Fichas
-                            </label>
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Asignar Fichas</label>
 
-                            <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
-                                {/* Selected sheet tags */}
-                                <div className="flex flex-wrap gap-2">
+                            <div className="border border-gray-200 rounded-xl bg-gray-50 p-4 flex flex-col gap-3">
+                                <div className="flex flex-wrap gap-2 min-h-7">
                                     {selectedSheets.length > 0 ? (
                                         selectedSheets.map((sheetId) => {
-                                            const sheet = sheets.find(
-                                                (s) => s.id === sheetId,
-                                            );
+                                            const sheet = sheets.find((s) => s.id === sheetId);
                                             return (
-                                                <div
-                                                    key={sheetId}
-                                                    className="bg-primary text-white px-3 py-1 rounded-full text-xs flex items-center gap-2 max-w-full"
-                                                >
-                                                    <span className="truncate">
-                                                        {sheet?.number}
-                                                    </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            toggleSheet(sheetId)
-                                                        }
-                                                        className="font-bold"
-                                                    >
-                                                        ✕
+                                                <span key={sheetId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                                                    {sheet?.number}
+                                                    <button type="button" onClick={() => toggleSheet(sheetId)} className="hover:text-primary/70">
+                                                        <XMarkIcon className="size-3.5" />
                                                     </button>
-                                                </div>
+                                                </span>
                                             );
                                         })
                                     ) : (
-                                        <span className="text-xs text-gray-400">
-                                            No hay fichas seleccionadas
-                                        </span>
+                                        <span className="text-xs text-gray-400">No hay fichas seleccionadas</span>
                                     )}
                                 </div>
 
-                                {/* Available sheets list */}
-                                <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
+                                <div className="max-h-40 overflow-y-auto border-t border-gray-200 pt-3 flex flex-col gap-0.5">
                                     {sheets.map((sheet) => {
-                                        const isSelected =
-                                            selectedSheets.includes(sheet.id);
-
+                                        const isSelected = selectedSheets.includes(sheet.id);
                                         return (
                                             <div
                                                 key={sheet.id}
-                                                onClick={() =>
-                                                    toggleSheet(sheet.id)
-                                                }
-                                                className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
-                                                ${isSelected
-                                                        ? "bg-primary text-white"
-                                                        : "hover:bg-gray-100"
-                                                    }
-                                            `}
+                                                onClick={() => toggleSheet(sheet.id)}
+                                                className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex items-center transition-colors ${
+                                                    isSelected ? "bg-primary text-white" : "hover:bg-white"
+                                                }`}
                                             >
-                                                <span className="truncate">
-                                                    {sheet.number}
-                                                </span>
+                                                {sheet.number}
                                             </div>
                                         );
                                     })}
@@ -305,17 +205,24 @@ function UserEditPanel() {
                     </div>
                 </div>
 
-                {/* FOOTER */}
-                <div className="border-t px-4 sm:px-6 py-4 flex justify-end bg-white">
+                {/* Footer */}
+                <div className="border-t border-gray-100 px-5 sm:px-6 py-4 flex justify-end gap-3 bg-white">
                     <button
-                        className="w-full sm:w-auto px-6 h-10 rounded-lg bg-primary text-white font-semibold hover:bg-white hover:text-primary border-2 border-primary transition"
+                        className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                        onClick={() => dialogRef.current?.close()}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        className="px-5 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity"
                         onClick={UploadUser}
                     >
                         Guardar Cambios
                     </button>
                 </div>
             </div>
-        </div>
+            <form method="dialog" className="modal-backdrop"><button>close</button></form>
+        </dialog>
     );
 }
 

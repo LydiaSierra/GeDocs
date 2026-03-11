@@ -27,20 +27,36 @@ export default function Explorer() {
 
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
+
+        localStorage.setItem("active_sheet_id", sheetId);
+
         localStorage.removeItem("folder_id");
         setHistoryStack([]);
+
         fetchFolders(null, sheetId);
         getAllFolders();
     };
 
+
     const handleBackToSheets = () => {
         setActiveSheetId(null);
+
+        localStorage.removeItem("active_sheet_id");
+
         localStorage.removeItem("folder_id");
         setHistoryStack([]);
     };
 
+
     useEffect(() => {
-        if (activeSheetId) {
+
+        const savedSheet = localStorage.getItem("active_sheet_id");
+
+        if (savedSheet) {
+            const sheetId = Number(savedSheet);
+
+            setActiveSheetId(sheetId);
+
             const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
 
             if (savedHistory?.length > 0) {
@@ -48,11 +64,14 @@ export default function Explorer() {
                 const lastFolder = savedHistory[savedHistory.length - 1];
                 openFolder(lastFolder, false);
             } else {
-                fetchFolders(null, activeSheetId);
+                fetchFolders(null, sheetId);
             }
+
             getAllFolders();
         }
+
     }, []);
+
 
     return (
         <>
@@ -94,8 +113,17 @@ export default function Explorer() {
                             </div>
 
                             {sheets.length === 0 && (
-                                <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
-                                    <p>No hay fichas disponibles.</p>
+                                <div className="flex flex-col items-center justify-center p-10 text-gray-600 text-center font-bold w-full">
+                                    <div className="relative flex justify-center items-center">
+                                        <p className="absolute z-1">No hay fichas disponibles</p>
+                                        <div className="h-full w-full">
+                                            <img
+                                                className="opacity-60 lg:h-110"
+                                                src="/images/OBJECTS.svg"
+                                                alt=""
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

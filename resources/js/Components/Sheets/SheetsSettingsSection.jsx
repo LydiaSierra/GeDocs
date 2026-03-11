@@ -1,5 +1,6 @@
 import React, { useState, useContext, useMemo, useEffect } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import SheetsTable from "./SheetsTable";
 import CreateSheets from "./CreateSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
@@ -12,22 +13,15 @@ export default function SheetsSettingsSection() {
         fetchSheets();
     }, []);
 
-    const [inputValue, setInputValue] = useState("");
-    const [search, setSearch] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
     const openEditModal = () => {
         document.getElementById("my_modal_2")?.showModal();
     };
 
-    const resetSearch = () => {
-        setInputValue("");
-        setSearch("");
-    };
-
     const filteredSheets = useMemo(() => {
-        if (!search.trim()) return sheets;
-
-        const term = search.toLowerCase();
+        const term = searchTerm.toLowerCase().trim();
+        if (!term) return sheets;
 
         return sheets.filter(
             (sheet) =>
@@ -35,69 +29,64 @@ export default function SheetsSettingsSection() {
                 sheet.state.toLowerCase().includes(term) ||
                 sheet.id.toString().includes(term),
         );
-    }, [search, sheets]);
+    }, [searchTerm, sheets]);
 
     return (
-        <div className="w-full flex flex-col p-3 bg-white rounded-lg min-h-[90%] mt-4">
+        <div className="w-full flex flex-col gap-4">
             {/* MODAL */}
             <dialog id="my_modal_2" className="modal">
-                <div className="modal-box max-w-5xl w-[95%] sm:w-[90%] p-6 sm:p-8">
+                <div className="modal-box max-w-lg w-[95%] sm:w-[90%] p-0 rounded-2xl overflow-hidden">
                     <form method="dialog">
-                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
-                            ✕
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors absolute right-3 top-3 z-10">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5 text-gray-500"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                         </button>
                     </form>
                     <CreateSheets />
                 </div>
+                <form method="dialog" className="modal-backdrop"><button>close</button></form>
             </dialog>
 
-            <h2 className="font-bold text-xl sm:text-2xl mb-3">
+            <h2 className="font-bold text-xl sm:text-2xl">
                 Lista de Fichas
             </h2>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <div className="flex items-center flex-1 bg-white px-3 py-1">
+            <div className="flex flex-col sm:flex-row gap-3 w-full items-stretch sm:items-center">
+                <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg flex-1 md:max-w-md shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                    <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2 shrink-0" />
                     <input
-                        placeholder="Buscar por número o estado"
+                        placeholder="Buscar por número o estado..."
                         type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                setSearch(inputValue);
-                            }
-                        }}
-                        className="input bg-gray-200 border-none focus:outline-none shadow-none text-sm min-w-0"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="bg-transparent border-none focus:outline-none w-full text-sm"
                     />
-
-                    <MagnifyingGlassIcon
-                        className="w-10 h-10 shrink-0 text-[#404142] cursor-pointer bg-gray-200 rounded-r-lg -translate-x-1"
-                        onClick={() => setSearch(inputValue)}
-                    />
-
-                    {search && (
-                        <button
-                            onClick={resetSearch}
-                            className="ml-2 px-3 py-2 text-sm bg-gray-300 rounded-md hover:bg-gray-400 transition"
-                        >
-                            Limpiar
-                        </button>
+                    {searchTerm && (
+                        <XMarkIcon
+                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer shrink-0"
+                            onClick={() => setSearchTerm("")}
+                        />
                     )}
                 </div>
 
                 <button
                     onClick={openEditModal}
-                    className="p-2 bg-primary rounded-md text-white w-full sm:w-auto"
+                    className="px-4 py-2.5 bg-primary rounded-lg text-white text-sm font-medium w-full sm:w-auto hover:opacity-90 transition-opacity"
                 >
                     Nueva ficha
                 </button>
             </div>
 
-            <div className="w-full border rounded-lg mt-6 overflow-visible h-full relative">
+            <div className="w-full mt-4 h-full relative">
                 {filteredSheets.length > 0 ? (
                     <SheetsTable sheets={filteredSheets} />
+                ) : searchTerm ? (
+                    <div className="relative h-[40vh]">
+                        <EmptyState text={`No se encontraron resultados para "${searchTerm}"`} />
+                    </div>
                 ) : (
-                    <EmptyState text={"Aún no hay fichas creadas"} />
+                    <div className="relative h-[50vh]">
+                        <EmptyState text="Aún no hay fichas creadas" />
+                    </div>
                 )}
             </div>
         </div>

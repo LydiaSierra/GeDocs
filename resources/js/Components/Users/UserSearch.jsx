@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { UserContext } from "@/context/UserContext/UserContext";
 
 function UserSearch({ url }) {
@@ -16,40 +17,39 @@ function UserSearch({ url }) {
     } = useContext(UserContext);
 
     const [openDrodown, setOpenDropdown] = useState(false);
-    const [FilterText, setFilterText] = useState("");
+
+    const filterLabels = {
+        name: "Nombre",
+        document_number: "Identificación",
+        email: "Email",
+    };
 
     useEffect(() => {
-        if (filterSelected === "name") {
-            setFilterText("Nombre");
-        } else if (filterSelected === "document_number") {
-            setFilterText("Identificacion");
-        } else if (filterSelected === "email") {
-            setFilterText("Email");
-        } else {
-            setFilterText("");
-        }
         if (isSearching) {
             searchUser(inputSearch, filterSelected);
         }
     }, [filterSelected]);
 
+    const title =
+        url === "/users/instructor"
+            ? "Lista de Instructores"
+            : url === "/users/aprendiz"
+            ? "Lista de Aprendices"
+            : "Lista de Fichas";
+
     return (
-        <div className="w-full h-auto flex flex-col gap-5">
-            <h1 className="lg:text-2xl md:text-xl text-md">
-                {url === "/users/instructor"
-                    ? "Lista de Instructores"
-                    : url === "/users/aprendiz"
-                    ? "Lista de Aprendices"
-                    : "Lista de Fichas"}
-            </h1>
-            <div id="inbox-search" className="flex gap-2 lg:w-[40%] md:w-[40%] w-[70%] ">
-                <div className="flex items-center bg-[#E8E8E8] px-2 rounded-md flex-1 min-w-0">
+        <div className="w-full flex flex-col gap-4">
+            <h2 className="font-bold text-xl sm:text-2xl">{title}</h2>
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full items-stretch sm:items-center">
+                {/* Search input */}
+                <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg flex-1 md:max-w-md shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                    <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2 shrink-0" />
                     <input
-                        placeholder="Buscar"
+                        placeholder="Buscar..."
                         type="text"
                         value={inputSearch}
-                        className="input bg-[#E8E8E8] w-full border-none 
-                        focus:outline-none shadow-none truncate lg:text-text-md"
+                        className="bg-transparent border-none focus:outline-none w-full text-sm"
                         onChange={(e) => {
                             const value = e.target.value;
                             setInputSearch(value);
@@ -64,74 +64,73 @@ function UserSearch({ url }) {
                             }
                         }}
                     />
-                    <MagnifyingGlassIcon
-                        className="size-5 mr-2 shrink-0 text-[#404142] cursor-pointer"
-                        onClick={() => {
-                            searchUser(inputSearch, filterSelected);
-                        }}
-                    />
+                    {inputSearch && (
+                        <XMarkIcon
+                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer shrink-0"
+                            onClick={() => {
+                                resetSearch();
+                            }}
+                        />
+                    )}
                 </div>
-                <div
-                    className={`relative p-3 rounded-md shrink-0 cursor-pointer hover:bg-accent 
-                        ${openDrodown ? "bg-accent" : "bg-[#E8E8E8]"} `}
-                    onClick={() => {
-                        if (openDrodown === false) {
-                            setOpenDropdown(true);
-                        } else {
-                            setOpenDropdown(false);
-                        }
-                    }}
-                >
-                    <div className="flex flex-row justify-center items-center gap-3">
-                        <FunnelIcon className="size-6 text-[#404142] " />
-                        {FilterText}
-                    </div>
+
+                {/* Filter dropdown */}
+                <div className="relative">
+                    <button
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                            openDrodown || filterSelected
+                                ? "border-primary bg-primary/5 text-primary"
+                                : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"
+                        }`}
+                        onClick={() => setOpenDropdown(!openDrodown)}
+                    >
+                        <FunnelIcon className="size-4" />
+                        {filterSelected ? filterLabels[filterSelected] : "Filtrar"}
+                    </button>
                     {openDrodown && (
-                        <div className="absolute left-0 top-full w-40 h-auto bg-white shadow-lg rounded-md border z-20">
-                            <ul className="py-2 text-sm text-neutral text-start">
-                                <li
-                                    className="px-4 py-2 hover:bg-accent cursor-pointer"
-                                    onClick={() => {
-                                        setOpenDropdown(false);
-                                        setFilterSelected("name");
-                                    }}
-                                >
-                                    Nombre
-                                </li>
-                                <li
-                                    className="px-4 py-2 hover:bg-accent cursor-pointer"
-                                    onClick={() => {
-                                        setOpenDropdown(false);
-                                        setFilterSelected("document_number");
-                                    }}
-                                >
-                                    Identificacion
-                                </li>
-                                <li
-                                    className="px-4 py-2 hover:bg-accent cursor-pointer"
-                                    onClick={() => {
-                                        setOpenDropdown(false);
-                                        setFilterSelected("email");
-                                    }}
-                                >
-                                    Email
-                                </li>
+                        <div className="absolute left-0 top-full mt-1 w-44 bg-white shadow-lg rounded-lg border border-gray-200 z-20 overflow-hidden">
+                            <ul className="py-1 text-sm">
+                                {Object.entries(filterLabels).map(([key, label]) => (
+                                    <li
+                                        key={key}
+                                        className={`px-4 py-2.5 cursor-pointer transition-colors ${
+                                            filterSelected === key
+                                                ? "bg-primary/5 text-primary font-medium"
+                                                : "text-gray-700 hover:bg-gray-50"
+                                        }`}
+                                        onClick={() => {
+                                            setOpenDropdown(false);
+                                            setFilterSelected(key);
+                                        }}
+                                    >
+                                        {label}
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     )}
                 </div>
 
-                {isSearching ? (
+                {/* Search button */}
+                {!isSearching ? (
                     <button
-                        className="`w-auto px-3 h-full rounded-[7px] bg-primary text-[16px] cursor-pointer text-white border-none font-semibold
-                text-center hover:border-solid border-2 hover:border-primary hover:bg-white hover:text-primary"
+                        className="px-4 py-2.5 bg-primary rounded-lg text-white text-sm font-medium w-full sm:w-auto hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                            searchUser(inputSearch, filterSelected);
+                        }}
+                    >
+                        Buscar
+                    </button>
+                ) : (
+                    <button
+                        className="px-4 py-2.5 rounded-lg text-sm font-medium w-full sm:w-auto border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
                         onClick={() => {
                             resetSearch();
                         }}
                     >
                         Ver Todos
                     </button>
-                ) : null}
+                )}
             </div>
         </div>
     );
