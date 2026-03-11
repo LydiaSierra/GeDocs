@@ -41,7 +41,7 @@ const File = ({ file }) => {
                             <DocumentIcon className="w-8 text-gray-800" />
                         )}
 
-                        <p className="font-medium w-full truncate text-gray-700 hover:underline">
+                        <p className="font-medium w-full truncate text-gray-700">
                             {file.name}
                         </p>
                     </div>
@@ -65,6 +65,7 @@ const File = ({ file }) => {
                     <div
                         key={file.id}
                         onClick={(e) => selectItem(file.id, 'file', e)}
+                        onDoubleClick={open}
 
                         className={`flex justify-between border-b border-gray-400 px-2 py-3 cursor-pointer select-none ${isSelected(file.id, "file") ? "bg-primary/30" : "bg-white hover:bg-primary/20"} `}
                     >
