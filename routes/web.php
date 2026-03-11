@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function () {
     //Vista de notificaciones de los aprendices
     Route::get(
         '/notifications/aprendiz',
-        fn() => Inertia::render('NotificationsAprendiz', [
+        fn() => Inertia::render('Notifications', [
             'notificationId' => null
         ])
     )->name('notifications.aprendiz');
