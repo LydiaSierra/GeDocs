@@ -159,6 +159,17 @@ class UserController extends Controller
 
 
         if (isset($validate['sheet_numbers'])) {
+            // El instructor solo puede asignar fichas de el
+            if ($authUser->hasRole('Instructor')) {
+                $instructorSheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
+                $unauthorized = array_diff($validate['sheet_numbers'], $instructorSheetIds);
+                if (!empty($unauthorized)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No tienes permisos sobre una o más fichas seleccionadas'
+                    ], 403);
+                }
+            }
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
 

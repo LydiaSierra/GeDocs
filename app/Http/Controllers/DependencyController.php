@@ -42,7 +42,7 @@ class DependencyController extends Controller
         $user = $request->user();
 
         $validate = $request->validate([
-            "name" => "required|string|max:255",
+            "name" => "required|string|max:255|unique:dependencies,name",
             "sheet_number_id" => "nullable|exists:sheet_numbers,id"
         ]);
 

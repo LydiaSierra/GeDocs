@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { router, usePage } from "@inertiajs/react";
 
 function UserEdit() {
+    const { props } = usePage();
+    const authRole = props?.auth?.user?.roles?.[0]?.name;
     // traemos los contextos
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
@@ -54,12 +56,17 @@ function UserEdit() {
     }, []);
     useEffect(() => {
         const fetchSheets = async () => {
-            const res = await api.get("/api/sheets");
-            setSheets(res.data.sheets);
+            if (authRole === 'Instructor') {
+                const res = await api.get("/api/sheetsNumber");
+                setSheets(res.data.fichas || []);
+            } else {
+                const res = await api.get("/api/sheets");
+                setSheets(res.data.sheets || []);
+            }
         };
 
         fetchSheets();
-    }, []);
+    }, [authRole]);
 
     // funcion que llama la funcion de editar usuario del contexto mientras activa y desactiva los toast
     const UploadUser = async () => {
