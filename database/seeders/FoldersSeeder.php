@@ -129,6 +129,7 @@ class FoldersSeeder extends Seeder
                 'folder_code' => $folderCode,
                 'department' => $department,
                 'sheet_number_id' => $parentId === null ? $sheetId : null, // Only root folders get the sheet
+                'active' => true,
             ]);
 
             $map[$tempKey] = $folder->id;

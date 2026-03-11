@@ -36,6 +36,7 @@ export default function ContainerFolders() {
 
 
 
+
     // Show loading state
     if (loading) {
         return (
@@ -47,6 +48,8 @@ export default function ContainerFolders() {
             </div>
         );
     }
+
+
 
     useEffect(() => {
         if (selectedItems.length > 1) {
