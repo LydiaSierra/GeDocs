@@ -59,7 +59,7 @@ const NotificationDropDown = () => {
                 </div>
 
                 <ul
-                    className="dropdown-content bg-base-100 rounded-box z-1 p-2 shadow-sm w-max overflow-auto"
+                    className="dropdown-content bg-base-100 rounded-box z-1 p-2 shadow-sm w-max overflow-auto max-[530px]:scale-80 max-[530px]:origin-top-right max-[400px]:scale-70"
                     tabIndex="-1"
                 >
                     <li className="flex flex-col w-max  gap-8 hover:bg-none">

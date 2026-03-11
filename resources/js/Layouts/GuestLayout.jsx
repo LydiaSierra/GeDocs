@@ -9,8 +9,8 @@ export default function GuestLayout({children}) {
 
     return (
         <div
-            className="min-h-screen grid grid-cols-1 md:grid-cols-2  items-center justify-items-center bg-gray-200 md:bg-white p-2 md:p-0 max-w-5xl m-auto">
-            <div className={"flex justify-center my-2 md:hidden"}>
+            className="min-h-screen grid grid-cols-1 md:grid-cols-2 items-center content-center justify-items-center bg-gray-200 md:bg-white p-4 md:p-0 max-w-5xl m-auto gap-8 md:gap-0">
+            <div className={"flex justify-center md:hidden"}>
                 <img src="/gedocs-logo.svg" alt=""/>
             </div>
 
