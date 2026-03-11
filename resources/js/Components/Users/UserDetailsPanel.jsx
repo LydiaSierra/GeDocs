@@ -1,9 +1,9 @@
 import { UserContext } from "@/context/UserContext/UserContext";
 import React, { useContext } from "react";
-import UserEdit from "./userModal/UserEdit";
+import UserEditPanel from "./userDetails/UserEditPanel";
 import DeleteConfirm from "./DeleteConfirm";
 
-function UserModal() {
+function UserDetailsPanel() {
     const {
         idSelected,
         setidSelected,
@@ -15,7 +15,7 @@ function UserModal() {
     if (!idSelected) return null;
 
     if (edit) {
-        return <UserEdit />;
+        return <UserEditPanel />;
     }
 
     const roleName = idSelected.roles?.[0]?.name || "Usuario";
@@ -24,7 +24,7 @@ function UserModal() {
         <div className={`modal modal-open w-full h-full`}>
             <div className="md:w-[50%] max-w-[90%] h-[70%] bg-white flex flex-col gap-5 relative rounded-md lg:p-10 p-3">
                 
-                {/* Botón cerrar */}
+                {/* Close button */}
                 <button
                     className="btn btn-sm lg:btn-md btn-circle btn-ghost absolute right-2 top-2"
                     onClick={() => setidSelected(null)}
@@ -61,10 +61,10 @@ function UserModal() {
                         </div>
                     </div>
 
-                    {/* Contenido */}
+                    {/* Content */}
                     <div className="lg:w-[70%] w-full h-[90%] flex flex-col justify-start gap-4 items-start rounded-lg">
                         
-                        {/* Header móvil */}
+                        {/* Mobile header */}
                         <div className="w-full lg:hidden block">
                             <div className="flex items-center p-2 gap-3 border-b-2">
                                 <img
@@ -78,7 +78,7 @@ function UserModal() {
                             </div>
                         </div>
 
-                        {/* Información */}
+                        {/* Information */}
                         <div className="w-full h-[80%] grid grid-cols-2 gap-4 bg-[#F3F3F3] rounded-lg px-2 pb-2 overflow-y-auto">
                             
                             <InfoItem label="Nombre" value={idSelected.name} />
@@ -139,7 +139,7 @@ function UserModal() {
                             </div>
                         </div>
 
-                        {/* Botones */}
+                        {/* Actions */}
                         <div className="w-full flex flex-row lg:justify-start justify-center gap-6">
                             <button
                                 className="px-4 py-1 rounded bg-primary text-white font-semibold hover:border hover:border-primary hover:bg-white hover:text-primary transition"
@@ -183,4 +183,4 @@ const InfoItem = ({ label, value }) => (
     </div>
 );
 
-export default UserModal;
+export default UserDetailsPanel;

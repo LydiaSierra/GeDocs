@@ -16,7 +16,7 @@ const NotificationDropDown = () => {
     const { auth } = usePage().props;
     const rol = auth.user.roles[0].name;
 
-    // Filtrar notificaciones según rol del usuario autenticado
+    // Filter notifications by authenticated user role
     const roleFilteredNotifications = useMemo(() => {
         return notifications.filter((item) => {
             const notifRole = item?.data?.user?.roles?.[0]?.name || "";

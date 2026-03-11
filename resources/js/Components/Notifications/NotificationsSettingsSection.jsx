@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext.jsx";
 import {
     PlusCircleIcon,
@@ -7,7 +7,7 @@ import {
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
 import { usePage } from "@inertiajs/react";
 
-const NotificationSidebar = ({ url }) => {
+const NotificationsSettingsSection = () => {
     const {
         notifications,
         markAsReadNotification,
@@ -19,12 +19,12 @@ const NotificationSidebar = ({ url }) => {
 
     const { auth } = usePage().props;
 
-    // Rol del usuario autenticado
+    // Authenticated user role
     const rol = auth.user.roles[0].name;
 
-    // Filtrar notificaciones según el rol:
-    // Instructor solo ve notificaciones de Aprendiz
-    // Admin solo ve notificaciones de Instructor
+    // Filter notifications by role:
+    // Instructors only see apprentice notifications
+    // Admins only see instructor notifications
     const filteredNotifications = useMemo(() => {
         return notifications.filter((item) => {
             const notifRole = item?.data?.user?.roles?.[0]?.name || "";
@@ -67,7 +67,7 @@ const NotificationSidebar = ({ url }) => {
 
                 {filteredNotifications.length > 0 ? (
                     <ul className="flex flex-col overflow-y-scroll gap-3 pr-2 mt-1 rounded-lg h-full">
-                        {/* condicionales para estilos dependiendo el estado de la notificacion */}
+                        {/* Conditional styles based on notification status */}
                         {filteredNotifications.map((item) => {
                             const isSelected = item.id === notificationSeleted;
                             const isRead = item.read_at;
@@ -98,7 +98,7 @@ const NotificationSidebar = ({ url }) => {
                                             {`${item?.data?.user.roles[0]?.name || "Usuario"}`}
                                         </h1>
 
-                                        {/* texto de la notificacion */}
+                                        {/* Notification text */}
                                         <p className="text-[15px]">
                                             {" "}
                                             Solicitud de acceso:{" "}
@@ -156,4 +156,4 @@ const NotificationSidebar = ({ url }) => {
     );
 };
 
-export default NotificationSidebar;
+export default NotificationsSettingsSection;
