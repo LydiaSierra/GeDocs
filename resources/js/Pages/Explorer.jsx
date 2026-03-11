@@ -27,20 +27,36 @@ export default function Explorer() {
 
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
+
+        localStorage.setItem("active_sheet_id", sheetId);
+
         localStorage.removeItem("folder_id");
         setHistoryStack([]);
+
         fetchFolders(null, sheetId);
         getAllFolders();
     };
 
+
     const handleBackToSheets = () => {
         setActiveSheetId(null);
+
+        localStorage.removeItem("active_sheet_id");
+
         localStorage.removeItem("folder_id");
         setHistoryStack([]);
     };
 
+
     useEffect(() => {
-        if (activeSheetId) {
+
+        const savedSheet = localStorage.getItem("active_sheet_id");
+
+        if (savedSheet) {
+            const sheetId = Number(savedSheet);
+
+            setActiveSheetId(sheetId);
+
             const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
 
             if (savedHistory?.length > 0) {
@@ -48,11 +64,14 @@ export default function Explorer() {
                 const lastFolder = savedHistory[savedHistory.length - 1];
                 openFolder(lastFolder, false);
             } else {
-                fetchFolders(null, activeSheetId);
+                fetchFolders(null, sheetId);
             }
+
             getAllFolders();
         }
+
     }, []);
+
 
     return (
         <>
