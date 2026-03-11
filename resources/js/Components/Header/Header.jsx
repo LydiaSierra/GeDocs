@@ -132,11 +132,6 @@ export default function Header() {
             {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center">
 
-                <div
-                    className={"hidden lg:inline-block"}>
-                    <SelectDependecyOrNumberSheet />
-                </div>
-
                 {(rol === "Admin" || rol === "Instructor") && <NotificationDropDown />}
 
 
