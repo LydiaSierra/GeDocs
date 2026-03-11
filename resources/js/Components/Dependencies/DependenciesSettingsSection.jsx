@@ -6,14 +6,13 @@ import DeleteDependencie from "./DeleteDependencie";
 import api from "@/lib/axios";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
-export default function DependenciesSidebar() {
+export default function DependenciesSettingsSection() {
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState();
 
     const { dependencies, fetchDependencies } = useContext(DependenciesContext);
 
     const fetchSheet = async () => {
-        const dependency = dependencies[0];
         try {
             const result = await api.get(
                 `api/sheets`,

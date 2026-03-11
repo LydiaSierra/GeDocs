@@ -28,22 +28,18 @@ export default function UpdateProfileInformation({
     };
 
     return (
-        <section className={`w-full px-4 sm:px-6 lg:px-8 ${className}`}>
-            <header className="max-w-2xl mx-auto">
-                <h2 className="text-lg sm:text-xl font-medium text-gray-900">
+        <section className={`w-full ${className}`}>
+            <header>
+                <h2 className="text-base font-semibold text-slate-900">
                     Información de Perfil
                 </h2>
-
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-0.5 text-sm text-slate-500">
                     Actualice la información del perfil y la dirección de correo
                     electrónico de su cuenta.
                 </p>
             </header>
 
-            <form
-                onSubmit={submit}
-                className="mt-6 space-y-6 w-full max-w-2xl mx-auto"
-            >
+            <form onSubmit={submit} className="mt-3 w-full space-y-3">
                 <div>
                     <InputLabel htmlFor="name" value="Nombre" />
 

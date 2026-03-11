@@ -5,7 +5,7 @@ import CreateSheets from "./CreateSheets";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 import EmptyState from "../EmptyState";
 
-export default function TableSheets() {
+export default function SheetsSettingsSection() {
     const { sheets, fetchSheets } = useContext(SheetsContext);
 
     useEffect(() => {

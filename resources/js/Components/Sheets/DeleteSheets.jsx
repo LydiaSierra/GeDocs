@@ -4,10 +4,10 @@ export default function DeleteSheets({ sheetToDelete, deleteSheet }) {
 
         deleteSheet(sheetToDelete.id);
 
-        // Cerrar modal de eliminar
+        // Close the delete modal
         document.getElementById("delete_modal")?.close();
 
-        // Asegurar que el modal de VER también esté cerrado
+        // Ensure the details modal is also closed
         document.getElementById("my_modal_3")?.close();
     };
 

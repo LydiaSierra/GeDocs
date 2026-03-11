@@ -5,13 +5,13 @@ import { ArrowUturnLeftIcon, CameraIcon } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
 import { router, usePage } from "@inertiajs/react";
 
-function UserEdit() {
+function UserEditPanel() {
     const { props } = usePage();
     const authRole = props?.auth?.user?.roles?.[0]?.name;
-    // traemos los contextos
+    // Consume user context state and actions
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
-    // declaracion de varianle y useState
+    // Local form state
     const [nombre, setNombre] = useState("");
     const [documento, setDocumento] = useState("");
     const [numero_documento, setNumeroDocumento] = useState("");
@@ -45,7 +45,7 @@ function UserEdit() {
 
     const [loadingEdit, setLoadingEdit] = useState(false);
 
-    // UseEffect para cargar el toast
+    // Track edit-loading state for the selected user
 
     useEffect(() => {
         if (idSelected) {
@@ -68,10 +68,10 @@ function UserEdit() {
         fetchSheets();
     }, [authRole]);
 
-    // funcion que llama la funcion de editar usuario del contexto mientras activa y desactiva los toast
+    // Call the context update action while handling toast lifecycle
     const UploadUser = async () => {
         let toastId;
-        // validaciones de inputs
+        // Input validation
         if (numero_documento.length > 10) {
             toast.error(
                 "El número de documento no puede tener más de 10 caracteres",
@@ -137,7 +137,7 @@ function UserEdit() {
 
                 {/* BODY SCROLLABLE */}
                 <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 bg-gray-50">
-                    {/* PERFIL */}
+                    {/* Profile */}
                     <div className="flex items-center gap-4 mb-6">
                         <div className="relative">
                             <img
@@ -156,11 +156,11 @@ function UserEdit() {
 
                     {/* FORM GRID */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* INPUT BASE STYLE */}
-                        {/** Puedes reutilizar esta clase en todos */}
+                        {/* Base input style */}
+                        {/** This class can be reused across all inputs */}
                         {/* className="w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary focus:outline-none" */}
 
-                        {/* NOMBRE */}
+                        {/* Name */}
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium">
                                 Nombres
@@ -173,7 +173,7 @@ function UserEdit() {
                             />
                         </div>
 
-                        {/* TIPO DOCUMENTO */}
+                        {/* Document type */}
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium">
                                 Tipo Documento
@@ -189,7 +189,7 @@ function UserEdit() {
                             </select>
                         </div>
 
-                        {/* NUMERO DOCUMENTO */}
+                        {/* Document number */}
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium">
                                 Número Documento
@@ -204,7 +204,7 @@ function UserEdit() {
                             />
                         </div>
 
-                        {/* EMAIL */}
+                        {/* Email */}
                         <div className="flex flex-col gap-1">
                             <label className="text-sm font-medium">
                                 Correo
@@ -217,7 +217,7 @@ function UserEdit() {
                             />
                         </div>
 
-                        {/* ESTADO */}
+                        {/* Status */}
                         <div className="flex flex-col gap-1 md:col-span-2">
                             <label className="text-sm font-medium">
                                 Estado
@@ -233,14 +233,14 @@ function UserEdit() {
                             </select>
                         </div>
 
-                        {/* FICHAS */}
+                        {/* Sheets */}
                         <div className="flex flex-col gap-2 md:col-span-2">
                             <label className="text-sm font-medium">
                                 Asignar Fichas
                             </label>
 
                             <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
-                                {/* TAGS */}
+                                {/* Selected sheet tags */}
                                 <div className="flex flex-wrap gap-2">
                                     {selectedSheets.length > 0 ? (
                                         selectedSheets.map((sheetId) => {
@@ -274,7 +274,7 @@ function UserEdit() {
                                     )}
                                 </div>
 
-                                {/* LISTA */}
+                                {/* Available sheets list */}
                                 <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
                                     {sheets.map((sheet) => {
                                         const isSelected =
@@ -319,4 +319,4 @@ function UserEdit() {
     );
 }
 
-export default UserEdit;
+export default UserEditPanel;

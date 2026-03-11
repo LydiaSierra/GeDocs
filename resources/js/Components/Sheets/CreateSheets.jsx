@@ -42,7 +42,7 @@ export default function CreateSheets() {
             await fetchSheets();
 
             setFormData({ numeroFicha: "" });
-            //Mensajes de error
+            // Error messages
         } catch (error) {
             if (error.response?.status === 401) {
                 setErrorMsg("La sesión ha expirado. Inicia sesión nuevamente.");

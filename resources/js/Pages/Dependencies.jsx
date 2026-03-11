@@ -1,8 +1,10 @@
-import DependenciesLayout from '@/Layouts/DependenciesLayout.jsx' 
+import DependenciesSettingsSection from "@/Components/Dependencies/DependenciesSettingsSection";
+import SettingsLayout from "@/Layouts/SettingsLayout";
 
 export default function Dependencies(){
     return(
-        
-        <DependenciesLayout/>
+        <SettingsLayout>
+            <DependenciesSettingsSection />
+        </SettingsLayout>
     )
 }

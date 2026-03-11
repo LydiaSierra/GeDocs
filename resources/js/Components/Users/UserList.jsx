@@ -1,7 +1,6 @@
 import { UserContext } from "@/context/UserContext/UserContext";
-import { EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 import { useContext, useEffect } from "react";
-import UserModal from "./UserModal";
+import UserDetailsPanel from "./UserDetailsPanel";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import EmptyState from "../EmptyState";
 
@@ -138,7 +137,7 @@ export const UserList = ({ url }) => {
                     </table>
                 </div>
 
-                <UserModal />
+                <UserDetailsPanel />
             </>
         );
     }

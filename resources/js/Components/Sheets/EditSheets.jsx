@@ -94,7 +94,7 @@ export default function EditSheets({ sheet }) {
                         />
                     </div>
 
-                    {/* Estado */}
+                    {/* Status */}
                     <div className="flex flex-col md:col-span-1">
                         <label className="text-gray-700 font-semibold mb-1">
                             Estado
@@ -114,7 +114,7 @@ export default function EditSheets({ sheet }) {
                 </div>
             </div>
 
-            {/* BOTÓN */}
+            {/* Action button */}
             <div className="flex justify-center mt-6 sm:mt-8">
                 <button
                     onClick={saveChanges}
