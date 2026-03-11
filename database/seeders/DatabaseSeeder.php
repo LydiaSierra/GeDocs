@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             RoleSeeder::class,
-            FoldersSeeder::class,
         ]);
 
         //Usuario admin
@@ -28,6 +27,7 @@ class DatabaseSeeder extends Seeder
             'type_document' => 'CC',
             'document_number' => 1020304050,
             'name' => 'Julio Alexis',
+            'profile_photo' => null,
             'email' => 'julioalexishoyoscolorado@gmail.com',
             'password' => bcrypt('password'),
             'status' => 'active',
@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
             'type_document' => 'CC',
             'document_number' => 1094454354,
             'name' => 'Instructor User',
+            'profile_photo' => null,
             'email' => 'instructor@gmail.com',
             'password' => bcrypt('password'),
             'status' => 'active',
@@ -76,7 +77,7 @@ class DatabaseSeeder extends Seeder
             SheetSeeder::class
         ]);
 
-     //Dependencias
+        //Dependencias
         // Busca una ficha existente para asociar dependencias adicionales
         $sheet = Sheet_number::first();
 
@@ -101,6 +102,7 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
+            FoldersSeeder::class,
             PQRSeeder::class,
         ]);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import api from "@/lib/axios";
 import { SheetsContext } from "@/context/SheetsContext/SheetsContext";
 
@@ -27,6 +28,11 @@ export default function EditSheets({ sheet }) {
     const handleChange = (e) =>
         setFormData({ ...formData, [e.target.name]: e.target.value });
 
+    const closeModal = () => {
+        document.getElementById("my_modal_4")?.close();
+        document.getElementById("my_modal_3")?.close();
+    };
+
     const saveChanges = async () => {
         try {
             const res = await api.put(`/api/sheets/${sheet.id}`, {
@@ -41,71 +47,53 @@ export default function EditSheets({ sheet }) {
             }
 
             await fetchSheets();
-
             setSuccessMessage("Ficha actualizada correctamente");
             setErrorMessage("");
 
             setTimeout(() => {
                 setSuccessMessage("");
-                document.getElementById("my_modal_4")?.close();
-                document.getElementById("my_modal_3")?.close();
+                closeModal();
             }, 1200);
         } catch (error) {
             console.error(error);
-            setErrorMessage("⚠ Error al actualizar la ficha");
+            setErrorMessage("Error al actualizar la ficha");
             setTimeout(() => setErrorMessage(""), 3000);
         }
     };
 
+    const inputClass = "w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-shadow";
+
     return (
-        <div className="w-full bg-gray-100 rounded-lg p-4 sm:p-6 md:p-8">
-           
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold mb-4 md:mb-6 text-center md:text-left">
-                Editar Ficha
-            </h2>
+        <div className="flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
+                <h2 className="font-bold text-lg sm:text-xl text-gray-800">Editar Ficha</h2>
+                <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" onClick={closeModal}>
+                    <XMarkIcon className="size-5 text-gray-500" />
+                </button>
+            </div>
 
-            
-            {successMessage && (
-                <div className="mb-4 p-3 text-sm sm:text-base text-green-700 bg-green-100 border border-green-300 rounded-md">
-                    {successMessage}
-                </div>
-            )}
-
-            {errorMessage && (
-                <div className="mb-4 p-3 text-sm sm:text-base text-red-700 bg-red-100 border border-red-300 rounded-md">
-                    {errorMessage}
-                </div>
-            )}
-
-          
-            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-lg shadow-sm border">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    {/* Número */}
-                    <div className="flex flex-col">
-                        <label className="text-gray-700 font-semibold mb-1">
-                            Número de Ficha
-                        </label>
-                        <input
-                            type="text"
-                            name="numeroFicha"
-                            value={formData.numeroFicha}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-green-500 outline-none"
-                        />
+            {/* Body */}
+            <div className="px-5 sm:px-6 py-5">
+                {successMessage && (
+                    <div className="mb-4 p-3 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg">
+                        {successMessage}
                     </div>
+                )}
+                {errorMessage && (
+                    <div className="mb-4 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                        {errorMessage}
+                    </div>
+                )}
 
-                    {/* Estado */}
-                    <div className="flex flex-col md:col-span-1">
-                        <label className="text-gray-700 font-semibold mb-1">
-                            Estado
-                        </label>
-                        <select
-                            name="estado"
-                            value={formData.estado}
-                            onChange={handleChange}
-                            className="w-full p-3 border rounded-md bg-white shadow-sm focus:ring-2 focus:ring-green-500 outline-none"
-                        >
-                    
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Ficha</label>
+                        <input type="text" name="numeroFicha" value={formData.numeroFicha} onChange={handleChange} className={inputClass} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</label>
+                        <select name="estado" value={formData.estado} onChange={handleChange} className={inputClass}>
                             <option>Activa</option>
                             <option>Finalizada</option>
                             <option>Cancelada</option>
@@ -114,21 +102,17 @@ export default function EditSheets({ sheet }) {
                 </div>
             </div>
 
-            {/* BOTÓN */}
-            <div className="flex justify-center mt-6 sm:mt-8">
+            {/* Footer */}
+            <div className="border-t border-gray-100 px-5 sm:px-6 py-4 flex justify-end gap-3">
+                <button
+                    onClick={closeModal}
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                    Cancelar
+                </button>
                 <button
                     onClick={saveChanges}
-                    className="
-                        w-full sm:w-auto
-                        bg-green-600 text-white
-                        px-8 sm:px-12
-                        py-3
-                        rounded-md
-                        text-base sm:text-lg
-                        hover:bg-green-700
-                        transition
-                        shadow-md
-                    "
+                    className="px-5 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity"
                 >
                     Guardar cambios
                 </button>

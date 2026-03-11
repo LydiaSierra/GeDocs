@@ -6,6 +6,7 @@ import {
 import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
 import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
+import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
 export default function InboxSidebar() {
     const {
@@ -34,15 +35,16 @@ export default function InboxSidebar() {
         <div
             className={`
         w-full
-        md:min-w-[450px]
-        lg:w-1/3
+        lg:w-[400px]
+        xl:w-1/3
         bg-white
         flex flex-col
         rounded-lg
         h-full
-        md:ml-1
-        md:p-3
+        lg:ml-1
+        p-3 pb-[50px] md:pb-3
         transition-all duration-300 ease-in-out
+        flex-shrink-0
         ${selectedMail ? "hidden lg:flex" : "flex"}
     `}
         >
@@ -72,11 +74,10 @@ export default function InboxSidebar() {
                         {categories.map((cat) => (
                             <input
                                 key={cat.value}
-                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${
-                                    filters.includes(cat.value)
-                                        ? "bg-primary text-white hover:bg-primary"
-                                        : "bg-gray-100 hover:bg-gray-200"
-                                }`}
+                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${filters.includes(cat.value)
+                                    ? "bg-primary text-white hover:bg-primary"
+                                    : "bg-gray-100 hover:bg-gray-200"
+                                    }`}
                                 type="checkbox"
                                 aria-label={cat.label}
                                 checked={filters.includes(cat.value)}
@@ -85,18 +86,21 @@ export default function InboxSidebar() {
                         ))}
                     </div>
                 </div>
+                <div className="flex justify-between p-2 items-center">
+                    <h3
+                        id="inbox-date"
+                        className="text-start px-2 my-4 font-bold capitalize"
+                    >
+                        {currentMonthYear}
+                    </h3>
 
-                <h3
-                    id="inbox-date"
-                    className="text-start w-full px-2 my-4 font-bold capitalize"
-                >
-                    {currentMonthYear}
-                </h3>
+                    <SelectDependecyOrNumberSheet />
+                </div>
             </div>
 
             <div
                 id="mail-card-scrollarea"
-                className="p-2 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full"
+                className="p-3 md:pb-3 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full h-full"
             >
                 {loading ? (
                     <div className={"flex flex-col gap-2"}>

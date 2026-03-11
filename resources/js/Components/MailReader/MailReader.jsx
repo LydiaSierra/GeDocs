@@ -33,7 +33,7 @@ export function MailReader() {
             await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
                 response_message: responseText,
             });
-            await axios.post(`api/pqr/${currentMail.id}/comunicaciones`, {
+            await axios.post(`/api/pqr/${currentMail.id}/comunicaciones`, {
                 message: responseText,
                 requires_response: true,
             });
@@ -74,7 +74,7 @@ export function MailReader() {
 
     if (!currentMail) {
         return (
-            <div className="h-full w-full flex items-center justify-center text-gray-500">
+            <div className="h-full w-full hidden lg:flex items-center justify-center text-gray-500">
                 <img
                     className="h-110 opacity-60"
                     src="/images/OBJECTS.svg"
@@ -113,10 +113,10 @@ export function MailReader() {
         <div
             className={`
     h-full
-    w-full
+    w-full lg:flex-1 lg:min-w-0
     shadow-xl
     rounded-lg
-    p-6
+    p-6 pb-[50px] md:pb-6
     overflow-y-auto
     bg-white
     transition-all duration-300 ease-in-out

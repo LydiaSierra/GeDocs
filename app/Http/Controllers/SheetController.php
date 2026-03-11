@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Dependency;
 use Illuminate\Support\Facades\DB;
+use App\Services\FolderStructureService;
 
 class SheetController extends Controller
 {
@@ -51,6 +52,9 @@ class SheetController extends Controller
             // Actualizar la ficha con el id de la ventanilla unica
             $sheetNumber->ventanilla_unica_id = $ventanilla->id;
             $sheetNumber->save();
+
+            // Crear estructura de carpetas por defecto para la ficha
+            FolderStructureService::createDefaultStructure($sheetNumber->id);
 
             // Retornar la ficha con la relación cargada
             return response()->json($sheetNumber->load('dependencies'), 201);

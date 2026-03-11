@@ -21,21 +21,6 @@ export default function Register({ sheets }) {
 
     const toastIdRef = useRef(null);
 
-    useEffect(() => {
-        if (errors.email) {
-            toast.error(errors.email);
-        }
-        if (errors.document_number) {
-            toast.error(errors.document_number);
-        }
-        if (errors.password) {
-            toast.error("Error con la contraseña, verifica los datos");
-        }
-        if (errors.technical_sheet) {
-            toast.error("La ficha seleccionada no es válida");
-        }
-    }, [errors]);
-
     const submit = (e) => {
         e.preventDefault();
 
@@ -63,11 +48,10 @@ export default function Register({ sheets }) {
             onStart: () => {
                 toastIdRef.current = toast.loading("Registrando usuario...");
             },
-            onSuccess: () => {
-                toast.dismiss(toastIdRef.current);
-                toast.success("Solicitud de Registro Enviada");
-            },
             onError: () => {
+                toast.dismiss(toastIdRef.current);
+            },
+            onSuccess: () => {
                 toast.dismiss(toastIdRef.current);
             },
             onFinish: () => {

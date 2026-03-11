@@ -90,8 +90,7 @@ class UserController extends Controller
 
         if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
             $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
-        }
-        else {
+        } else {
             $user = User::with('roles', "sheetNumbers")->find($id);
         }
 
@@ -108,7 +107,10 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)    {
+    public function update(Request $request, string $id)
+    {
+
+        $authUser = $request->user();
         $user = User::with('sheetNumbers')->find($id);
 
         if (!$user) {
@@ -116,6 +118,16 @@ class UserController extends Controller
                 "success" => false,
                 "message" => "Usuario no encontrado"
             ], 404);
+        }
+
+        //Verificar si la solicitud de actualizacion la hace un instructor para un aprendiz
+        if ($authUser->hasRole("Instructor")) {
+            if (!$user->hasRole("Aprendiz")) {
+                return response()->json([
+                    "sucess" => false,
+                    "message" => "No tienes permiso para editar este usuario",
+                ], 403);
+            }
         }
 
         $validate = $request->validate([
@@ -133,21 +145,31 @@ class UserController extends Controller
         // Encriptar password si viene
         if (!empty($validate['password'])) {
             $validate['password'] = Hash::make($validate['password']);
-        }
-        else {
+        } else {
             unset($validate['password']);
         }
 
-       
+
         $user->update($validate);
 
-        
+
         if (!empty($validate['role'])) {
             $user->syncRoles([$validate['role']]);
         }
 
-        
+
         if (isset($validate['sheet_numbers'])) {
+            // El instructor solo puede asignar fichas de el
+            if ($authUser->hasRole('Instructor')) {
+                $instructorSheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
+                $unauthorized = array_diff($validate['sheet_numbers'], $instructorSheetIds);
+                if (!empty($unauthorized)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No tienes permisos sobre una o más fichas seleccionadas'
+                    ], 403);
+                }
+            }
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
 
@@ -157,30 +179,12 @@ class UserController extends Controller
             "success" => true,
             "message" => "Usuario actualizado correctamente",
             "data" => $user
-        ]);    }
-
-
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json([
-                "success" => false,
-                "message" => "Usuario no encontrado"
-            ]);
-        }
-        $user->delete();
-
-        return response()->json([
-            "success" => true,
-            "message" => "Usuario eliminado correctamente"
         ]);
     }
+
+
+
+
 
 
     public function userByFilter(Request $request)
@@ -226,4 +230,48 @@ class UserController extends Controller
             "data" => $users
         ]);
     }
+
+    public function activate(User $user)
+    {
+        $user->status = "active";
+        $user->save();
+
+        auth()->user()->notifications()
+            ->where('data->user->id', $user->id)
+            ->where('type', 'App\Notifications\NewUserRegistered')
+            ->update(['read_at' => now()]);
+
+        return response()->json([
+            "success" => true,
+            "message" => "Usuario activado exitosamente"
+        ]);
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuario no encontrado"
+            ]);
+        }
+
+        auth()->user()->notifications()
+            ->where('data->user->id', $user->id)
+            ->delete();
+        $user->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Usuario eliminado correctamente"
+        ]);
+    }
+
+
+
 }

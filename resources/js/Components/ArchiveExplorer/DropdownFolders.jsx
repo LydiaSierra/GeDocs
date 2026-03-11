@@ -8,7 +8,7 @@ import { usePage } from "@inertiajs/react";
 
 const DropdownFolders = () => {
     const { showDropFolders, toggleDropFolders } = useContext(ExplorerUIContext);
-    const { allFolders, openFolder, currentFolder, loadingAllFolders } = useContext(ExplorerDataContext);
+    const { allFolders, openFolder, currentFolder, loadingAllFolders, activeSheetId } = useContext(ExplorerDataContext);
     const { url } = usePage();
 
     const [expandedFolders, setExpandedFolders] = useState(new Set());
@@ -39,7 +39,13 @@ const DropdownFolders = () => {
 
     const renderFolders = (parentId = null) => {
         return (allFolders || [])
-            .filter(folder => folder.parent_id === parentId)
+            .filter(folder => {
+                if (parentId === null) {
+                    // Root level: filter by active sheet
+                    return folder.parent_id === null && folder.sheet_number_id === activeSheetId;
+                }
+                return folder.parent_id === parentId;
+            })
             .map(folder => {
                 const isExpanded = expandedFolders.has(folder.id);
                 const hasChildren = allFolders.some(f => f.parent_id === folder.id);

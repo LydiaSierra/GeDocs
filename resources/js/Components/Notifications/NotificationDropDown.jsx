@@ -16,7 +16,7 @@ const NotificationDropDown = () => {
     const { auth } = usePage().props;
     const rol = auth.user.roles[0].name;
 
-    // Filtrar notificaciones según rol del usuario autenticado
+    // Filter notifications by authenticated user role
     const roleFilteredNotifications = useMemo(() => {
         return notifications.filter((item) => {
             const notifRole = item?.data?.user?.roles?.[0]?.name || "";
@@ -43,40 +43,37 @@ const NotificationDropDown = () => {
                 <div
                     tabIndex={0}
                     role="button"
-                    className="self-center bg-none cursor-pointer relative"
+                    className="self-center relative cursor-pointer rounded-xl p-1.5 transition-colors hover:bg-gray-100"
                 >
                     <BellIcon
-                        className="text-[#848484] 
-                    w-5 h-5 md:w-8 md:h-8 sm:w-7 sm:h-7 bg-none cursor-pointer rounded-md fill-none hover:bg-gray-300"
+                        className="h-5 w-5 text-[#848484] sm:h-6 sm:w-6 md:h-7 md:w-7"
                     />
 
                     {hasUnreadNotifications && (
                         <PlusCircleIcon
-                            className="md:w-3.8 w-3.5 md:h-3.8 h-3.5 fill-[#3CACBB] text-[#3CACBB]
-                   border-none absolute md:top-4 -top-1 -right-0.5"
+                            className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 fill-[#3CACBB] text-[#3CACBB] md:h-4 md:w-4"
                         />
                     )}
                 </div>
 
                 <ul
-                    className="dropdown-content bg-base-100 rounded-box z-1 p-2 shadow-sm w-max overflow-auto"
+                    className="dropdown-content z-50 mt-3 w-88 max-w-[90vw] overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl"
                     tabIndex="-1"
                 >
-                    <li className="flex flex-col w-max  gap-8 hover:bg-none">
-                        <div className="text-center font-bold h-auto border-b w-full border-gray-300 rounded-none p-3">
-                            <h2 className="text-lg text-black font-normal">
+                    <li className="flex w-full flex-col gap-0 hover:bg-transparent">
+                        <div className="w-full border-b border-gray-200 px-4 py-3 text-center">
+                            <h2 className="text-base font-semibold text-[#010515] md:text-lg">
                                 Solicitudes de Acceso
                             </h2>
                         </div>
 
                         {unreadNotifications.length > 0 ? (
-                            <div className="w-full h-auto">
+                            <div className="max-h-96 w-full space-y-2 overflow-y-auto px-2 py-2">
                                 {unreadNotifications
                                     .map((item) => (
                                         <article
                                             key={item.id}
-                                            className="flex flex-row py-2 w-full gap-2 h-auto border-y border-x-none boder-[#DBDBDB] 
-                                        relative hover:bg-accent cursor-pointer transition rounded-md"
+                                            className="group relative flex w-full cursor-pointer items-start gap-3 rounded-xl border border-transparent px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50"
                                             onClick={() => {
                                                 if (
                                                     item.id !==
@@ -96,46 +93,43 @@ const NotificationDropDown = () => {
                                                 router.visit(`/notifications`);
                                             }}
                                         >
-                                            <UserCircleIcon className="md:w-13 md:h-13 w-12 h-12 self-center text-[#404142]" />
+                                            <UserCircleIcon className="h-10 w-10 shrink-0 self-center text-[#404142] md:h-11 md:w-11" />
 
-                                            <div className="w-[80%] h-full flex flex-col items-start gap-1">
-                                                <h1 className="text-2xs md:text-lg font-semibold">
+                                            <div className="min-w-0 flex-1">
+                                                <h1 className="truncate text-sm font-semibold text-[#010515] md:text-base">
                                                     Nuevo{" "}
                                                     {item.data.user.roles[0]
                                                         ?.name || "Usuario"}
                                                 </h1>
-                                                <p className="text-xs md:text-sm font-medium">
+                                                <p className="text-xs font-medium text-[#404142] md:text-sm">
                                                     Solicitud de Acceso:
                                                 </p>
-                                                <p className="text-xs md:text-sm font-medium">{`${item.data.user.name} solicita un nuevo acceso con...`}</p>
+                                                <p className="line-clamp-2 text-xs text-[#606164] md:text-sm">{`${item.data.user.name} solicita un nuevo acceso con...`}</p>
                                             </div>
 
-                                            <div className="w-[10%] h-full flex justify-end items-start ">
-                                                <p className=" text-[#404142] font-medium text-xs absolute md:top-5 top-[15%] right-3">
-                                                    {new Date(
-                                                        item.created_at,
-                                                    ).toLocaleDateString()}
+                                            <div className="shrink-0 pt-0.5 text-right">
+                                                <p className="text-[11px] font-medium text-[#606164] md:text-xs">
+                                                    {new Date(item.created_at).toLocaleDateString()}
                                                 </p>
                                             </div>
 
                                             <PlusCircleIcon
-                                                className="md:w-4.5 w-3.5 md:h-4.5 h-3.5 fill-[#3CACBB] text-[#3CACBB] 
-                                        border-none absolute md:-top-2.5 -top-2 right-0 "
+                                                className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 fill-[#3CACBB] text-[#3CACBB] md:h-4 md:w-4"
                                             />
                                         </article>
                                     ))}
                             </div>
                         ) : (
-                            <p className="w-full text-center text-xs text-[#848484]">
+                            <p className="px-4 py-8 text-center text-sm text-[#848484]">
                                 No hay solicitudes pendientes sin leer
                             </p>
                         )}
                         <Link
-                            className="w-full flex justify-center"
+                            className="w-full border-t border-gray-200 p-3"
                             href={route("notifications.index")}
                         >
                             <button
-                                className="btn p-2 rounded-md border border-gray-300 w-full text-center transition"
+                                className="btn h-10 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-[#404142] transition hover:border-primary hover:bg-primary/5"
                             >
                                 Todas las Solicitudes
                             </button>

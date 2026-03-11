@@ -64,12 +64,17 @@ class FolderController extends Controller
      * - That are marked as active
      * - Ordered by newest first
      */
-    public function index()
+    public function index(Request $request)
     {
-        $folders = Folder::whereNull('parent_id')
-            ->where("active", true)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Folder::whereNull('parent_id')
+            ->where("active", true);
+
+        // Filter by sheet_number_id if provided
+        if ($request->has('sheet_number_id')) {
+            $query->where('sheet_number_id', $request->query('sheet_number_id'));
+        }
+
+        $folders = $query->orderBy('created_at', 'desc')->get();
 
         // Returns the folders as a JSON response
         return response()->json([
@@ -154,7 +159,8 @@ class FolderController extends Controller
             "name" => "required|string",
             "parent_id" => "nullable|exists:folders,id",
             "folder_code" => "nullable|string",
-            "department" => "required|string"
+            "department" => "required|string",
+            "sheet_number_id" => "nullable|exists:sheet_numbers,id",
         ]);
 
         // Create the folder record
@@ -163,6 +169,7 @@ class FolderController extends Controller
             "parent_id" => $validated["parent_id"] ?? null,
             "folder_code" => $validated["folder_code"] ?? null,
             "department" => $validated["department"],
+            "sheet_number_id" => $validated["sheet_number_id"] ?? null,
         ]);
 
         return response()->json([
