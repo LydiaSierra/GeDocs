@@ -1,6 +1,6 @@
 import api from "@/lib/axios";
 import { UserContext } from "@/context/UserContext/UserContext";
-import React, { useContext, useState, useEffect, useCallback } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
@@ -11,6 +11,8 @@ function UserEditPanel() {
     const authRole = props?.auth?.user?.roles?.[0]?.name;
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
+    const dialogRef = useRef(null);
+
     const [nombre, setNombre] = useState("");
     const [documento, setDocumento] = useState("");
     const [numero_documento, setNumeroDocumento] = useState("");
@@ -19,13 +21,10 @@ function UserEditPanel() {
     const [sheets, setSheets] = useState([]);
     const [selectedSheets, setSelectedSheets] = useState([]);
 
-    const close = useCallback(() => setEdit(false), [setEdit]);
-
     useEffect(() => {
-        const handleKey = (e) => { if (e.key === "Escape") close(); };
-        document.addEventListener("keydown", handleKey);
-        return () => document.removeEventListener("keydown", handleKey);
-    }, [close]);
+        const dialog = dialogRef.current;
+        if (dialog && !dialog.open) dialog.showModal();
+    }, []);
 
     useEffect(() => {
         if (idSelected) {
@@ -93,31 +92,24 @@ function UserEditPanel() {
     const inputClass = "w-full h-10 border border-gray-300 rounded-lg px-3 text-sm bg-white focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-shadow";
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3"
-            onClick={close}
-        >
-            <div
-                className="w-full max-w-2xl max-h-[85vh] bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden"
-                onClick={(e) => e.stopPropagation()}
-            >
+        <dialog ref={dialogRef} className="modal" onClose={() => setEdit(false)}>
+            <div className="modal-box max-w-2xl rounded-2xl p-0 overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-gray-100">
                     <button
                         className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                        onClick={close}
+                        onClick={() => dialogRef.current?.close()}
                     >
                         <ArrowUturnLeftIcon className="size-5 text-gray-500" />
                     </button>
                     <h3 className="font-bold text-lg sm:text-xl text-gray-800">
                         {idSelected?.roles[0]?.name === "Instructor" ? "Editar Instructor" : "Editar Aprendiz"}
                     </h3>
-                    <button
-                        className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                        onClick={close}
-                    >
-                        <XMarkIcon className="size-5 text-gray-500" />
-                    </button>
+                    <form method="dialog">
+                        <button className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                            <XMarkIcon className="size-5 text-gray-500" />
+                        </button>
+                    </form>
                 </div>
 
                 {/* Body */}
@@ -217,7 +209,7 @@ function UserEditPanel() {
                 <div className="border-t border-gray-100 px-5 sm:px-6 py-4 flex justify-end gap-3 bg-white">
                     <button
                         className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
-                        onClick={close}
+                        onClick={() => dialogRef.current?.close()}
                     >
                         Cancelar
                     </button>
@@ -229,7 +221,8 @@ function UserEditPanel() {
                     </button>
                 </div>
             </div>
-        </div>
+            <form method="dialog" className="modal-backdrop"><button>close</button></form>
+        </dialog>
     );
 }
 
