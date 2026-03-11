@@ -4,29 +4,35 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import {Head, Link, router, useForm} from '@inertiajs/react';
-import {XMarkIcon} from "@heroicons/react/24/outline";
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import PasswordResetModal from "@/Components/PasswordResetModal.jsx";
 import { toast } from 'sonner';
+import { usePage } from '@inertiajs/react';
+
 import { useEffect } from 'react';
 
-export default function Login({status, canResetPassword}) {
-    const {data, setData, post, processing, errors, reset} = useForm({
+export default function Login({ status, canResetPassword }) {
+    const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
+    const { props } = usePage();
+
     useEffect(() => {
         if (status) {
             toast.info(status);
+            props.status = null;
         }
-    }, [status]);
+    }, [status, props]);
+
 
     const submit = (e) => {
         e.preventDefault();
 
-        if(!data.email || !data.password){
+        if (!data.email || !data.password) {
             toast.error("Por favor complete todos los campos");
             return;
         }
@@ -56,7 +62,7 @@ export default function Login({status, canResetPassword}) {
 
     return (
         <GuestLayout>
-            <Head title="Log in"/>
+            <Head title="Log in" />
 
             {status && (
                 <div></div>
@@ -65,7 +71,7 @@ export default function Login({status, canResetPassword}) {
             <form onSubmit={submit}>
                 <h1 className={"text-xl text-primary-content font-bold text-center"}>Iniciar Sesión</h1>
                 <div>
-                    <InputLabel htmlFor="email" value="Email"/>
+                    <InputLabel htmlFor="email" value="Email" />
 
                     <TextInput
                         id="email"
@@ -78,11 +84,11 @@ export default function Login({status, canResetPassword}) {
                         onChange={(e) => setData('email', e.target.value)}
                     />
 
-                    <InputError message={errors.email} className="mt-2"/>
+                    <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Contraseña"/>
+                    <InputLabel htmlFor="password" value="Contraseña" />
 
                     <TextInput
                         id="password"
@@ -94,7 +100,7 @@ export default function Login({status, canResetPassword}) {
                         onChange={(e) => setData('password', e.target.value)}
                     />
 
-                    <InputError message={errors.password} className="mt-2"/>
+                    <InputError message={errors.password} className="mt-2" />
                 </div>
 
                 <a

@@ -18,7 +18,11 @@ class RegisteredUserController extends Controller
 {
     public function create()
     {
-        $sheets = Sheet_number::all();
+        $sheets = Sheet_number::whereHas('users', function ($q) {
+            $q->whereHas('roles', function ($r) {
+                $r->where('name', 'Instructor');
+            });
+        })->get();
         return Inertia::render('Auth/Register', [
             'sheets' => $sheets
         ]);
@@ -32,7 +36,7 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'role' => 'required|string|in:Aprendiz,Instructor',
-            'technical_sheet_id' => 'nullable|exists:technical_sheets,id',
+            'technical_sheet_id' => 'nullable|exists:sheet_numbers,id',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -53,6 +57,10 @@ class RegisteredUserController extends Controller
 
         $user->assignRole($validated['role']);
 
+        if (!empty($validated['technical_sheet_id'])) {
+            $user->sheetNumbers()->attach($validated['technical_sheet_id']);
+        }
+
         if ($user->hasRole('Instructor')) {
             $admin = User::role("Admin")->first();
             if ($admin) {
@@ -60,22 +68,30 @@ class RegisteredUserController extends Controller
             }
             if ($user->status === "pending") {
                 Auth::logout();
-                return redirect()->route('login')->with('pending', [
-                    'message' => "Instructor. Tu cuenta sera revisada por el administrador",
-                ]);
+                return redirect()->route('login')->with(["status" => "Instructor. Tu cuenta sera revisada por el administrador"]);
             }
         }
 
         if ($user->hasRole('Aprendiz')) {
-            $instructor = User::role("Instructor")->first();
-            if ($instructor) {
-                $instructor->notify(new NewUserRegistered($user));
+            if (!empty($validated['technical_sheet_id'])) {
+                $instructors = User::role('Instructor')->whereHas('sheetNumbers', function ($q) use ($validated) {
+                    $q->where('sheet_numbers.id', $validated['technical_sheet_id']);
+                })->get();
+
+                foreach ($instructors as $instructor) {
+                    $instructor->notify(new NewUserRegistered($user));
+                }
+            } else {
+                $instructor = User::role("Instructor")->first();
+                if ($instructor) {
+                    $instructor->notify(new NewUserRegistered($user));
+                }
             }
+
             if ($user->status === "pending") {
                 Auth::logout();
-                return redirect()->route('login')->with('pending', [
-                    'message' => "Aprendiz. Tu cuenta sera revisada por el instructor",
-                ]);
+                return redirect()->route('login')->with(["status" => "Aprendiz. Tu cuenta sera revisada por el instructor de la ficha que seleccionaste"]);
+
             }
         }
 

@@ -34,14 +34,15 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
         if ($user->status === "pending") {
-            Auth::logout();
-            return redirect()->route("login")->with("status", "Espera a que el administrador te de permisos");
-        } 
-        // else if ($user->status === "rejected") {
-        //     Auth::logout();
-        //     User::find($user->id)->delete();
-        //     return redirect()->route("login")->with("status", "Tu acceso a sido rechazado. contacte al administrador");
-        // }
+            if ($user->hasRole("Aprendiz")) {
+                Auth::logout();
+                return redirect()->route("login")->with(["status" => "Espera a que el instructor de la ficha que selecionaste te de aceptacion para ingresar al sistema"]);
+            }
+            if ($user->hasRole("Instructor")) {
+                Auth::logout();
+                return redirect()->route("login")->with(["status" => "Espera a que el/la Administrador@ te de aceptacion para ingresar al sistema"]);
+            }
+        }
 
         $request->session()->regenerate();
 

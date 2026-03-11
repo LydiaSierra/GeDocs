@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import { router, usePage } from "@inertiajs/react";
 
 function UserEdit() {
+    const { props } = usePage();
+    const authRole = props?.auth?.user?.roles?.[0]?.name;
+    const dependencies = props?.dependencies
+    console.log(dependencies)
     // traemos los contextos
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
@@ -17,6 +21,7 @@ function UserEdit() {
     const [estado, setEstado] = useState("");
     const [sheets, setSheets] = useState([]);
     const [selectedSheets, setSelectedSheets] = useState([]);
+    const [selectedDependencies, setSelectedDependencies] = useState([]);
 
     useEffect(() => {
         if (idSelected) {
@@ -31,6 +36,12 @@ function UserEdit() {
                     idSelected.sheet_numbers.map((sheet) => sheet.id),
                 );
             }
+
+            if (idSelected.dependencies) { // ajusta esta propiedad según cómo venga en tu API
+                setSelectedDependencies(
+                    idSelected.dependencies.map((d) => d.id),
+                );
+            }
         }
     }, [idSelected]);
     const toggleSheet = (sheetId) => {
@@ -38,6 +49,14 @@ function UserEdit() {
             setSelectedSheets(selectedSheets.filter((id) => id !== sheetId));
         } else {
             setSelectedSheets([...selectedSheets, sheetId]);
+        }
+    };
+
+    const toggleDependency = (dependencyId) => {
+        if (selectedDependencies.includes(dependencyId)) {
+            setSelectedDependencies(selectedDependencies.filter((id) => id !== dependencyId));
+        } else {
+            setSelectedDependencies([...selectedDependencies, dependencyId]);
         }
     };
 
@@ -54,12 +73,17 @@ function UserEdit() {
     }, []);
     useEffect(() => {
         const fetchSheets = async () => {
-            const res = await api.get("/api/sheets");
-            setSheets(res.data.sheets);
+            if (authRole === 'Instructor') {
+                const res = await api.get("/api/sheetsNumber");
+                setSheets(res.data.fichas || []);
+            } else {
+                const res = await api.get("/api/sheets");
+                setSheets(res.data.sheets || []);
+            }
         };
 
         fetchSheets();
-    }, []);
+    }, [authRole]);
 
     // funcion que llama la funcion de editar usuario del contexto mientras activa y desactiva los toast
     const UploadUser = async () => {
@@ -92,11 +116,16 @@ function UserEdit() {
                 email,
                 estado,
                 idSelected.id,
+                selectedSheets,
+                selectedDependencies,
             );
             toast.success("Información actualizada");
         } catch (err) {
             toast.error(
                 err?.response?.data?.message ||
+                err?.message ||
+                err ||
+                "Error al hacer la petición",
                 err?.message ||
                 err ||
                 "Error al hacer la petición",
@@ -225,7 +254,7 @@ function UserEdit() {
                             </select>
                         </div>
 
-                        {/* FICHAS */}
+                        {/* FICHAS INSTRUCTORES */}
                         {route().current("instructor") ? (
                             <div className="flex flex-col gap-2 md:col-span-2">
                                 <label className="text-sm font-medium">
@@ -296,6 +325,7 @@ function UserEdit() {
                                 </div>
                             </div>
                         ) :(
+                            //Dependency Students
                           <div className="flex flex-col gap-2 md:col-span-2">
                                 <label className="text-sm font-medium">
                                     Asignar Dependencia
@@ -304,23 +334,25 @@ function UserEdit() {
                                 <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
                                     {/* TAGS */}
                                     <div className="flex flex-wrap gap-2">
-                                        {selectedSheets.length > 0 ? (
-                                            selectedSheets.map((sheetId) => {
-                                                const sheet = sheets.find(
-                                                    (s) => s.id === sheetId,
+                                        {dependencies.length > 0 ? (
+                                            selectedDependencies.map((dependencyid) => {
+                                                const dependency = dependencies.find(
+                                                    (d) => d.id === dependencyid,
                                                 );
+                                                console.log(dependencies)
                                                 return (
                                                     <div
-                                                        key={sheetId}
+                                                        key={dependency}
                                                         className="bg-primary text-white px-3 py-1 rounded-full text-xs flex items-center gap-2 max-w-full"
                                                     >
                                                         <span className="truncate">
-                                                            {sheet?.number}
+                                                            
+                                                            {dependency?.name}
                                                         </span>
                                                         <button
                                                             type="button"
                                                             onClick={() =>
-                                                                toggleSheet(sheetId)
+                                                                toggleDependency(dependencyid)
                                                             }
                                                             className="font-bold"
                                                         >
@@ -338,15 +370,17 @@ function UserEdit() {
 
                                     {/* LISTA */}
                                     <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
-                                        {sheets.map((sheet) => {
+                                        {dependencies.map((dependency) => {
+
                                             const isSelected =
-                                                selectedSheets.includes(sheet.id);
+                                                selectedDependencies.includes(dependency.id);
+                                            
 
                                             return (
                                                 <div
-                                                    key={sheet.id}
+                                                    key={dependency.id}
                                                     onClick={() =>
-                                                        toggleSheet(sheet.id)
+                                                        toggleDependency(dependency.id)
                                                     }
                                                     className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
                                                 ${isSelected
@@ -356,7 +390,7 @@ function UserEdit() {
                                             `}
                                                 >
                                                     <span className="truncate">
-                                                        {sheet.number}
+                                                        {dependency.name}
                                                     </span>
                                                 </div>
                                             );

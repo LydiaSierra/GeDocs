@@ -10,14 +10,20 @@ import {
     ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
+import { Menu, MenuItem, MenuButton, SubMenu } from '@szhsin/react-menu';
+import '@szhsin/react-menu/dist/index.css';
+import '@szhsin/react-menu/dist/transitions/zoom.css';
 
 export default function Header() {
     const { url, props } = usePage();
     const user = props?.auth?.user;
     const rol = user?.roles?.[0]?.name;
+    const sheets = props?.sheets;
+    const dependencies = props?.dependencies;
 
     const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
+    console.log(sheets);
 
     const logout = (e) => {
         e.preventDefault();
@@ -128,48 +134,83 @@ export default function Header() {
 
             {/* RIGHT SIDE */}
             <div className="flex gap-4 items-center">
+
+
+                <Menu
+                    menuButton={
+                        <MenuButton className="cursor-pointer p-2 border border-gray-200 rounded-md">
+                            Selecciona una ficha y/o dependencia
+                        </MenuButton>
+                    }
+                    transition
+                    position="right"
+                >
+                    {sheets.map((sheet) => (
+                        <SubMenu
+                            key={sheet.id}
+                            label={sheet?.number}
+                            className="p-0"
+                            openTrigger="clickOnly"
+                        >
+                            {sheet.dependencies.map((dependency) => (
+                                <MenuItem key={dependency.id} value={dependency.id}>
+                                    {dependency.name}
+                                </MenuItem>
+                            ))}
+                        </SubMenu>
+                    ))}
+                </Menu>
+                {/* <select name="dependency" id="dependency" className="select select-primary">
+                    <option value="">Selecciona una dependencia</option>
+                    {dependencies.map((dependency) => (
+                        <option key={dependency.id} value={dependency.id}>
+                            {dependency.name}
+                        </option>
+                    ))}
+                </select> */}
                 {(rol === "Admin" || rol === "Instructor") && <NotificationDropDown />}
+
 
                 {/* USER MENU */}
                 <div className="dropdown dropdown-end">
                     <div
                         tabIndex={0}
                         role="button"
-                        className="cursor-pointer rounded-full bg-gray-200 w-10 h-10 overflow-hidden"
+                        className="cursor-pointer transition-colors rounded-full bg-gray-200 w-10 h-10 overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2"
                     >
-                        {user?.profile_photo ? (
+                        {user?.profile_photo && user?.profile_photo !== null && user?.profile_photo !== "" ? (
                             <img
                                 src={user.profile_photo}
                                 onLoad={() => setLoadingPhoto(false)}
                                 onError={() => setLoadingPhoto(false)}
-                                className={`w-full h-full object-cover ${
-                                    loadingPhoto ? "opacity-0" : "opacity-100"
-                                }`}
+                                className={`w-full h-full object-cover ${loadingPhoto ? "opacity-0" : "opacity-100"
+                                    }`}
+                                alt={`Foto de perfil de ${user?.name}`}
                             />
                         ) : (
                             <UserIcon className="w-full h-full p-2 text-gray-400" />
                         )}
                     </div>
 
-                    <ul className="menu dropdown-content bg-base-100 rounded-box mt-3 w-64 p-2 shadow z-50 border border-gray-100">
-                        <li className="px-4 py-3 mb-1 border-b border-base-200 pointer-events-none">
-                            <div className="flex flex-col p-0 bg-transparent gap-0 w-56 overflow-hidden">
-                                <p className="font-bold text-gray-900 truncate w-full block">{user?.name}</p>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase truncate w-full block">{rol}</p>
-                                <p className="text-xs text-gray-500 truncate w-full block">{user?.email}</p>
+                    <ul className="menu dropdown-content bg-white rounded-2xl mt-3 w-72 p-0 shadow-xl z-50 border border-gray-200 overflow-hidden">
+                        <li className="pointer-events-none border-b border-gray-200 px-4 py-4">
+                            <div className="flex flex-col gap-1 bg-transparent p-0">
+                                <p className="block w-full truncate text-sm font-bold text-[#010515]">{user?.name}</p>
+                                <p className="block w-full truncate text-[11px] font-semibold uppercase text-[#606164]">{rol}</p>
+                                <p className="block w-full truncate text-xs text-[#848484]">{user?.email}</p>
                             </div>
                         </li>
 
-                        <li>
-                            <Link href={route("profile.edit")}>
-                                <Cog6ToothIcon className="w-5 h-5" />
+                        <li className="border-none">
+                            <Link href={route("profile.edit")} className="px-4 py-3 flex items-center gap-3 text-sm text-[#404142] transition hover:bg-gray-50">
+                                <Cog6ToothIcon className="h-5 w-5 shrink-0" />
                                 Configuración
                             </Link>
                         </li>
 
-                        <li>
-                            <button onClick={logout} className="text-red-500">
-                                <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />
+                        <li className="border-none">
+                            <button onClick={logout} className="px-4 py-3 flex items-center gap-3 text-sm text-red-600 transition hover:bg-red-50">
+                                <ArrowLeftEndOnRectangleIcon className="h-5 w-5 shrink-0" />
                                 Cerrar sesión
                             </button>
                         </li>
