@@ -97,9 +97,9 @@ function UserEdit() {
         } catch (err) {
             toast.error(
                 err?.response?.data?.message ||
-                    err?.message ||
-                    err ||
-                    "Error al hacer la petición",
+                err?.message ||
+                err ||
+                "Error al hacer la petición",
             );
         } finally {
             if (toastId) {
@@ -226,75 +226,146 @@ function UserEdit() {
                         </div>
 
                         {/* FICHAS */}
-                        <div className="flex flex-col gap-2 md:col-span-2">
-                            <label className="text-sm font-medium">
-                                Asignar Fichas
-                            </label>
+                        {route().current("instructor") ? (
+                            <div className="flex flex-col gap-2 md:col-span-2">
+                                <label className="text-sm font-medium">
+                                    Asignar Fichas
+                                </label>
 
-                            <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
-                                {/* TAGS */}
-                                <div className="flex flex-wrap gap-2">
-                                    {selectedSheets.length > 0 ? (
-                                        selectedSheets.map((sheetId) => {
-                                            const sheet = sheets.find(
-                                                (s) => s.id === sheetId,
-                                            );
+                                <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
+                                    {/* TAGS */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedSheets.length > 0 ? (
+                                            selectedSheets.map((sheetId) => {
+                                                const sheet = sheets.find(
+                                                    (s) => s.id === sheetId,
+                                                );
+                                                return (
+                                                    <div
+                                                        key={sheetId}
+                                                        className="bg-primary text-white px-3 py-1 rounded-full text-xs flex items-center gap-2 max-w-full"
+                                                    >
+                                                        <span className="truncate">
+                                                            {sheet?.number}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                toggleSheet(sheetId)
+                                                            }
+                                                            className="font-bold"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <span className="text-xs text-gray-400">
+                                                No hay fichas seleccionadas
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* LISTA */}
+                                    <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
+                                        {sheets.map((sheet) => {
+                                            const isSelected =
+                                                selectedSheets.includes(sheet.id);
+
                                             return (
                                                 <div
-                                                    key={sheetId}
-                                                    className="bg-primary text-white px-3 py-1 rounded-full text-xs flex items-center gap-2 max-w-full"
+                                                    key={sheet.id}
+                                                    onClick={() =>
+                                                        toggleSheet(sheet.id)
+                                                    }
+                                                    className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
+                                                ${isSelected
+                                                            ? "bg-primary text-white"
+                                                            : "hover:bg-gray-100"
+                                                        }
+                                            `}
                                                 >
                                                     <span className="truncate">
-                                                        {sheet?.number}
+                                                        {sheet.number}
                                                     </span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            toggleSheet(sheetId)
-                                                        }
-                                                        className="font-bold"
-                                                    >
-                                                        ✕
-                                                    </button>
                                                 </div>
                                             );
-                                        })
-                                    ) : (
-                                        <span className="text-xs text-gray-400">
-                                            No hay fichas seleccionadas
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* LISTA */}
-                                <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
-                                    {sheets.map((sheet) => {
-                                        const isSelected =
-                                            selectedSheets.includes(sheet.id);
-
-                                        return (
-                                            <div
-                                                key={sheet.id}
-                                                onClick={() =>
-                                                    toggleSheet(sheet.id)
-                                                }
-                                                className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
-                                                ${
-                                                    isSelected
-                                                        ? "bg-primary text-white"
-                                                        : "hover:bg-gray-100"
-                                                }
-                                            `}
-                                            >
-                                                <span className="truncate">
-                                                    {sheet.number}
-                                                </span>
-                                            </div>
-                                        );
-                                    })}
+                                        })}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        ) :(
+                          <div className="flex flex-col gap-2 md:col-span-2">
+                                <label className="text-sm font-medium">
+                                    Asignar Dependencia
+                                </label>
+
+                                <div className="border rounded-xl bg-white p-4 flex flex-col gap-4">
+                                    {/* TAGS */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedSheets.length > 0 ? (
+                                            selectedSheets.map((sheetId) => {
+                                                const sheet = sheets.find(
+                                                    (s) => s.id === sheetId,
+                                                );
+                                                return (
+                                                    <div
+                                                        key={sheetId}
+                                                        className="bg-primary text-white px-3 py-1 rounded-full text-xs flex items-center gap-2 max-w-full"
+                                                    >
+                                                        <span className="truncate">
+                                                            {sheet?.number}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                toggleSheet(sheetId)
+                                                            }
+                                                            className="font-bold"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <span className="text-xs text-gray-400">
+                                                No hay fichas seleccionadas
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* LISTA */}
+                                    <div className="max-h-44 overflow-y-auto border-t pt-3 flex flex-col gap-1">
+                                        {sheets.map((sheet) => {
+                                            const isSelected =
+                                                selectedSheets.includes(sheet.id);
+
+                                            return (
+                                                <div
+                                                    key={sheet.id}
+                                                    onClick={() =>
+                                                        toggleSheet(sheet.id)
+                                                    }
+                                                    className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex justify-between items-center transition
+                                                ${isSelected
+                                                            ? "bg-primary text-white"
+                                                            : "hover:bg-gray-100"
+                                                        }
+                                            `}
+                                                >
+                                                    <span className="truncate">
+                                                        {sheet.number}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                     </div>
                 </div>
 
