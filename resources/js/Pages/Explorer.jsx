@@ -94,8 +94,17 @@ export default function Explorer() {
                             </div>
 
                             {sheets.length === 0 && (
-                                <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
-                                    <p>No hay fichas disponibles.</p>
+                                <div className="flex flex-col items-center justify-center p-10 text-gray-600 text-center font-bold w-full">
+                                    <div className="relative flex justify-center items-center">
+                                        <p className="absolute z-1">No hay fichas disponibles</p>
+                                        <div className="h-full w-full">
+                                            <img
+                                                className="opacity-60 lg:h-110"
+                                                src="/images/OBJECTS.svg"
+                                                alt=""
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

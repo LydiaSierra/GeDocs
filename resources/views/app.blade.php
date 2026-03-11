@@ -11,8 +11,6 @@
     @routes
     @viteReactRefresh
     @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
-    <link rel="preload" href="/resources/fonts/work-sans/WorkSans-VariableFont_wght.ttf" as="font" type="font/ttf"
-        crossorigin>
     @inertiaHead
 </head>
 
