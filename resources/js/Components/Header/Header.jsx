@@ -176,7 +176,7 @@ export default function Header() {
                     <div
                         tabIndex={0}
                         role="button"
-                        className="cursor-pointer rounded-full bg-gray-200 w-10 h-10 overflow-hidden"
+                        className="cursor-pointer transition-colors rounded-full bg-gray-200 w-10 h-10 overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2"
                     >
                         {user?.profile_photo && user?.profile_photo !== null && user?.profile_photo !== "" ? (
                             <img
@@ -192,25 +192,25 @@ export default function Header() {
                         )}
                     </div>
 
-                    <ul className="menu dropdown-content bg-base-100 rounded-box mt-3 w-64 p-2 shadow z-50 border border-gray-100">
-                        <li className="px-4 py-3 mb-1 border-b border-base-200 pointer-events-none">
-                            <div className="flex flex-col p-0 bg-transparent gap-0 w-56 overflow-hidden">
-                                <p className="font-bold text-gray-900 truncate w-full block">{user?.name}</p>
-                                <p className="text-[11px] font-semibold text-gray-500 uppercase truncate w-full block">{rol}</p>
-                                <p className="text-xs text-gray-500 truncate w-full block">{user?.email}</p>
+                    <ul className="menu dropdown-content bg-white rounded-2xl mt-3 w-72 p-0 shadow-xl z-50 border border-gray-200 overflow-hidden">
+                        <li className="pointer-events-none border-b border-gray-200 px-4 py-4">
+                            <div className="flex flex-col gap-1 bg-transparent p-0">
+                                <p className="block w-full truncate text-sm font-bold text-[#010515]">{user?.name}</p>
+                                <p className="block w-full truncate text-[11px] font-semibold uppercase text-[#606164]">{rol}</p>
+                                <p className="block w-full truncate text-xs text-[#848484]">{user?.email}</p>
                             </div>
                         </li>
 
-                        <li>
-                            <Link href={route("profile.edit")}>
-                                <Cog6ToothIcon className="w-5 h-5" />
+                        <li className="border-none">
+                            <Link href={route("profile.edit")} className="px-4 py-3 flex items-center gap-3 text-sm text-[#404142] transition hover:bg-gray-50">
+                                <Cog6ToothIcon className="h-5 w-5 shrink-0" />
                                 Configuración
                             </Link>
                         </li>
 
-                        <li>
-                            <button onClick={logout} className="text-red-500">
-                                <ArrowLeftEndOnRectangleIcon className="w-5 h-5" />
+                        <li className="border-none">
+                            <button onClick={logout} className="px-4 py-3 flex items-center gap-3 text-sm text-red-600 transition hover:bg-red-50">
+                                <ArrowLeftEndOnRectangleIcon className="h-5 w-5 shrink-0" />
                                 Cerrar sesión
                             </button>
                         </li>

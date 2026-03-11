@@ -72,7 +72,7 @@ export default function ArchiveTable() {
             </div>
 
           
-            <div className="overflow-x-auto mt-2.5 md:mt-0 pb-[30px] md:pb-0">
+            <div className="overflow-x-auto mt-2.5 md:mt-0 pb-[30px] md:pb-0 rounded-lg">
                 {loading ?
                     <div className={"flex justify-center items-center h-40"}>
 
