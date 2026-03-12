@@ -23,7 +23,6 @@ export const UserList = ({ url }) => {
     }, []);
 
     const InfoView = isSearching ? filteredUser : user;
-
     useEffect(() => {
         if (url === "/users/instructor") {
             setContent("Instructor");

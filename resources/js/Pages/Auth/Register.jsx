@@ -14,7 +14,7 @@ export default function Register({ sheets }) {
         name: "",
         email: "",
         role: "",
-        technical_sheet: "",
+        technical_sheet_id: "",
         password: "",
         password_confirmation: "",
     });
@@ -32,7 +32,7 @@ export default function Register({ sheets }) {
         if (!data.email) return toast.error("Ingrese un email válido");
         if (!data.role) return toast.error("Seleccione un rol");
 
-        if (data.role === "Aprendiz" && !data.technical_sheet) {
+        if (data.role === "Aprendiz" && !data.technical_sheet_id) {
             return toast.error("Seleccione su ficha");
         }
 
@@ -157,24 +157,24 @@ export default function Register({ sheets }) {
                 {/* Ficha */}
                 {data.role === "Aprendiz" && (
                     <div className="mt-4">
-                        <InputLabel htmlFor="technical_sheet" value="Ficha" />
+                        <InputLabel htmlFor="technical_sheet_id" value="Ficha" />
                         <select
-                            id="technical_sheet"
-                            value={data.technical_sheet}
+                            id="technical_sheet_id"
+                            value={data.technical_sheet_id}
                             onChange={(e) =>
-                                setData("technical_sheet", e.target.value)
+                                setData("technical_sheet_id", e.target.value)
                             }
                             className="mt-1 w-full border border-gray-500 rounded-md p-2"
                         >
                             <option value="">Seleccione su ficha</option>
                             {sheets.map((sheet) => (
-                                <option key={sheet.id} value={sheet.number}>
+                                <option key={sheet.id} value={sheet.id}>
                                     {sheet.number}
                                 </option>
                             ))}
                         </select>
                         <InputError
-                            message={errors.technical_sheet}
+                            message={errors.technical_sheet_id}
                             className="mt-2"
                         />
                     </div>
