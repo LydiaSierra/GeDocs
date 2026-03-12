@@ -23,6 +23,7 @@ export function MailReader() {
 
     const [responseText, setResponseText] = useState("");
     const [sending, setSending] = useState(false);
+    const [responseUrl, setResponseUrl] = useState("");
 
     const handleRespond = async () => {
         if (!responseText.trim()) return;
@@ -33,10 +34,14 @@ export function MailReader() {
             await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
                 response_message: responseText,
             });
-            await axios.post(`/api/pqr/${currentMail.id}/comunicaciones`, {
-                message: responseText,
-                requires_response: true,
-            });
+            await axios
+                .post(`/api/pqr/${currentMail.id}/comunicaciones`, {
+                    message: responseText,
+                    requires_response: true,
+                })
+                .then((response) => {
+                    setResponseUrl(response.data.response_url);
+                });
             // Optional UX improvements 👇
 
             alert("Respuesta enviada correctamente");
@@ -223,6 +228,17 @@ export function MailReader() {
                         onChange={(e) => setResponseText(e.target.value)}
                     />
                     <div className="flex justify-end mt-2">
+                        {responseUrl ? (
+                            <a
+                                target="_blank"
+                                href={responseUrl}
+                                className="mr-5"
+                            >
+                                Enlace de respuestas
+                            </a>
+                        ) : (
+                            ""
+                        )}
                         <button
                             onClick={handleRespond}
                             disabled={sending}

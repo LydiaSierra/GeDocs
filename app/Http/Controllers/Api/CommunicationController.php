@@ -18,7 +18,7 @@ class CommunicationController extends Controller
     //Funciones de comunicaciones
     public function createCommunication(Request $request, string $id): JsonResponse
     {
-        $user = $request->user();
+
         $pqr = PQR::with(['creator', 'responsible', 'dependency'])->find($id);
 
         if (!$pqr) {
@@ -64,8 +64,8 @@ class CommunicationController extends Controller
             }
 
             // Enviar email
-            $emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
-            Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
+            //$emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
+            //Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
 
             DB::commit();
 
