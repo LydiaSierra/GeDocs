@@ -24,6 +24,14 @@ export default function SheetsTable({ sheets = [] }) {
         document.getElementById("delete_modal").showModal();
     };
 
+    const handleRowClick = (event, item) => {
+        if (event.target.closest("[data-row-action='true']")) {
+            return;
+        }
+
+        openEditModal(item);
+    };
+
     return (
         <div className="w-full">
             {/* MODAL VER */}
@@ -121,7 +129,7 @@ export default function SheetsTable({ sheets = [] }) {
                             sheets.map((item) => (
                                 <tr
                                     key={item.id}
-                                    onClick={() => openEditModal(item)}
+                                    onClick={(event) => handleRowClick(event, item)}
                                     className="cursor-pointer border-b border-gray-100 transition-colors bg-white hover:bg-primary/5 select-none"
                                 >
                                     <td className="py-4 px-4">
@@ -153,17 +161,22 @@ export default function SheetsTable({ sheets = [] }) {
                                             {item.state}
                                         </span>
                                     </td>
-                                    <td className="py-4 px-4 text-right">
-                                        <div className="dropdown dropdown-end">
+                                    <td className="py-4 px-4 text-right" data-row-action="true">
+                                        <div className="dropdown dropdown-end" data-row-action="true">
                                             <div
                                                 tabIndex={0}
                                                 role="button"
                                                 className="p-1 rounded-md hover:bg-gray-100 transition-colors inline-flex"
+                                                data-row-action="true"
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <EllipsisVerticalIcon className="size-5 text-gray-400" />
                                             </div>
-                                            <ul className="dropdown-content menu bg-base-100 rounded-lg w-40 p-1 shadow-lg z-50">
+                                            <ul
+                                                className="dropdown-content menu bg-base-100 rounded-lg w-40 p-1 shadow-lg z-50"
+                                                data-row-action="true"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
                                                 <li>
                                                     <button
                                                         onClick={(e) => {

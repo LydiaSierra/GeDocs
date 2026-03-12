@@ -1,9 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext.jsx";
-import {
-    PlusCircleIcon,
-    ArrowPathIcon,
-} from "@heroicons/react/24/solid";
+import { ArrowPathIcon, BellIcon } from "@heroicons/react/24/outline";
 import NotificationsCard from "@/Components/Notifications/NotificationsCard.jsx";
 import { usePage } from "@inertiajs/react";
 
@@ -19,12 +16,8 @@ const NotificationsSettingsSection = () => {
 
     const { auth } = usePage().props;
 
-    // Authenticated user role
     const rol = auth.user.roles[0].name;
 
-    // Filter notifications by role:
-    // Instructors only see apprentice notifications
-    // Admins only see instructor notifications
     const filteredNotifications = useMemo(() => {
         return notifications.filter((item) => {
             const notifRole = item?.data?.user?.roles?.[0]?.name || "";
@@ -36,45 +29,52 @@ const NotificationsSettingsSection = () => {
 
     if (loading) {
         return (
-            <div className="w-auto h-auto flex flex-col absolute top-1/2 md:left-[55%] left-[40%] items-center justify-center z-100">
-                <ArrowPathIcon className="size-8 animate-spin" />
-                cargando.....
+            <div className="flex h-64 items-center justify-center">
+                <div className="flex flex-col items-center gap-3 text-slate-400">
+                    <ArrowPathIcon className="size-7 animate-spin" />
+                    <span className="text-sm">Cargando notificaciones...</span>
+                </div>
             </div>
         );
     }
 
     return (
-        <div
-            className={`${notificationSeleted ? "grid-cols-3 grid gap-2" : "flex flex-col gap-2"} mt-2 w-full h-full`}
-        >
-            <div className={`col-span-1 h-max-content ${notificationSeleted ? "hidden md:block" : ""}`}>
-                <div className="flex justify-between items-center flex-wrap gap-4 pr-6">
-                    <div className="flex flex-wrap items-center gap-5 w-auto">
-                        <h1 className="font-bold text-2xl text-black">
+        <div className={`flex w-full h-full gap-4 ${notificationSeleted ? "flex-row" : "flex-col"}`}>
+            {/* Notification list panel */}
+            <div className={`flex flex-col gap-4 ${notificationSeleted ? "hidden md:flex md:w-80 lg:w-96 shrink-0" : "w-full"}`}>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <BellIcon className="size-5 text-slate-500" />
+                        <h2 className="text-base font-semibold text-slate-800">
                             Notificaciones de Acceso
-                        </h1>
+                        </h2>
+                        {filteredNotifications.length > 0 && (
+                            <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                                {filteredNotifications.length}
+                            </span>
+                        )}
                     </div>
-
-                    <h1
-                        className="cursor-pointer bg-base-content px-3 max-w-content max-h-content rounded-md hover:scale-105 transition-all flex items-center gap-1 text-sm py-1 text-white"
-                        onClick={() => {
-                            fetchNotifications();
-                        }}
+                    <button
+                        onClick={fetchNotifications}
+                        className="btn btn-ghost btn-sm gap-1.5 text-slate-500 hover:text-slate-800"
+                        title="Refrescar notificaciones"
                     >
-                        Refrescar Notificaciones
-                    </h1>
+                        <ArrowPathIcon className="size-4" />
+                        <span className="hidden sm:inline text-xs">Refrescar</span>
+                    </button>
                 </div>
 
+                {/* List */}
                 {filteredNotifications.length > 0 ? (
-                    <ul className="flex flex-col overflow-y-scroll gap-3 pr-2 mt-1 rounded-lg h-full">
-                        {/* Conditional styles based on notification status */}
+                    <ul className="flex flex-col gap-2 overflow-y-auto">
                         {filteredNotifications.map((item) => {
                             const isSelected = item.id === notificationSeleted;
-                            const isRead = item.read_at;
-                            const isActive =
-                                item.data?.user?.status === "active";
-                            const isRejected =
-                                item.data?.user?.status === "rejected";
+                            const isRead = !!item.read_at;
+                            const isActive = item.data?.user?.status === "active";
+                            const isRejected = item.data?.user?.status === "rejected";
+                            const roleName = item?.data?.user?.roles[0]?.name || "Usuario";
+
                             return (
                                 <li
                                     key={item.id}
@@ -82,73 +82,60 @@ const NotificationsSettingsSection = () => {
                                         if (!isSelected && !isRead) {
                                             markAsReadNotification(item.id);
                                         }
-                                        setNotificationSeleted(
-                                            isSelected ? null : item.id,
-                                        );
+                                        setNotificationSeleted(isSelected ? null : item.id);
                                     }}
-                                    className={`flex flex-row w-full h-auto border-y border-x-none cursor-pointer relative p-2 mt-1.5 rounded-xl hover:bg-[#6CF1F5]/50
-                                ${isRead ? "text-[#848484]" : "text-black font-bold "}
-                                ${isSelected ? "bg-[#6CF1F5]/50" : "bg-white"} ${isActive ? "text-green-800" : ""}`}
+                                    className={`relative flex flex-col gap-1.5 cursor-pointer rounded-xl border px-4 py-3 transition-all
+                                        ${isSelected
+                                            ? "border-primary/40 bg-primary/10 shadow-sm"
+                                            : "border-slate-200 bg-white hover:border-primary/30 hover:bg-slate-50 shadow-xs"
+                                        }`}
                                 >
-                                    <div
-                                        className={`"w-full flex flex-col items-start gap-1" }`}
-                                    >
-                                        <h1 className={`text-[17px]`}>
-                                            Nuevo{" "}
-                                            {`${item?.data?.user.roles[0]?.name || "Usuario"}`}
-                                        </h1>
+                                    {/* Unread indicator dot */}
+                                    {!isRead && (
+                                        <span className="absolute right-3 top-3 size-2 rounded-full bg-primary" />
+                                    )}
 
-                                        {/* Notification text */}
-                                        <p className="text-[15px]">
-                                            {" "}
-                                            Solicitud de acceso:{" "}
+                                    <div className="flex items-center justify-between pr-4">
+                                        <p className={`text-sm leading-snug ${isRead ? "font-normal text-slate-500" : "font-semibold text-slate-800"}`}>
+                                            Nuevo {roleName}
                                         </p>
-                                        <p className="text-[15px]">
-                                            {" "}
-                                            {`${item.data.user.name} desea solicitar un nuevo acceso con
-                                el rol ${item?.data?.user.roles[0]?.name || "Usuario"} en el sistema`}{" "}
-                                        </p>
+                                        <span className="shrink-0 text-xs text-slate-400">
+                                            {new Date(item.created_at).toLocaleDateString()}
+                                        </span>
                                     </div>
 
-                                    <p
-                                        className={`absolute top-3 right-3 text-[12px]`}
-                                    >
-                                        {new Date(
-                                            item.created_at,
-                                        ).toLocaleDateString()}
+                                    <p className="line-clamp-2 text-xs text-slate-500">
+                                        <span className="font-medium text-slate-600">{item.data.user.name}</span>{" "}
+                                        solicita acceso con rol {roleName}
                                     </p>
 
                                     {!notificationSeleted && (
-                                        <p className={`hidden md:block w-fit h-fit absolute right-3 bottom-3 ${isRejected ? "text-red-400" : isActive ? "text-green-800" : "text-gray-500"}`}>
-                                            {isRejected
-                                                ? "Rechazada"
+                                        <span className={`w-fit rounded-full px-2 py-0.5 text-xs font-medium
+                                            ${isRejected
+                                                ? "bg-red-50 text-red-500"
                                                 : isActive
-                                                  ? "Aceptada"
-                                                  : "Pendiente"}
-                                        </p>
-                                    )}
-
-                                    <PlusCircleIcon
-                                        className={`${item.read_at ? "hidden" : "w-3 h-3 text-[#3CACBB] fill-[#3CACBB] rounded-[50%] bg-[#3CACBB] absolute -top-1.5 right-0"}`}
-                                    />
-                                    {isRead && !isActive && !isSelected && (
-                                        <span
-                                            className={` w-3 h-3 rounded-[50%] ${isRejected ? "bg-red-400" : !isActive ? "" : ""} absolute -top-1.5 right-0`}
-                                        ></span>
+                                                    ? "bg-green-50 text-green-600"
+                                                    : "bg-slate-100 text-slate-500"
+                                            }`}
+                                        >
+                                            {isRejected ? "Rechazada" : isActive ? "Aceptada" : "Pendiente"}
+                                        </span>
                                     )}
                                 </li>
                             );
                         })}
                     </ul>
                 ) : (
-                    <div className="absolute w-auto h-auto top-1/2 md:left-1/2 left-[34%]  text-ray-500 flex items-center justify-center z-5">
-                        <p>No hay notificaciones</p>
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+                        <BellIcon className="size-10 text-slate-300" />
+                        <p className="text-sm text-slate-400">No hay notificaciones pendientes</p>
                     </div>
                 )}
             </div>
 
+            {/* Detail panel */}
             {notificationSeleted && (
-                <div className="col-span-3 md:col-span-2">
+                <div className="min-w-0 flex-1">
                     <NotificationsCard />
                 </div>
             )}
