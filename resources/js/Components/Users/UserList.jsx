@@ -23,7 +23,6 @@ export const UserList = ({ url }) => {
     }, []);
 
     const InfoView = isSearching ? filteredUser : user;
-
     useEffect(() => {
         if (url === "/users/instructor") {
             setContent("Instructor");
@@ -40,6 +39,7 @@ export const UserList = ({ url }) => {
         item.roles.some((r) => r.name === content)
     );
 
+    console.log(filtered)
     return (
         <>
             <div className="overflow-x-auto mt-2.5 md:mt-0 pb-[30px] md:pb-0 rounded-lg">
