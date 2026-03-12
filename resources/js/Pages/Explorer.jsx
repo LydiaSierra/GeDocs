@@ -6,7 +6,7 @@ import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
-import { ArrowLeftCircleIcon, ExclamationTriangleIcon, FolderIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, DocumentArrowDownIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon } from "@heroicons/react/24/outline";
 import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
 import { useExplorerData } from "@/Hooks/useExplorer";
 import { usePage } from "@inertiajs/react";
@@ -150,26 +150,35 @@ export default function Explorer() {
 
                             <dialog id="my_modal_1" className="modal w-full">
                                 <div
-                                    className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[85vh] overflow-y-auto">
+                                    className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto">
                                     <form method="dialog">
-                                        {/* if there is a button in form, it will close the modal */}
-                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 z-10">✕</button>
                                     </form>
 
-                                    <h1 className="text-2xl text-center my-2 font-bold">
-                                        Formulario PDF
-                                    </h1>
+                                    <div className="flex items-center justify-center gap-2 mb-4">
+                                        <DocumentTextIcon className="w-6 h-6 text-primary" />
+                                        <h2 className="text-xl font-bold text-base-content">
+                                            Generar Comunicación PDF
+                                        </h2>
+                                    </div>
+                                    <p className="text-sm text-gray-500 text-center mb-6">
+                                        Complete los campos para generar el documento de comunicación oficial.
+                                    </p>
+
                                     <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)} />
-                                    <div className="modal-action">
-                                        <div className="modal-action">
-                                            <button
-                                                type="submit"
-                                                form="pdfForm"
-                                                className="btn bg-primary text-white"
-                                            >
-                                                Crear
-                                            </button>
-                                        </div>
+
+                                    <div className="modal-action border-t border-base-300 pt-4 mt-6">
+                                        <form method="dialog">
+                                            <button className="btn btn-ghost">Cancelar</button>
+                                        </form>
+                                        <button
+                                            type="submit"
+                                            form="pdfForm"
+                                            className="btn bg-primary hover:bg-green-700 text-white gap-2"
+                                        >
+                                            <DocumentArrowDownIcon className="w-5 h-5" />
+                                            Generar PDF
+                                        </button>
                                     </div>
                                 </div>
 
