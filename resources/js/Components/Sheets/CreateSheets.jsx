@@ -46,8 +46,10 @@ export default function CreateSheets() {
         } catch (error) {
             if (error.response?.status === 401) {
                 setErrorMsg("La sesión ha expirado. Inicia sesión nuevamente.");
-            } else if (error.response?.status === 500) {
+            } else if (error.response?.status === 422 && error.response?.data?.errors?.number) {
                 setErrorMsg("Ya existe una ficha con este número");
+            } else if (error.response?.status === 500) {
+                setErrorMsg("Error interno al crear la ficha.");
             } else {
                 setErrorMsg("Error al comunicarse con el servidor.");
             }

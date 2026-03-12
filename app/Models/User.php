@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'status',
         'profile_photo',
+        'dependency_id',
     ];
 
     /**

@@ -85,6 +85,7 @@ class FolderStructureService
                 'folder_code' => $folderCode,
                 'department' => $department,
                 'sheet_number_id' => $parentId === null ? $sheetId : null,
+                'active' => true,
             ]);
             $map[$tempKey] = $folder->id;
         }

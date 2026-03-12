@@ -146,7 +146,6 @@ export function NotificationsProvider({ children }) {
                 setNotificationSeleted,
                 updateUserStatusFromNotification,
                 deleteUserAndNotification,
-                fetchNotifications,
             }}
         >
             {children}

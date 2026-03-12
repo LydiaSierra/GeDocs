@@ -1,35 +1,47 @@
 
-// Importa la instancia personalizada de Axios desde tu carpeta de librerías
 import api from "@/lib/axios";
-
-// Importa React y el hook useState (aunque en este componente no se está usando)
-import React, { useState } from "react";
+import React from "react";
 import { toast } from "sonner";
+import {
+    DocumentTextIcon,
+    CalendarDaysIcon,
+    MapPinIcon,
+    UserIcon,
+    BuildingOfficeIcon,
+    EnvelopeIcon,
+    PencilSquareIcon,
+    HandRaisedIcon,
+} from "@heroicons/react/24/outline";
 
-// Componente principal
+const SectionHeader = ({ icon: Icon, title }) => (
+    <div className="flex items-center gap-2 mb-4 pb-2 border-b border-base-300">
+        <Icon className="w-5 h-5 text-primary" />
+        <h3 className="text-base font-semibold text-base-content">{title}</h3>
+    </div>
+);
+
+const Field = ({ label, children }) => (
+    <div className="flex flex-col gap-1">
+        <label className="label-text text-sm font-medium text-gray-600">{label}</label>
+        {children}
+    </div>
+);
+
 const DependencyScheme = ({ onPdfGenerated }) => {
-
-    // ------------------------------
-    // Función que maneja la generación del PDF
-    // ------------------------------
     const handleGeneratePdf = async (e) => {
-        e.preventDefault(); // Evita que el formulario recargue la página
+        e.preventDefault();
         document.getElementById("my_modal_1").close();
 
-        let toastId;
-        toastId = toast.loading("Generando PDF")
+        const toastId = toast.loading("Generando PDF...");
 
         try {
             const form = new FormData(e.target);
             const data = Object.fromEntries(form.entries());
 
-            const response = await api.post(
-                "/generate-pdf",
-                data,
-                { responseType: "blob" }
-            );
+            const response = await api.post("/generate-pdf", data, {
+                responseType: "blob",
+            });
 
-            // Verificar si el blob es en realidad un JSON de error
             if (response.data.type === "application/json") {
                 const text = await response.data.text();
                 const errorData = JSON.parse(text);
@@ -46,11 +58,10 @@ const DependencyScheme = ({ onPdfGenerated }) => {
 
             toast.dismiss(toastId);
             toast.success("PDF generado correctamente");
-
         } catch (error) {
             toast.dismiss(toastId);
             console.error("Error generando el PDF:", error);
-            
+
             let errorMessage = "No se pudo generar el PDF";
             if (error.response && error.response.data instanceof Blob) {
                 const text = await error.response.data.text();
@@ -63,145 +74,124 @@ const DependencyScheme = ({ onPdfGenerated }) => {
             } else {
                 errorMessage = error.message || errorMessage;
             }
-            
+
             toast.error(errorMessage);
         }
     };
 
-    // ------------------------------
-    // Render del formulario
-    // ------------------------------
     return (
-        <form id="pdfForm" onSubmit={handleGeneratePdf}>
-            <div className="rounded-sm p-6 gap-3 items-center grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-between bg-gray-200 w-full">
-
-                {/* Campo: Código */}
-                <div>
-                    <label>Código</label>
-                    <input name="codigo" className="input" />
+        <form id="pdfForm" onSubmit={handleGeneratePdf} className="space-y-6">
+            {/* Section 1: Document Info */}
+            <section>
+                <SectionHeader icon={DocumentTextIcon} title="Información del Documento" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Field label="Código">
+                        <input name="codigo" placeholder="Ej: GD-001" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Fecha de Elaboración">
+                        <input type="date" name="fecha" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Lugar">
+                        <input name="lugar" placeholder="Ej: Bogotá D.C." className="input input-bordered w-full" />
+                    </Field>
                 </div>
+            </section>
 
-                {/* Campo: Fecha de elaboración */}
-                <div>
-                    <label>Fecha de elaboración</label>
-                    <input type="date" name="fecha" className="input" />
+            {/* Section 2: Recipient */}
+            <section>
+                <SectionHeader icon={UserIcon} title="Destinatario" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field label="Tratamiento">
+                        <input name="tratamiento" placeholder="Ej: Señor(a), Doctor(a)" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Nombres y Apellidos">
+                        <input name="nombres" placeholder="Nombre completo del destinatario" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Cargo">
+                        <input name="cargo" placeholder="Cargo del destinatario" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Empresa">
+                        <input name="empresa" placeholder="Nombre de la empresa" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Dirección">
+                        <input name="direccion" placeholder="Dirección de correspondencia" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Ciudad">
+                        <input name="ciudad" placeholder="Ciudad de destino" className="input input-bordered w-full" />
+                    </Field>
                 </div>
+            </section>
 
-                {/* Campo: Lugar */}
-                <div>
-                    <label>Lugar</label>
-                    <input name="lugar" className="input" />
+            {/* Section 3: Content */}
+            <section>
+                <SectionHeader icon={PencilSquareIcon} title="Contenido de la Comunicación" />
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Field label="Asunto">
+                            <input name="asunto" placeholder="Asunto de la comunicación" className="input input-bordered w-full" />
+                        </Field>
+                        <Field label="Saludo">
+                            <input name="saludo" placeholder="Ej: Cordial saludo" className="input input-bordered w-full" />
+                        </Field>
+                    </div>
+                    <Field label="Texto">
+                        <textarea
+                            name="texto"
+                            rows={5}
+                            placeholder="Escriba el cuerpo de la comunicación..."
+                            className="textarea textarea-bordered w-full leading-relaxed"
+                        />
+                    </Field>
                 </div>
+            </section>
 
-                {/* Campo: Tratamiento */}
-                <div>
-                    <label>Tratamiento</label>
-                    <input name="tratamiento" className="input" />
+            {/* Section 4: Farewell */}
+            <section>
+                <SectionHeader icon={HandRaisedIcon} title="Despedida" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Field label="Línea 1">
+                        <input name="despedida1" placeholder="Ej: Atentamente," className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Línea 2">
+                        <input name="despedida2" placeholder="Segunda línea (opcional)" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Línea 3">
+                        <input name="despedida3" placeholder="Tercera línea (opcional)" className="input input-bordered w-full" />
+                    </Field>
                 </div>
+            </section>
 
-                {/* Campo: Nombres */}
-                <div>
-                    <label>Nombres y Apellidos</label>
-                    <input name="nombres" className="input" />
+            {/* Section 5: Signature */}
+            <section>
+                <SectionHeader icon={EnvelopeIcon} title="Firma" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field label="Nombres y Apellidos">
+                        <input name="firma_nombres" placeholder="Nombre completo del firmante" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Cargo">
+                        <input name="firma_cargo" placeholder="Cargo del firmante" className="input input-bordered w-full" />
+                    </Field>
                 </div>
+            </section>
 
-                {/* Campo: Cargo */}
-                <div>
-                    <label>Cargo</label>
-                    <input name="cargo" className="input" />
+            {/* Section 6: Additional Info */}
+            <section>
+                <SectionHeader icon={BuildingOfficeIcon} title="Información Adicional" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Field label="Anexo">
+                        <input name="anexo" placeholder="Documentos anexos" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Copia">
+                        <input name="copia" placeholder="Destinatarios en copia" className="input input-bordered w-full" />
+                    </Field>
+                    <Field label="Transcriptor">
+                        <input name="transcriptor" placeholder="Iniciales del transcriptor" className="input input-bordered w-full" />
+                    </Field>
                 </div>
-
-                {/* Campo: Empresa */}
-                <div>
-                    <label>Empresa</label>
-                    <input name="empresa" className="input" />
-                </div>
-
-                {/* Campo: Dirección */}
-                <div>
-                    <label>Dirección</label>
-                    <input name="direccion" className="input" />
-                </div>
-
-                {/* Campo: Ciudad */}
-                <div>
-                    <label>Ciudad</label>
-                    <input name="ciudad" className="input" />
-                </div>
-
-                {/* Campo: Asunto */}
-                <div>
-                    <label>Asunto</label>
-                    <input name="asunto" className="input" />
-                </div>
-
-                {/* Campo: Saludo */}
-                <div>
-                    <label>Saludo</label>
-                    <input name="saludo" className="input" />
-                </div>
-
-                {/* Campo: Texto (textarea) */}
-                <div>
-                    <label>Texto</label>
-                    <textarea name="texto" className="textarea" />
-                </div>
-
-                {/* Campos: Despedidas */}
-                <div>
-                    <label>Despedida línea 1</label>
-                    <input name="despedida1" className="input" />
-                </div>
-
-                <div>
-                    <label>Despedida línea 2</label>
-                    <input name="despedida2" className="input" />
-                </div>
-
-                <div>
-                    <label>Despedida línea 3</label>
-                    <input name="despedida3" className="input" />
-                </div>
-
-                {/* Firma */}
-                <div>
-                    <label>Firma - Nombres y Apellidos</label>
-                    <input name="firma_nombres" className="input" />
-                </div>
-
-                <div>
-                    <label>Firma - Cargo</label>
-                    <input name="firma_cargo" className="input" />
-                </div>
-
-                {/* Anexo, Copia, Transcriptor */}
-                <div>
-                    <label>Anexo</label>
-                    <input name="anexo" className="input" />
-                </div>
-
-                <div>
-                    <label>Copia</label>
-                    <input name="copia" className="input" />
-                </div>
-
-                <div>
-                    <label>Transcriptor</label>
-                    <input name="transcriptor" className="input" />
-                </div>
-
-                {/* Botón del formulario */}
-                <button
-                    type="submit"
-                    className="mt-6 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-                >
-                    Generar PDF
-                </button>
-            </div>
+            </section>
         </form>
     );
 };
 
-// Exporta el componente para poder usarlo en otras partes del proyecto
 export default DependencyScheme;
 

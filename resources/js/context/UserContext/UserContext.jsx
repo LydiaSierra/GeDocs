@@ -54,42 +54,45 @@ export function UserProvider({ children }) {
     };
 
     const UpdateInfo = async (
-    nombre,
-    tipo_documento,
-    documento_number,
-    email,
-    estado,
-    id,
-    sheetNumbers 
-) => {
-    try {
-        setLoadingEdit(true);
-
-        const res = await api.put(`/api/users/${id}`, {
-            type_document: tipo_documento,
-            document_number: documento_number.toString(),
-            name: nombre,
-            email: email,
-            status: estado,
-            sheet_numbers: sheetNumbers, 
-        });
-
-        if (res.data.success === false) {
-            console.log("ERROR AL ACTUALIZAR USUARIO");
-            return;
+        nombre,
+        tipo_documento,
+        documento_number,
+        email,
+        estado,
+        id,
+        sheetNumbers = [],
+        dependencyId = null
+    ) => {
+        try {
+            setLoadingEdit(true);
+            const payload = {
+                type_document: tipo_documento,
+                document_number: documento_number.toString(),
+                name: nombre,
+                email: email,
+                status: estado,
+            };
+            if (sheetNumbers && sheetNumbers.length > 0) {
+                payload.sheet_numbers = sheetNumbers;
+            }
+            if (dependencyId) {
+                payload.dependency_id = dependencyId;
+            }
+            const res = await api.put(`/api/users/${id}`, payload);
+            if (res.data.success === false) {
+                console.log("ERROR AL ACTUALIZAR USUARIO");
+                return;
+            }
+            const newList = await fetchUser();
+            const updateUser = newList.find((u) => u.id === id);
+            setEdit(false);
+            setidSelected(updateUser);
+        } catch (error) {
+            throw error;
+        } finally {
+            setLoadingEdit(false);
         }
-
-        const newList = await fetchUser();
-        const updateUser = newList.find((u) => u.id === id);
-
-        setEdit(false);
-        setidSelected(updateUser);
-    } catch (error) {
-        throw error;
-    } finally {
-        setLoadingEdit(false);
-    }
-};
+    };
 
 
     const searchUser = async (searcher, filter) => {

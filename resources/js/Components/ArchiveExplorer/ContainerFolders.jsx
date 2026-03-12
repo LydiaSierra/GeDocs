@@ -16,7 +16,7 @@ import EmptyState from "../EmptyState";
 // Main ArchiveExplorer component
 
 export default function ContainerFolders() {
-    const {
+   const {
         folders,
         loading,
         goBack,
@@ -35,8 +35,17 @@ export default function ContainerFolders() {
     } = useExplorerUI();
 
 
+    useEffect(() => {
+        if (selectedItems.length > 1) {
+            setIsMultipleSelection(true)
+        }
 
-    // Show loading state
+        if (selectedItems.length === 0) {
+            setIsMultipleSelection(false)
+        }
+    }, [selectedItems]);
+
+
     if (loading) {
         return (
             <div className="flex flex-col justify-center items-center h-64">
@@ -47,16 +56,6 @@ export default function ContainerFolders() {
             </div>
         );
     }
-
-    useEffect(() => {
-        if (selectedItems.length > 1) {
-            setIsMultipleSelection(true)
-        }
-        if (selectedItems.length === 0) {
-            setIsMultipleSelection(false)
-        }
-    }, [selectedItems])
-
 
 
     return (

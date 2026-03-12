@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string("number")->unique();
             $table->boolean("active")->nullable()->default(false); // The instructor can activate the sheet in the dashboard
-            $table->string("state")->nullable()->default("active"); // The state of the sheet (active, inactive, etc.)
+            $table->string("state")->nullable()->default("Activa"); // The state of the sheet (Activa, Inactiva, etc.)
             $table->unsignedBigInteger('ventanilla_unica_id')->nullable();
             $table->timestamps();
         });

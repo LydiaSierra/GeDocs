@@ -8,6 +8,8 @@ import { usePage } from "@inertiajs/react";
 
 function UserEditPanel() {
     const { props } = usePage();
+    const dependencies = props?.dependencies || [];
+    const user = props?.auth?.user;
     const authRole = props?.auth?.user?.roles?.[0]?.name;
     const { idSelected, setEdit, UpdateInfo } = useContext(UserContext);
 
@@ -20,7 +22,7 @@ function UserEditPanel() {
     const [estado, setEstado] = useState("");
     const [sheets, setSheets] = useState([]);
     const [selectedSheets, setSelectedSheets] = useState([]);
-
+    const [selectedDependency, setSelectedDependency] = useState(null);
     useEffect(() => {
         const dialog = dialogRef.current;
         if (dialog && !dialog.open) dialog.showModal();
@@ -33,6 +35,9 @@ function UserEditPanel() {
             setNumeroDocumento(idSelected.document_number);
             setEmail(idSelected.email);
             setEstado(idSelected.status);
+            if (idSelected.roles && idSelected.roles[0]?.name === "Aprendiz") {
+                setSelectedDependency(idSelected.dependency_id || null);
+            }
             if (idSelected.sheet_numbers) {
                 setSelectedSheets(idSelected.sheet_numbers.map((sheet) => sheet.id));
             }
@@ -48,7 +53,8 @@ function UserEditPanel() {
     };
 
     useEffect(() => {
-        const fetchSheets = async () => {
+        const fetchData = async () => {
+            // Fetch sheets for Instructor
             if (authRole === 'Instructor') {
                 const res = await api.get("/api/sheetsNumber");
                 setSheets(res.data.fichas || []);
@@ -56,9 +62,10 @@ function UserEditPanel() {
                 const res = await api.get("/api/sheets");
                 setSheets(res.data.sheets || []);
             }
+
         };
-        fetchSheets();
-    }, [authRole]);
+        fetchData();
+    }, [authRole, idSelected]);
 
     const UploadUser = async () => {
         let toastId;
@@ -80,7 +87,11 @@ function UserEditPanel() {
         }
         try {
             toastId = toast.loading("Actualizando información");
-            await UpdateInfo(nombre, documento, numero_documento, email, estado, idSelected.id, selectedSheets);
+            if (idSelected?.roles && idSelected.roles[0]?.name === "Aprendiz") {
+                await UpdateInfo(nombre, documento, numero_documento, email, estado, idSelected.id, [], selectedDependency);
+            } else {
+                await UpdateInfo(nombre, documento, numero_documento, email, estado, idSelected.id, selectedSheets);
+            }
             toast.success("Información actualizada");
         } catch (err) {
             toast.error(err?.response?.data?.message || err?.message || err || "Error al hacer la petición");
@@ -121,6 +132,10 @@ function UserEditPanel() {
                                 className="w-full h-full object-cover"
                                 alt="profile pic"
                                 src={idSelected.profile_photo || "/images/default-user-icon.png"}
+                                onError={e => {
+                                    e.target.onerror = null;
+                                    e.target.src = "/images/default-user-icon.png";
+                                }}
                             />
                         </div>
                         <h2 className="font-semibold text-base sm:text-lg text-gray-800 truncate">{idSelected?.name}</h2>
@@ -161,47 +176,62 @@ function UserEditPanel() {
                             </select>
                         </div>
 
-                        {/* Sheets selector */}
-                        <div className="flex flex-col gap-2 md:col-span-2">
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Asignar Fichas</label>
-
-                            <div className="border border-gray-200 rounded-xl bg-gray-50 p-4 flex flex-col gap-3">
-                                <div className="flex flex-wrap gap-2 min-h-7">
-                                    {selectedSheets.length > 0 ? (
-                                        selectedSheets.map((sheetId) => {
-                                            const sheet = sheets.find((s) => s.id === sheetId);
+                        {/* Dependency selector for Aprendiz, Sheets for others */}
+                        {idSelected?.roles && idSelected.roles[0]?.name === "Aprendiz" ? (
+                            <div className="flex flex-col gap-2 md:col-span-2">
+                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Asignar Dependencia</label>
+                                <select
+                                    className={inputClass}
+                                    value={selectedDependency || ""}
+                                    onChange={e => setSelectedDependency(e.target.value)}
+                                >
+                                    <option value="" >Seleccione una dependencia</option>
+                                    {dependencies.map(dep => (
+                                        <option key={dep.id} value={dep.id} selected={user.dependecy_id === dep.id}>
+                                            {dep.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2 md:col-span-2">
+                                <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Asignar Fichas</label>
+                                <div className="border border-gray-200 rounded-xl bg-gray-50 p-4 flex flex-col gap-3">
+                                    <div className="flex flex-wrap gap-2 min-h-7">
+                                        {selectedSheets.length > 0 ? (
+                                            selectedSheets.map((sheetId) => {
+                                                const sheet = sheets.find((s) => s.id === sheetId);
+                                                return (
+                                                    <span key={sheetId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                                                        {sheet?.number}
+                                                        <button type="button" onClick={() => toggleSheet(sheetId)} className="hover:text-primary/70">
+                                                            <XMarkIcon className="size-3.5" />
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })
+                                        ) : (
+                                            <span className="text-xs text-gray-400">No hay fichas seleccionadas</span>
+                                        )}
+                                    </div>
+                                    <div className="max-h-40 overflow-y-auto border-t border-gray-200 pt-3 flex flex-col gap-0.5">
+                                        {sheets.map((sheet) => {
+                                            const isSelected = selectedSheets.includes(sheet.id);
                                             return (
-                                                <span key={sheetId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                                                    {sheet?.number}
-                                                    <button type="button" onClick={() => toggleSheet(sheetId)} className="hover:text-primary/70">
-                                                        <XMarkIcon className="size-3.5" />
-                                                    </button>
-                                                </span>
+                                                <div
+                                                    key={sheet.id}
+                                                    onClick={() => toggleSheet(sheet.id)}
+                                                    className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex items-center transition-colors ${isSelected ? "bg-primary text-white" : "hover:bg-white"
+                                                        }`}
+                                                >
+                                                    {sheet.number}
+                                                </div>
                                             );
-                                        })
-                                    ) : (
-                                        <span className="text-xs text-gray-400">No hay fichas seleccionadas</span>
-                                    )}
-                                </div>
-
-                                <div className="max-h-40 overflow-y-auto border-t border-gray-200 pt-3 flex flex-col gap-0.5">
-                                    {sheets.map((sheet) => {
-                                        const isSelected = selectedSheets.includes(sheet.id);
-                                        return (
-                                            <div
-                                                key={sheet.id}
-                                                onClick={() => toggleSheet(sheet.id)}
-                                                className={`cursor-pointer px-3 py-2 rounded-lg text-sm flex items-center transition-colors ${
-                                                    isSelected ? "bg-primary text-white" : "hover:bg-white"
-                                                }`}
-                                            >
-                                                {sheet.number}
-                                            </div>
-                                        );
-                                    })}
+                                        })}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
