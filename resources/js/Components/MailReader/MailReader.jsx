@@ -1,14 +1,14 @@
 import SenderInformationCard from "@/Components/SenderInformationCard/SenderInformationCard";
+import PdfThumbnail from "@/Components/PdfThumbnail/PdfThumbnail";
 import { MailContext } from "@/context/MailContext/MailContext";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import {
     ArchiveBoxIcon,
     ArrowUturnLeftIcon,
+    PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
-import card from "daisyui/components/card/index.js";
-import EmptyState from "../EmptyState";
 
 export function MailReader() {
     const {
@@ -56,22 +56,6 @@ export function MailReader() {
         }
     };
 
-    const getThumbnail = (type) => {
-        switch (type.toLowerCase()) {
-            case "pdf":
-                return "/images/attached-pdf.png";
-            case "jpg":
-            case "jpeg":
-            case "png":
-                return null;
-            case "doc":
-            case "docx":
-                return "/images/attached-doc.png";
-            default:
-                return "/images/attached-file.png";
-        }
-    };
-
     if (!currentMail) {
         return (
             <div className="h-full w-full hidden lg:flex items-center justify-center text-gray-500">
@@ -112,140 +96,143 @@ export function MailReader() {
     return (
         <div
             className={`
-    h-full
-    w-full lg:flex-1 lg:min-w-0
-    shadow-xl
-    rounded-lg
-    p-6 pb-[50px] md:pb-6
-    overflow-y-auto
-    bg-white
-    transition-all duration-300 ease-in-out
-    ${selectedMail ? "block" : "hidden"}
-    lg:block
-  `}
+                h-full w-full lg:flex-1 lg:min-w-0
+                rounded-lg
+                overflow-y-auto
+                bg-white
+                transition-all duration-300 ease-in-out
+                flex flex-col
+                ${selectedMail ? "flex" : "hidden"}
+                lg:flex
+            `}
         >
-            <div className="flex items-center justify-between mb-4 ">
+            {/* Sticky top bar */}
+            <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between shrink-0">
                 <button
-                    className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary transition-colors cursor-pointer"
                     onClick={() => setSelectedMail(null)}
                 >
-                    <ArrowLeftIcon className="w-5" />
+                    <ArrowLeftIcon className="w-4" />
                     Volver
                 </button>
 
                 <button
                     onClick={handleArchiveToggle}
-                    className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-primary lg:hidden"
+                    className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors cursor-pointer"
                 >
                     {isArchiveView ? (
                         <>
-                            <ArrowUturnLeftIcon className="w-5" />
+                            <ArrowUturnLeftIcon className="w-4" />
                             Desarchivar
                         </>
                     ) : (
                         <>
-                            <ArchiveBoxIcon className="w-5 " />
+                            <ArchiveBoxIcon className="w-4" />
                             Archivar
                         </>
                     )}
                 </button>
             </div>
 
-            <div id="tag-container" className="flex flex-wrap gap-2">
-                <div className="px-4 py-0.5 bg-senaGreen rounded-md font-bold text-white bg-primary">
-                    {currentMail.request_type}
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-6 pb-[50px] md:pb-6 space-y-5">
+                {/* Header: tag + metadata */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <span className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                        {currentMail.request_type}
+                    </span>
+                    <span className="text-sm text-gray-400 font-medium">
+                        ID: {currentMail.id}
+                    </span>
+                    <span className="text-sm text-gray-400">
+                        {new Date(currentMail.created_at).toLocaleDateString()}
+                    </span>
                 </div>
-            </div>
 
-            <div className="hidden lg:flex justify-end mb-2">
-                <button
-                    onClick={handleArchiveToggle}
-                    className="flex items-center gap-2 btn text-white bg-primary font-medium text-lg hover:text-primary hover:bg-white cursor-pointer"
-                >
-                    {isArchiveView ? (
-                        <>
-                            <ArrowUturnLeftIcon className="w-7" />
-                            Desarchivar
-                        </>
-                    ) : (
-                        <>
-                            <ArchiveBoxIcon className="w-7" />
-                            Archivar
-                        </>
-                    )}
-                </button>
-            </div>
+                {/* Subject */}
+                <h1 className="text-xl font-bold text-neutral leading-snug">
+                    {currentMail.affair}
+                </h1>
 
-            <div id="serial-data" className="flex flex-wrap gap-3 my-2">
-                <div className="font-bold text-lg">ID: {currentMail.id}</div>
-                <div className="font-bold text-lg">
-                    {new Date(currentMail.created_at).toLocaleDateString()}
-                </div>
-            </div>
+                {/* Sender card */}
+                <SenderInformationCard currentMail={currentMail} />
 
-            <div className="mb-3">
-                <h2 className="font-bold text-xl">{currentMail.affair}</h2>
-            </div>
-
-            <SenderInformationCard currentMail={currentMail} />
-
-            <div id="email-description" className="mt-4">
-                <div className="font-bold text-lg mb-2">Descripción</div>
-                <p className="text-justify">{currentMail.description}</p>
-            </div>
-
-            <div className="my-3">
-                <div className="font-bold text-lg mb-2">Soportes Adjuntos</div>
-
-                {currentMail.attached_supports?.length === 0 && (
-                    <p className="text-gray-400 text-sm">
-                        No hay archivos adjuntos
+                {/* Description */}
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Descripción
+                    </h3>
+                    <p className="text-sm text-neutral/80 leading-relaxed text-justify">
+                        {currentMail.description}
                     </p>
-                )}
-
-                <div className="flex flex-wrap gap-4">
-                    {currentMail.attached_supports?.map((file) => (
-                        <a
-                            key={file.id}
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-32 p-2 border rounded-lg hover:shadow-md transition text-center"
-                        >
-                            {["jpg", "jpeg", "png"].includes(file.type) ? (
-                                <img
-                                    src={file.url}
-                                    alt={file.name}
-                                    className="w-full h-24 object-cover rounded"
-                                />
-                            ) : (
-                                <img
-                                    src={getThumbnail(file.type)}
-                                    alt={file.name}
-                                    className="w-full h-24 object-contain"
-                                />
-                            )}
-
-                            <p className="text-xs mt-2 truncate">{file.name}</p>
-                        </a>
-                    ))}
                 </div>
-            </div>
 
-            <div className="w-full flex flex-col">
-                <textarea
-                    className="textarea w-full rounded-lg focus:outline-gray-200 my-2"
-                    placeholder="Escribe tu respuesta..."
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                />
-                <button
-                    onClick={handleRespond}
-                    disabled={sending}
-                    className="btn bg-primary p-2 hover:bg-senaWashedGreen text-white rounded-lg self-end disabled:opacity-50"
-                >
-                    {sending ? "Enviando..." : "Enviar respuesta"}
-                </button>
+                {/* Attachments */}
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                        Soportes Adjuntos
+                    </h3>
+
+                    {currentMail.attached_supports?.length === 0 ? (
+                        <p className="text-gray-400 text-sm">
+                            No hay archivos adjuntos
+                        </p>
+                    ) : (
+                        <div className="flex flex-wrap gap-3">
+                            {currentMail.attached_supports?.map((file) => (
+                                <a
+                                    key={file.id}
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group w-28 p-2 bg-gray-50 border border-gray-200 rounded-lg hover:border-primary/40 hover:shadow-sm transition text-center overflow-hidden"
+                                >
+                                    {["jpg", "jpeg", "png"].includes(
+                                        file.type?.toLowerCase(),
+                                    ) ? (
+                                        <img
+                                            src={file.url}
+                                            alt={file.name}
+                                            className="w-full h-20 object-cover rounded"
+                                        />
+                                    ) : file.type?.toLowerCase() === "pdf" ? (
+                                        <PdfThumbnail
+                                            url={file.url}
+                                            alt={file.name}
+                                            className="w-full h-20 object-cover rounded"
+                                        />
+                                    ) : null}
+                                    <p className="text-xs mt-1.5 truncate text-gray-600 group-hover:text-primary">
+                                        {file.name}
+                                    </p>
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Response area */}
+                <div className="border-t border-gray-100 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                        Responder
+                    </h3>
+                    <textarea
+                        className="textarea w-full bg-gray-50 border border-gray-200 rounded-lg focus:border-primary focus:outline-none resize-none min-h-[100px]"
+                        placeholder="Escribe tu respuesta..."
+                        value={responseText}
+                        onChange={(e) => setResponseText(e.target.value)}
+                    />
+                    <div className="flex justify-end mt-2">
+                        <button
+                            onClick={handleRespond}
+                            disabled={sending}
+                            className="btn btn-sm bg-primary text-white hover:bg-primary/90 border-none rounded-lg gap-1.5 disabled:opacity-50"
+                        >
+                            <PaperAirplaneIcon className="w-4" />
+                            {sending ? "Enviando..." : "Enviar respuesta"}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

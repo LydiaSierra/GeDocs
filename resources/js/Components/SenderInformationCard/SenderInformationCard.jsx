@@ -1,56 +1,68 @@
 import { UserCircleIcon } from "@heroicons/react/24/solid";
+import {
+    EnvelopeIcon,
+    IdentificationIcon,
+    BuildingOfficeIcon,
+} from "@heroicons/react/24/outline";
 
-export default function InboxMailCard({currentMail}) {
+export default function SenderInformationCard({ currentMail }) {
+    const fields = [
+        {
+            icon: IdentificationIcon,
+            label: "Identificación",
+            value: currentMail.document
+                ? `${currentMail.document_type} ${currentMail.document}`
+                : "No disponible",
+        },
+        {
+            icon: EnvelopeIcon,
+            label: "Correo Electrónico",
+            value: currentMail.email || "No disponible",
+            breakAll: true,
+        },
+        {
+            icon: BuildingOfficeIcon,
+            label: "Dependencia destinataria",
+            value: currentMail.dependency?.name || "No especificada",
+        },
+    ];
+
     return (
-        <div className="w-full bg-neutral-content rounded-xl p-6">
-
-            {/* Title */}
-            <h2 className="text-lg font-bold mb-4">
+        <div className="w-full bg-gray-50 border border-gray-200 rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
                 Información del solicitante
-            </h2>
+            </h3>
 
-            {/* Main content */}
-            <div className="flex gap-6 items-start">
+            <div className="flex gap-4 items-start">
+                <UserCircleIcon className="size-12 text-primary/60 shrink-0 hidden sm:block" />
 
-                {/* Avatar */}
-                <UserCircleIcon className="size-20 text-neutral shrink-0" />
+                <div className="flex-1 min-w-0">
+                    <p className="text-lg font-bold text-neutral leading-tight">
+                        {currentMail.sender_name}
+                    </p>
 
-                {/* Info grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-4 w-full">
-
-                    {/* Item */}
-                    <div>
-                        <p className="text-sm text-neutral/60">Solicitante</p>
-                        <p className="font-semibold">{currentMail.sender_name}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                        {fields.map(({ icon: Icon, label, value, breakAll }) => (
+                            <div
+                                key={label}
+                                className="flex items-start gap-2 min-w-0"
+                            >
+                                <Icon className="size-4 text-gray-400 mt-0.5 shrink-0" />
+                                <div className="min-w-0">
+                                    <p className="text-xs text-gray-400">
+                                        {label}
+                                    </p>
+                                    <p
+                                        className={`text-sm font-medium text-neutral ${
+                                            breakAll ? "break-all" : "truncate"
+                                        }`}
+                                    >
+                                        {value}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-
-                    <div>
-                        <p className="text-sm text-neutral/60">Identificación</p>
-                        <p className="font-semibold">{currentMail.document_type} {currentMail.document}</p>
-                    </div>
-
-                    <div>
-                        <p className="text-sm text-neutral/60">Dirección</p>
-                        <p className="font-semibold">Calle 123 #45-67</p>
-                    </div>
-
-                    <div>
-                        <p className="text-sm text-neutral/60">Correo Electrónico</p>
-                        <p className="font-semibold break-all">
-                            {currentMail.email}
-                        </p>
-                    </div>
-
-                    <div>
-                        <p className="text-sm text-neutral/60">Teléfono de contacto</p>
-                        <p className="font-semibold">300 123 4567</p>
-                    </div>
-
-                    <div>
-                        <p className="text-sm text-neutral/60">Dependencia destinataria</p>
-                        <p className="font-semibold">Tesorería</p>
-                    </div>
-
                 </div>
             </div>
         </div>
