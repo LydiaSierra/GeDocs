@@ -42,8 +42,15 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
                 'status' => $request->session()->get('status'),
             ],
-            "sheets" => $request->user() ? ($request->user()->hasRole("Instructor") ? $request->user()->sheetNumbers()->with("dependencies")->get() : Sheet_number::with("dependencies")->get()) : [],
-             "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],
+            "sheets" => $request->user()
+                ? (
+                    $request->user()->hasRole("Instructor") || $request->user()->hasRole("Aprendiz")
+                    ? $request->user()->sheetNumbers()->with("dependencies")->get()
+                    : Sheet_number::with("dependencies")->get()
+                )
+                : [],
+
+            "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],
         ];
     }
 }
