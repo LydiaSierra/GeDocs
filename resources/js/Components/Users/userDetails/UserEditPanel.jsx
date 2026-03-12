@@ -4,6 +4,8 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { ArrowUturnLeftIcon } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
+import { useMemo } from "react";
+
 import { usePage } from "@inertiajs/react";
 
 function UserEditPanel() {
@@ -43,6 +45,17 @@ function UserEditPanel() {
             }
         }
     }, [idSelected]);
+
+    const filteredDependencies = useMemo(() => {
+        if (!idSelected || !idSelected.sheet_numbers?.length) return [];
+
+        const sheetId = idSelected.sheet_numbers[0].id;
+
+        return dependencies.filter(
+            (dep) => dep.sheet_number_id === sheetId
+        );
+    }, [dependencies, idSelected]);
+
 
     const toggleSheet = (sheetId) => {
         if (selectedSheets.includes(sheetId)) {
@@ -183,14 +196,19 @@ function UserEditPanel() {
                                 <select
                                     className={inputClass}
                                     value={selectedDependency || ""}
-                                    onChange={e => setSelectedDependency(e.target.value)}
+                                    onChange={(e) => setSelectedDependency(e.target.value)}
                                 >
-                                    <option value="" >Seleccione una dependencia</option>
-                                    {dependencies.map(dep => (
-                                        <option key={dep.id} value={dep.id} selected={user.dependecy_id === dep.id}>
-                                            {dep.name}
-                                        </option>
-                                    ))}
+                                    <option value="">Seleccione una dependencia</option>
+
+                                    {filteredDependencies.length > 0 ? (
+                                        filteredDependencies.map(dep => (
+                                            <option key={dep.id} value={dep.id}>
+                                                {dep.name}
+                                            </option>
+                                        ))
+                                    ) : (
+                                        <option value="">No hay dependencias disponibles</option>
+                                    )}
                                 </select>
                             </div>
                         ) : (
