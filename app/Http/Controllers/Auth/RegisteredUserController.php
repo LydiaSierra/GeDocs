@@ -48,7 +48,6 @@ class RegisteredUserController extends Controller
             'email' => $validated['email'],
             'role' => $validated['role'],
             'status' => "pending",
-            'technical_sheet_id' => $validated['technical_sheet_id'] ?? null,
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -58,7 +57,8 @@ class RegisteredUserController extends Controller
         $user->assignRole($validated['role']);
 
         if (!empty($validated['technical_sheet_id'])) {
-            $user->sheetNumbers()->attach($validated['technical_sheet_id']);
+            $sheet = Sheet_number::find($validated['technical_sheet_id']);
+            $user->sheetNumbers()->attach($sheet);
         }
 
         if ($user->hasRole('Instructor')) {
