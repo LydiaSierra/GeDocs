@@ -71,14 +71,14 @@ export default function UpdateProfileInformation({
 
                 {mustVerifyEmail && !user.email_verified_at && (
                     <div>
-                        <p className="mt-2 text-sm text-gray-800">
+                        <p className="mt-2 text-sm text-slate-800">
                             Su dirección de correo electrónico no está
                             verificada.{" "}
                             <Link
                                 href={route("verification.send")}
                                 method="post"
                                 as="button"
-                                className="underline text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded-md"
+                                className="underline text-sm text-slate-500 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md"
                             >
                                 Haga clic aquí para volver a enviar el correo
                                 electrónico de verificación.
@@ -109,7 +109,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600 text-center sm:text-left">
+                        <p className="text-sm text-slate-500 text-center sm:text-left">
                             Guardado.
                         </p>
                     </Transition>

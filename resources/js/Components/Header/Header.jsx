@@ -2,15 +2,12 @@ import { Link, router, usePage } from "@inertiajs/react";
 import NotificationDropDown from "../Notifications/NotificationDropDown";
 import { useState } from "react";
 import {
-    UserIcon,
-    UserCircleIcon,
-    AcademicCapIcon,
-    ListBulletIcon,
     Cog6ToothIcon,
     ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
+import HamburguerMenu from "../HamburguerMenu/HamburguerMenu";
 
 export default function Header() {
     const { url, props } = usePage();
@@ -49,80 +46,7 @@ export default function Header() {
     return (
         <header className="bg-white shadow-sm px-4 h-14 flex justify-between items-center fixed top-0 left-0 z-50 w-full">
             {/* HAMBURGER */}
-            {shouldShowHamburger && (
-                <div className="dropdown lg:hidden">
-                    <div
-                        tabIndex={0}
-                        role="button"
-                        className="btn btn-ghost btn-circle"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            className="h-5 w-5 stroke-current"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M4 6h16M4 12h16M4 18h16"
-                            />
-                        </svg>
-                    </div>
-
-                    <ul className="menu dropdown-content bg-white rounded-box mt-3 w-72 p-3 shadow z-50">
-                        <li>
-                            <Link href={route("profile.edit")}>
-                                <div className="flex gap-2">
-                                    <UserCircleIcon className="w-5 h-5" />
-                                    Perfil
-                                </div>
-                            </Link>
-                        </li>
-
-                        {rol === "Admin" && (
-                            <>
-                                <li className="mt-3 text-xs font-semibold">
-                                    Usuarios
-                                </li>
-
-                                <li>
-                                    <Link href={route("aprendiz")}>
-                                        <AcademicCapIcon className="w-5 h-5" />
-                                        Aprendices
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link href={route("instructor")}>
-                                        <ListBulletIcon className="w-5 h-5" />
-                                        Instructores
-                                    </Link>
-                                </li>
-
-                                <li>
-                                    <Link href={route("sheets")}>
-                                        <UserCircleIcon className="w-5 h-5" />
-                                        Fichas
-                                    </Link>
-                                </li>
-                            </>
-                        )}
-
-                        <li className="mt-3 text-xs font-semibold">
-                            Gestión Documental
-                        </li>
-
-                        <li>
-                            <Link href={route("dependencies")}>
-                                <UserCircleIcon className="w-5 h-5" />
-                                Dependencias
-                            </Link>
-                        </li>
-                    </ul>
-                </div>
-            )}
+            {shouldShowHamburger && <HamburguerMenu />}
 
             {/* LOGO */}
             <Link href={route("inbox")}>

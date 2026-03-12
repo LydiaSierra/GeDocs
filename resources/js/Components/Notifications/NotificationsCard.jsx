@@ -1,11 +1,13 @@
 import { NotificationsContext } from "@/context/Notifications/NotificationsContext";
-import React, { useContext, useState } from "react";
-
+import React, { useContext } from "react";
 import {
     ArrowUturnLeftIcon,
     UserCircleIcon,
     ArrowPathIcon,
-} from "@heroicons/react/24/solid";
+    CheckCircleIcon,
+    XCircleIcon,
+} from "@heroicons/react/24/outline";
+import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
 
 const NotificationCard = () => {
@@ -14,138 +16,166 @@ const NotificationCard = () => {
         closeDetails,
         updateUserStatusFromNotification,
         deleteUserAndNotification,
-        visibleDetails
+        visibleDetails,
     } = useContext(NotificationsContext);
 
     if (loadingDetailsNotification) {
         return (
-            <div className="w-full flex flex-col items-center justify-center h-full">
-                <ArrowPathIcon className="size-8 animate-spin" />
-                cargando.....
+            <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex flex-col items-center gap-3 text-slate-400">
+                    <ArrowPathIcon className="size-7 animate-spin" />
+                    <span className="text-sm">Cargando detalles...</span>
+                </div>
             </div>
         );
     }
+
     if (!visibleDetails) return null;
+
     const isActive = visibleDetails.data.user.status === "active";
     const isRejected = visibleDetails.data.user.status === "rejected";
+    const roleName = visibleDetails.data.user.roles[0]?.name || "Usuario";
+
+    const userFields = [
+        { label: "Solicitante", value: visibleDetails.data.user.name },
+        { label: "Tipo de Documento", value: visibleDetails.data.user.type_document },
+        { label: "Número de documento", value: visibleDetails.data.user.document_number },
+        { label: "Correo electrónico", value: visibleDetails.data.user.email },
+        { label: "Teléfono de contacto", value: "Ninguno" },
+    ];
 
     return (
-        <div className=" bg-white flex flex-col w-full h-full md:gap-5 gap-3 p-3 rounded-md col-span-2 overflow-y-auto relative">
-            <div className="w-full h-auto flex flex-row justify-between sticky top-0 bg-white z-1">
-                <button className="h-auto w-auto cursor-pointer rounded-[50%] hover:bg-gray-400 p-1 hover:text-white">
-                    <ArrowUturnLeftIcon
-                        className="md:size-7 size-5"
-                        onClick={closeDetails}
-                    />
+        <div className="flex h-full flex-col gap-5 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            {/* Back button */}
+            <div>
+                <button
+                    onClick={closeDetails}
+                    className="btn btn-ghost btn-sm gap-1.5 text-slate-500 hover:text-slate-800"
+                >
+                    <ArrowUturnLeftIcon className="size-4" />
+                    Volver
                 </button>
             </div>
-            <p className="font-semibold text-[#000000] md:text-2xl text-lg">
-                Solicitud de Acceso: <br />
-                El usuario {visibleDetails.data.user.name} solicita un nuevo
-                acceso con el rol de
-                {visibleDetails.data.user.roles[0]?.name || "Usuario"}
-            </p>
 
-            <p className="font-semibold md:text-lg text-md text-[#404142]">
-                {new Date(visibleDetails.created_at).toLocaleDateString()}
-            </p>
+            {/* Title & meta */}
+            <div className="flex flex-col gap-1">
+                <h2 className="text-xl font-semibold text-slate-800">
+                    Solicitud de Acceso
+                </h2>
+                <p className="text-sm text-slate-500">
+                    {visibleDetails.data.user.name} solicita acceso como{" "}
+                    <span className="font-semibold text-slate-700">{roleName}</span>
+                </p>
+                <p className="text-xs text-slate-400">
+                    {new Date(visibleDetails.created_at).toLocaleDateString("es-CO", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    })}
+                </p>
+            </div>
 
-            <div className="bg-[#F3F3F3] w-full max-h-fit  mx-auto md:p-6 p-3 rounded-md text-base">
-                <h1 className="font-semibold text-md">
-                    {" "}
-                    Información del solicitante:{" "}
-                </h1>
+            <hr className="border-slate-100" />
 
-                <div className="flex gap-6 mt-2.5 w-full">
-                    <div className="w-14 h-14 text-gray-700">
-                        <UserCircleIcon className="h-full w-full" />
+            {/* User info panel */}
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Información del solicitante
+                </h3>
+                <div className="flex items-start gap-4">
+                    <div className="shrink-0">
+                        <UserCircleIcon className="size-14 text-slate-300" />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-10 w-full">
-                        <div>
-                            <p className="font-black"> Solicitante </p>
-                            <p> {visibleDetails.data.user.name} </p>
-                        </div>
-
-                        <div>
-                            <p className="font-black"> Tipo de Documento </p>
-                            <p> {visibleDetails.data.user.type_document} </p>
-                        </div>
-
-                        <div>
-                            <p className="font-black"> Número de documento </p>
-                            <p> {visibleDetails.data.user.document_number} </p>
-                        </div>
-
-                        <div>
-                            <p className="font-black"> Correo electrónico </p>
-                            <p> {visibleDetails.data.user.email} </p>
-                        </div>
-
-                        <div>
-                            <p className="font-black"> Teléfono de contacto </p>
-                            <p> Ninguno </p>
-                        </div>
+                    <div className="grid min-w-0 flex-1 grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {userFields.map(({ label, value }) => (
+                            <div key={label} className="flex flex-col gap-0.5">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    {label}
+                                </p>
+                                <p className="wrap-break-word text-sm text-slate-700">{value}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-            {isRejected ?
-                <div>
-                    <h1 className="text-start font-medium md:text-xl text-md">
-                        Usuario rechazado
-                    </h1>
-                    <p>
-                        Este usuario ha sido rechazado, su registro se eliminara en 2 horas. <strong> ¿Desea darle ingreso?</strong>
-                    </p>
-                </div>
-                :
-                <h1 className="text-center font-medium md:text-2xl text-lg">
-                    ¿Desea permitir que este usuario ingrese como {visibleDetails.data.user.roles[0]?.name || "Usuario"}?
-                </h1>
-            }
 
-            {isActive ? (
-                <p className="text-green-500 text-center"> El usuario ya fue aceptado! </p>
-            ) : (
-                <div className="flex gap-[20%] w-full flex-row justify-center">
-                    <button
-                        className="cursor-pointer border border-green-400 p-1.5 hover:bg-green-300 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs "
-                        onClick={async () => {
-                            try {
-                                let toastId = toast.loading("Otorgando Permiso a " + visibleDetails?.data?.user?.name)
-                                await updateUserStatusFromNotification(visibleDetails?.id, "active");
-                                toast.success("Usuario aceptado con éxito");
-                                toast.dismiss(toastId)
-                            } catch (err) {
-                                toast.error(err.response?.data?.message || "Error al aceptar usuario");
-                                toast.dismiss(toastId);
-                            }
-                        }}
-                    >
-                        Aceptar
-                    </button>
-                    {!isRejected &&
+            {/* Decision section */}
+            <div className="flex flex-col gap-4">
+                {isRejected ? (
+                    <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                        <p className="text-sm font-semibold text-red-700">Usuario rechazado</p>
+                        <p className="mt-1 text-sm text-red-600">
+                            Este usuario ha sido rechazado, su registro se eliminará en 2 horas.{" "}
+                            <strong>¿Desea darle ingreso?</strong>
+                        </p>
+                    </div>
+                ) : (
+                    <p className="text-center text-sm font-medium text-slate-600">
+                        ¿Desea permitir que este usuario ingrese como{" "}
+                        <span className="font-semibold text-slate-800">{roleName}</span>?
+                    </p>
+                )}
+
+                {isActive ? (
+                    <div className="flex items-center justify-center gap-2 rounded-xl bg-green-50 py-3 text-sm font-medium text-green-600">
+                        <CheckCircleSolid className="size-5" />
+                        El usuario fue aceptado exitosamente
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center gap-4">
                         <button
+                            className="btn btn-primary btn-sm gap-2 text-white"
                             onClick={async () => {
+                                let toastId;
                                 try {
-                                    console.log(visibleDetails?.data?.user?.id);
-                                    let toastId = toast.loading("Rechazando a " + visibleDetails?.data?.user?.name);
-                                    await deleteUserAndNotification(visibleDetails?.id, visibleDetails?.data?.user?.id);
-                                    toast.success("Usuario rechazado y eliminado");
-                                    toast.dismiss(toastId)
+                                    toastId = toast.loading(
+                                        "Otorgando permiso a " + visibleDetails?.data?.user?.name,
+                                    );
+                                    await updateUserStatusFromNotification(visibleDetails?.id, "active");
+                                    toast.success("Usuario aceptado con éxito");
                                 } catch (err) {
-                                    toast.error(err.response?.data?.message || "Error al rechazar usuario");
+                                    toast.error(
+                                        err.response?.data?.message || "Error al aceptar usuario",
+                                    );
+                                } finally {
                                     toast.dismiss(toastId);
                                 }
                             }}
-                            className="cursor-pointer border border-red-500 p-1.5 hover:bg-red-400 rounded-md hover:text-white hover:border-none hover:text-shadow-2xs"
                         >
-                            Rechazar
+                            <CheckCircleIcon className="size-4" />
+                            Aceptar
                         </button>
-                    }
 
-                </div>
-            )}
+                        {!isRejected && (
+                            <button
+                                className="btn btn-sm gap-2 bg-red-600 text-white hover:bg-red-700"
+                                onClick={async () => {
+                                    let toastId;
+                                    try {
+                                        toastId = toast.loading(
+                                            "Rechazando a " + visibleDetails?.data?.user?.name,
+                                        );
+                                        await deleteUserAndNotification(
+                                            visibleDetails?.id,
+                                            visibleDetails?.data?.user?.id,
+                                        );
+                                        toast.success("Usuario rechazado y eliminado");
+                                    } catch (err) {
+                                        toast.error(
+                                            err.response?.data?.message || "Error al rechazar usuario",
+                                        );
+                                    } finally {
+                                        toast.dismiss(toastId);
+                                    }
+                                }}
+                            >
+                                <XCircleIcon className="size-4" />
+                                Rechazar
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

@@ -1,11 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { DependenciesContext } from "@/context/DependenciesContext/DependenciesContext";
 import { usePage } from "@inertiajs/react";
-import InputLabel from "@/Components/InputLabel";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import api from "@/lib/axios";
+import { toast } from "sonner";
+
+const MODAL_ID = "create_dependency_modal";
 
 export default function CreateDependencie() {
-
     const { props } = usePage();
     const rol = props?.auth?.user?.roles?.[0]?.name;
 
@@ -15,14 +17,13 @@ export default function CreateDependencie() {
     const [sheetNumber, setSheetNumber] = useState("");
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState(null);
 
     const fetchSheets = async () => {
         try {
             const result = await api.get("/api/sheets");
             setSheets(result.data.sheets || []);
         } catch (e) {
-            console.log(e.response?.data);
+            console.error(e.response?.data);
         }
     };
 
@@ -34,21 +35,15 @@ export default function CreateDependencie() {
         e.preventDefault();
 
         if (!name.trim()) {
-            return setMessage({
-                type: "error",
-                text: "Ingrese el nombre de la dependencia",
-            });
+            toast.error("Ingrese el nombre de la dependencia");
+            return;
         }
-
         if (!sheetNumber) {
-            return setMessage({
-                type: "error",
-                text: "Debe seleccionar una ficha",
-            });
+            toast.error("Debe seleccionar una ficha");
+            return;
         }
 
         setLoading(true);
-        setMessage(null);
 
         const response = await createDependency({
             name: name.trim(),
@@ -58,80 +53,93 @@ export default function CreateDependencie() {
         if (response.success) {
             setName("");
             setSheetNumber("");
-            setMessage({
-                type: "success",
-                text: "Dependencia creada exitosamente",
-            });
+            document.getElementById(MODAL_ID)?.close();
+            toast.success("Dependencia creada exitosamente");
         } else if (response.errors) {
             const firstError = Object.values(response.errors)[0][0];
-            setMessage({
-                type: "error",
-                text: firstError,
-            });
+            toast.error(firstError);
         } else {
-            setMessage({
-                type: "error",
-                text: "No se pudo crear la dependencia",
-            });
+            toast.error("No se pudo crear la dependencia");
         }
 
         setLoading(false);
-        setTimeout(() => setMessage(null), 3000);
     };
 
     if (rol !== "Instructor" && rol !== "Admin") return null;
 
     return (
-        <div className="flex flex-col gap-3">
-
-            {message && (
-                <div className={`alert alert-${message.type}`}>
-                    {message.text}
-                </div>
-            )}
-
-            <form
-                onSubmit={handleSubmit}
-                className="flex flex-wrap gap-3 items-end"
+        <>
+            <button
+                onClick={() => document.getElementById(MODAL_ID)?.showModal()}
+                className="btn btn-primary btn-sm gap-1.5 text-white"
             >
+                <PlusIcon className="size-4" />
+                Nueva Dependencia
+            </button>
 
-                <div>
-                    <InputLabel value="Nombre" />
-                    <input
-                        type="text"
-                        className="input input-bordered"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Nombre de dependencia"
-                    />
+            <dialog id={MODAL_ID} className="modal">
+                <div className="modal-box max-w-md">
+                    <h3 className="text-lg font-semibold text-slate-800 mb-1">
+                        Nueva Dependencia
+                    </h3>
+                    <p className="text-sm text-slate-500 mb-5">
+                        Complete los campos para registrar una nueva dependencia.
+                    </p>
+
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Nombre
+                            </label>
+                            <input
+                                type="text"
+                                className="input input-bordered w-full"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Nombre de la dependencia"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Ficha
+                            </label>
+                            <select
+                                value={sheetNumber}
+                                onChange={(e) => setSheetNumber(e.target.value)}
+                                className="select select-bordered w-full"
+                            >
+                                <option value="">Seleccione una ficha</option>
+                                {sheets.map((sheet) => (
+                                    <option key={sheet.id} value={sheet.id}>
+                                        {sheet.number}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 mt-2">
+                            <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => document.getElementById(MODAL_ID)?.close()}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="btn btn-primary btn-sm text-white"
+                            >
+                                {loading ? "Creando..." : "Crear dependencia"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div>
-                    <InputLabel value="Ficha" />
-                    <select
-                        value={sheetNumber}
-                        onChange={(e) => setSheetNumber(e.target.value)}
-                        className="select select-bordered"
-                    >
-                        <option value="">Seleccione ficha</option>
-
-                        {sheets.map((sheet) => (
-                            <option key={sheet.id} value={sheet.id}>
-                                {sheet.number}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn btn-primary"
-                >
-                    {loading ? "Creando..." : "Crear"}
-                </button>
-
-            </form>
-        </div>
+                <form method="dialog" className="modal-backdrop">
+                    <button>close</button>
+                </form>
+            </dialog>
+        </>
     );
 }

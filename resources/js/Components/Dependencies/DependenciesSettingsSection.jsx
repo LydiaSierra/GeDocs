@@ -4,117 +4,101 @@ import CreateDependencie from "./CreateDependencie";
 import UpdateDependencie from "./UpdateDependencie";
 import DeleteDependencie from "./DeleteDependencie";
 import api from "@/lib/axios";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, BuildingOffice2Icon } from "@heroicons/react/24/outline";
 
 export default function DependenciesSettingsSection() {
     const [sheets, setSheets] = useState([]);
-    const [loading, setLoading] = useState();
+    const [loading, setLoading] = useState(true);
 
     const { dependencies, fetchDependencies } = useContext(DependenciesContext);
 
     const fetchSheet = async () => {
         try {
-            const result = await api.get(
-                `api/sheets`,
-            );
-            if (!result) {
-                return;
-            }
+            const result = await api.get("api/sheets");
+            if (!result) return;
             setSheets(result.data.sheets);
         } catch (e) {
-            console.log(e.message);
+            console.error(e.message);
         }
     };
 
-        const getInformation = async () => {
-            await fetchDependencies();
+    const getInformation = async () => {
+        await fetchDependencies();
         await fetchSheet();
-            setLoading(false);
-        };
+        setLoading(false);
+    };
 
     useEffect(() => {
         getInformation();
-    }, [loading]);
+    }, []);
+
+    const getSheetNumber = (sheetNumberId) => {
+        const sheet = sheets.find((s) => s.id === sheetNumberId);
+        return sheet ? sheet.number : "";
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <div className="flex flex-col items-center gap-3 text-slate-400">
+                    <ArrowPathIcon className="size-7 animate-spin" />
+                    <span className="text-sm">Cargando dependencias...</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 overflow-auto ">
-            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-                    Dependencias
-                </h1>
-
-                <div className="w-full sm:w-auto">
-                    <CreateDependencie />
+        <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <BuildingOffice2Icon className="size-5 text-slate-500" />
+                    <h2 className="text-base font-semibold text-slate-800">Dependencias</h2>
+                    {dependencies.length > 0 && (
+                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                            {dependencies.length}
+                        </span>
+                    )}
                 </div>
-            </header>
+                <CreateDependencie />
+            </div>
 
-            <div className="space-y-3 ">
-                {dependencies.length === 0 && (
-                    <div className="alert alert-info">
-                        <span>No hay dependencias registradas</span>
-                    </div>
-                )}
+            {/* List */}
+            {dependencies.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
+                    <BuildingOffice2Icon className="size-10 text-slate-300" />
+                    <p className="text-sm text-slate-400">No hay dependencias registradas</p>
+                </div>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {dependencies.map((dependency) => (
+                        <div
+                            key={dependency.id}
+                            className="collapse collapse-arrow rounded-xl border border-slate-200 bg-white shadow-sm"
+                        >
+                            <input type="checkbox" />
 
-                {dependencies.map((dependency) => (
-                    <div
-                        key={dependency.id}
-                        className="
-                            collapse collapse-arrow
-                            bg-base-100
-                            border border-base-300
-                            rounded-lg
-                        "
-                    >
-                        <input type="checkbox" />
+                            <div className="collapse-title flex items-center justify-between gap-2 py-3 px-4">
+                                <span className="font-medium text-slate-800 text-sm">
+                                    {dependency.name}
+                                </span>
+                                <span className="mr-6 shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-500">
+                                    Ficha #{getSheetNumber(dependency.sheet_number_id)}
+                                </span>
+                            </div>
 
-                        <div className="collapse-title flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                            <span className="font-semibold text-base sm:text-lg">
-                                {dependency.name}
-                            </span>
-
-                            <span className="text-xs sm:text-sm text-gray-500">
-                                Ficha #
-                                {loading ? (
-                                    <span className="animate-spin">
-                                        <ArrowPathIcon className="s" />
-                                    </span>
-                                ) : (
-                                    <>{sheets.map((sheet) => sheet.id === dependency.sheet_number_id ? sheet.number : "")}</>
-                                )}
-                            </span>
-                        </div>
-
-                        <div className="collapse-content">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                                <div className="text-sm text-gray-600">
-                                    <p>
-                                        <span className="font-medium">
-                                            Ficha:
-                                        </span>{" "}
-                                        {loading ? (
-                                            <span className="animate-spin">
-                                                <ArrowPathIcon className="size-5" />
-                                            </span>
-                                        ) : (
-                                            <>{sheets.map((sheet) => sheet.id === dependency.sheet_number_id ? sheet.number : "")}</>
-                                        )}
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                                    <UpdateDependencie
-                                        dependency={dependency}
-                                    />
-
-                                    <DeleteDependencie
-                                        dependency={dependency}
-                                    />
+                            <div className="collapse-content px-4 pb-4">
+                                <hr className="mb-4 border-slate-100" />
+                                <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                                    <UpdateDependencie dependency={dependency} />
+                                    <DeleteDependencie dependency={dependency} />
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-        </section>
+                    ))}
+                </div>
+            )}
+        </div>
     );
 }

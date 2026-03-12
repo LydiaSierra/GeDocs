@@ -1,19 +1,55 @@
 import {
-    UserCircleIcon,
     AcademicCapIcon,
+    BellIcon,
+    BuildingOffice2Icon,
+    DocumentTextIcon,
     ListBulletIcon,
+    UserCircleIcon,
 } from "@heroicons/react/24/outline";
-
-import NavLink from "@/Components/NavLink";
 import { useContext } from "react";
 import { UserContext } from "@/context/UserContext/UserContext";
-import { usePage } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 
-function HamburguerMenu({ url }) {
+function MobileMenuItem({ href, icon: Icon, label, active, onClick }) {
+    return (
+        <Link href={href} onClick={onClick} className="block w-full">
+            <div
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                        ? "bg-primary/10 text-primary"
+                        : "text-slate-600 hover:bg-primary/5 hover:text-primary"
+                }`}
+            >
+                <Icon
+                    className={`h-5 w-5 shrink-0 ${
+                        active ? "text-primary" : "text-slate-400"
+                    }`}
+                />
+                {label}
+            </div>
+        </Link>
+    );
+}
+
+function MobileMenuSection({ title, children }) {
+    return (
+        <div className="flex w-full flex-col gap-1">
+            <h3 className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                {title}
+            </h3>
+            <div className="flex w-full flex-col gap-0.5">{children}</div>
+        </div>
+    );
+}
+
+function HamburguerMenu() {
     const { setContent } = useContext(UserContext);
-    const { auth } = usePage().props;
+    const { url, props } = usePage();
+    const { auth } = props;
 
-    const rol = auth.user.roles[0].name;
+    const userRole = auth.user.roles?.[0]?.name;
+    const showUserManagement = userRole === "Admin" || userRole === "Instructor";
+    const isAdmin = userRole === "Admin";
 
     return (
         <div className="lg:hidden block">
@@ -41,140 +77,74 @@ function HamburguerMenu({ url }) {
 
                     <ul
                         tabIndex={-1}
-                        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-56 p-2 shadow"
+                        className="dropdown-content z-10 mt-3 w-72 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg"
                     >
-                        {/* Perfil */}
-                        <li>
-                            <NavLink href={route("profile.edit")}>
-                                <div
-                                    className={`flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline ${
-                                        url === "/profile" ? "underline" : ""
-                                    }`}
-                                >
-                                    <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                    Información de Perfil
-                                </div>
-                            </NavLink>
-                        </li>
+                        <div className="flex w-full flex-col gap-0.5">
+                            <MobileMenuItem
+                                href={route("profile.edit")}
+                                icon={UserCircleIcon}
+                                label="Informacion de Perfil"
+                                active={url === "/profile"}
+                            />
+                        </div>
 
-                        {/* ================= USUARIOS ================= */}
-                        {rol === "Admin" && (
+                        {showUserManagement && (
                             <>
-                                <li className="mt-1 mb-1 text-[14px] font-semibold text-[#848484]">
-                                    Usuarios
-                                </li>
+                                <hr className="my-2 border-slate-100" />
+                                <MobileMenuSection title="Usuarios">
+                                    <MobileMenuItem
+                                        href={route("aprendiz")}
+                                        icon={AcademicCapIcon}
+                                        label="Aprendices"
+                                        active={url === "/users/aprendiz"}
+                                        onClick={() => setContent?.("Aprendiz")}
+                                    />
 
-                                <li>
-                                    <NavLink href={route("aprendiz")}>
-                                        <div
-                                            onClick={() =>
-                                                setContent("Dependencia")
-                                            }
-                                            className={`flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline ${
-                                                url === "/users/aprendiz"
-                                                    ? "underline"
-                                                    : ""
-                                            }`}
-                                        >
-                                            <AcademicCapIcon className="w-5 h-5 text-[#848484]" />
-                                            Aprendices
-                                        </div>
-                                    </NavLink>
-                                </li>
+                                    {isAdmin && (
+                                        <MobileMenuItem
+                                            href={route("instructor")}
+                                            icon={ListBulletIcon}
+                                            label="Instructores"
+                                            active={url === "/users/instructor"}
+                                            onClick={() => setContent?.("Instructor")}
+                                        />
+                                    )}
 
-                                <li>
-                                    <NavLink href={route("instructor")}>
-                                        <div
-                                            onClick={() =>
-                                                setContent("Instructor")
-                                            }
-                                            className={`flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline ${
-                                                url === "/users/instructor"
-                                                    ? "underline"
-                                                    : ""
-                                            }`}
-                                        >
-                                            <ListBulletIcon className="w-5 h-5 text-[#848484]" />
-                                            Instructores
-                                        </div>
-                                    </NavLink>
-                                </li>
-
-                                <li>
-                                    <NavLink href={route("sheets")}>
-                                        <div
-                                            className={`flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline ${
-                                                url === "/users/sheets"
-                                                    ? "underline"
-                                                    : ""
-                                            }`}
-                                        >
-                                            <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                            Fichas
-                                        </div>
-                                    </NavLink>
-                                </li>
+                                    {isAdmin && (
+                                        <MobileMenuItem
+                                            href={route("sheets")}
+                                            icon={DocumentTextIcon}
+                                            label="Fichas"
+                                            active={url === "/sheets"}
+                                        />
+                                    )}
+                                </MobileMenuSection>
                             </>
                         )}
 
-                        {/* ================= SOLICITUDES ================= */}
-                        <li className="mt-1 mb-1 text-[14px] font-semibold text-[#848484]">
-                            Solicitudes
-                        </li>
-
-                        {rol !== "Dependencia" && (
-                            <li>
-                                <NavLink href={route("notifications.index")}>
-                                    <div
-                                        className={`flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline ${
-                                            url === "/notifications"
-                                                ? "underline"
-                                                : ""
-                                        }`}
-                                    >
-                                        <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                        Aprendices
-                                    </div>
-                                </NavLink>
-                            </li>
+                        {showUserManagement && (
+                            <>
+                                <hr className="my-2 border-slate-100" />
+                                <MobileMenuSection title="Solicitudes">
+                                    <MobileMenuItem
+                                        href={route("notifications.index")}
+                                        icon={BellIcon}
+                                        label="Solicitudes"
+                                        active={url === "/notifications"}
+                                    />
+                                </MobileMenuSection>
+                            </>
                         )}
 
-                        {rol === "Admin" && (
-                            <li>
-                                <NavLink href={route("notifications.index")}>
-                                    <div className="flex items-center gap-2 text-sm font-medium text-[#010515] hover:underline">
-                                        <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                        Instructores
-                                    </div>
-                                </NavLink>
-                            </li>
-                        )}
-
-                        {/* ================= GESTIÓN DOCUMENTAL ================= */}
-                        <li className="mt-1 mb-1 text-[14px] font-semibold text-[#848484]">
-                            Gestión Documental
-                        </li>
-
-                        <li>
-                            <div className="flex items-center gap-2 text-sm font-medium text-[#010515]">
-                                <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                Dependencias
-                            </div>
-                        </li>
-
-                        <li>
-                            <div className="flex items-center gap-2 text-sm font-medium text-[#010515]">
-                                <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                Series y Subseries
-                            </div>
-                        </li>
-
-                        <li>
-                            <div className="flex items-center gap-2 text-sm font-medium text-[#010515]">
-                                <UserCircleIcon className="w-5 h-5 text-[#848484]" />
-                                Secciones y Subsecciones
-                            </div>
-                        </li>
+                        <hr className="my-2 border-slate-100" />
+                        <MobileMenuSection title="Gestion Documental">
+                            <MobileMenuItem
+                                href={route("dependencies")}
+                                icon={BuildingOffice2Icon}
+                                label="Dependencias"
+                                active={url === "/dependencies"}
+                            />
+                        </MobileMenuSection>
                     </ul>
                 </div>
             </div>

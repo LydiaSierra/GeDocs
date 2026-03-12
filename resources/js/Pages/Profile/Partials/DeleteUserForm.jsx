@@ -64,11 +64,11 @@ export default function DeleteUserForm({ className = "" }) {
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
                 <form onSubmit={deleteUser} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
+                    <h2 className="text-lg font-medium text-slate-900">
                         ¿Estás seguro de que quieres eliminar tu cuenta?
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-slate-500">
                         Una vez eliminada su cuenta, todos sus recursos y datos
                         se eliminarán permanentemente. Ingrese su contraseña
                         para confirmar que desea eliminar su cuenta
