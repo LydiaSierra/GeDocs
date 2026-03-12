@@ -49,7 +49,6 @@ class comunication extends Model
         $this->response_uuid = Str::uuid();
         $this->response_expires_at = Carbon::now()->addDays($expirationDays);
         $this->response_used = false;
-        $this->save();
 
         return $this->response_uuid;
     }

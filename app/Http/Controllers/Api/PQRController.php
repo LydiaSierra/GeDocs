@@ -296,11 +296,11 @@ class PQRController extends Controller
                 $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
 
                 if ($emailRecipient) {
-                    Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
-                    Log::info('Email enviado exitosamente a: ' . $emailRecipient);
+                    //Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
+                    //Log::info('Email enviado exitosamente a: ' . $emailRecipient);
                 }
                 else {
-                    Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
+                    //Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
                 }
             }
             catch (\Exception $e) {
