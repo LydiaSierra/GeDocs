@@ -71,8 +71,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/folders/delete-multiple', [FolderController::class, 'deleteMultiple']);
 
 
-
-
             // ============= SHEETS ==============
             Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
             Route::get('/sheets', [SheetController::class, 'index']);
@@ -88,12 +86,14 @@ Route::middleware('auth:sanctum')->group(function () {
         }
     );
 
+
+    Route::middleware("role:Admin|Instructor")->group(function () {
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
+    });
     // ONLY ADMIN
     Route::middleware('role:Admin')->group(
         function () {
             Route::post('/users', [UserController::class, 'store']);
-            Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
 
             // ============= SHEETS ==============
             Route::post('/sheets', [SheetController::class, 'store']);

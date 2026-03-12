@@ -12,7 +12,9 @@ const File = ({ file }) => {
     const { selectItem, selectedItems, isMultipleSelection, isSelected } = useExplorerData();
 
     const open = () => {
-        window.open(file.url, "_blank");
+        // Asegura que la URL sea absoluta
+        const url = file.url.startsWith("http") ? file.url : `/${file.url.replace(/^\//, "")}`;
+        window.open(url, "_blank");
     };
 
     return (
@@ -34,9 +36,7 @@ const File = ({ file }) => {
                         {file.is_image ? (
                             <PhotoIcon className="w-8 text-blue-500" />
                         ) : file.is_pdf ? (
-                            <div className="w-12 h-14">
-                                <iframe src={file.url} frameBorder="0" className="w-full h-full object-cover"></iframe>
-                            </div>
+                            <DocumentIcon className="w-8 text-red-500" />
                         ) : (
                             <DocumentIcon className="w-8 text-gray-800" />
                         )}
@@ -73,14 +73,12 @@ const File = ({ file }) => {
 
                         <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium min-w-0 w-full"}`}>
                             {(isMultipleSelection && selectedItems.length > 0) &&
-                                <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" checked={isSelected(file.id, "file")} />
+                                <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" checked={isSelected(file.id, "file")}/>
                             }
                             {file.is_image ? (
                                 <PhotoIcon className="w-8 text-blue-500" />
                             ) : file.is_pdf ? (
-                                <div className="w-12 h-14">
-                                    <iframe src={file.url} frameBorder="0" className="w-full h-full object-cover"></iframe>
-                                </div>
+                                <DocumentIcon className="w-8 text-red-500" />
                             ) : (
                                 <DocumentIcon className="w-8 text-gray-800" />
                             )}

@@ -121,6 +121,10 @@ function UserEditPanel() {
                                 className="w-full h-full object-cover"
                                 alt="profile pic"
                                 src={idSelected.profile_photo || "/images/default-user-icon.png"}
+                                onError={e => {
+                                    e.target.onerror = null;
+                                    e.target.src = "/images/default-user-icon.png";
+                                }}
                             />
                         </div>
                         <h2 className="font-semibold text-base sm:text-lg text-gray-800 truncate">{idSelected?.name}</h2>
