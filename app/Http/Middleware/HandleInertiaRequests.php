@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
                 'status' => $request->session()->get('status'),
             ],
             "sheets" => $request->user() ? ($request->user()->hasRole("Instructor") ? $request->user()->sheetNumbers()->with("dependencies")->get() : Sheet_number::with("dependencies")->get()) : [],
-             "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],    
+             "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],
         ];
     }
 }

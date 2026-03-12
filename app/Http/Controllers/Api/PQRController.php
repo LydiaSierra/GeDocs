@@ -51,6 +51,15 @@ class PQRController extends Controller
             $query->where('dependency_id', $user->dependency_id);
         }
 
+        if ($user->hasRole('Aprendiz')) {
+            if ($user->dependency_id) {
+                $query->where('dependency_id', $user->dependency_id);
+            } else {
+                // Si no tiene dependencia asignada, no ve ninguna PQR
+                $query->whereRaw('1=0');
+            }
+        }
+
         // 🔹 Admin: sees all (no extra filters)
         if ($user->hasRole('Admin')) {
         // no additional conditions
