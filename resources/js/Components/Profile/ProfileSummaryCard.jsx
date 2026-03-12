@@ -42,9 +42,9 @@ const ProfileSummaryCard = ({ className = "" }) => {
             toast.dismiss(toastId);
             toast.error(
                 err?.response?.data?.message ||
-                    err?.message ||
-                    err ||
-                    "Error al hacer la peticion",
+                err?.message ||
+                err ||
+                "Error al hacer la peticion",
             );
         } finally {
             setLoadingPhoto(false);
@@ -53,54 +53,58 @@ const ProfileSummaryCard = ({ className = "" }) => {
 
     return (
         <aside className={`w-full text-gray-800 p-4 ${className}`}>
-                <h1 className="mb-2 font-semibold text-slate-900 text-center">
-                    Informacion de Usuario
-                </h1>
+            <h1 className="mb-2 font-semibold text-slate-900 text-center">
+                Informacion de Usuario
+            </h1>
 
-                <div className="relative mx-auto mb-2 w-fit">
-                    {loadingPhoto && user.profile_photo && (
-                        <div className="skeleton h-28 w-28 rounded-xl absolute inset-0" />
-                    )}
+            <div className="relative mx-auto mb-2 w-fit">
+                {loadingPhoto && user.profile_photo && (
+                    <div className="skeleton h-28 w-28 rounded-xl absolute inset-0" />
+                )}
 
-                    {user.profile_photo ? (
-                        <img
-                            src={user.profile_photo}
-                            className={`${
-                                loadingPhoto
-                                    ? "opacity-0 w-28 h-28"
-                                    : "opacity-100 h-28 w-28 rounded-xl object-cover"
+                {user.profile_photo ? (
+                    <img
+                        src={user.profile_photo}
+                        className={`${loadingPhoto
+                            ? "opacity-0 w-28 h-28 rounded-full overflow-hidden"
+                            : "opacity-100 h-28 w-28  object-cover rounded-full overflow-hidden"
                             }`}
-                            onLoad={() => setLoadingPhoto(false)}
-                            onError={() => setLoadingPhoto(false)}
-                        />
-                    ) : (
-                        <UserIcon className="h-28 w-28 rounded-xl bg-slate-100 p-3 text-slate-400" />
-                    )}
+                        onLoad={() => setLoadingPhoto(false)}
+                        onError={e => {
+                            setLoadingPhoto(false);
+                            e.target.onerror = null;
+                            e.target.src = `https://ui-avatars.com/api/?name=${user?.name || 'User'}`;
 
-                    <div encType="multipart/form-data">
-                        <label
-                            htmlFor="photo"
-                            className="absolute z-10 -bottom-2 -right-2 cursor-pointer rounded-lg bg-primary p-2 text-white shadow-sm"
-                        >
-                            <PencilIcon className="size-6 " />
-                        </label>
-                        <input
-                            type="file"
-                            id="photo"
-                            className="hidden"
-                            name="profile_photo"
-                            accept="image/*"
-                            onChange={UploatPhoto}
-                        />
-                    </div>
-                </div>
+                        }}
+                    />
+                ) : (
+                    <img src={`https://ui-avatars.com/api/?name=${user?.name || 'User'}`} alt="Imagen de perfil de usuario" className="w-28 h-28 rounded-full overflow-hidden" />
+                )}
 
-                <div className="w-full rounded-xl bg-slate-50 px-3 py-2 text-center">
-                    <h2 data-testid="user-email" className="text-sm font-semibold text-slate-900">
-                        {user.name}
-                    </h2>
-                    <p className="text-xs text-slate-500 break-all">{user.email}</p>
+                <div encType="multipart/form-data">
+                    <label
+                        htmlFor="photo"
+                        className="absolute z-10 -bottom-2 -right-2 cursor-pointer rounded-lg bg-primary p-2 text-white shadow-sm"
+                    >
+                        <PencilIcon className="size-6 " />
+                    </label>
+                    <input
+                        type="file"
+                        id="photo"
+                        className="hidden"
+                        name="profile_photo"
+                        accept="image/*"
+                        onChange={UploatPhoto}
+                    />
                 </div>
+            </div>
+
+            <div className="w-full rounded-xl bg-slate-50 px-3 py-2 text-center">
+                <h2 data-testid="user-email" className="text-sm font-semibold text-slate-900">
+                    {user.name}
+                </h2>
+                <p className="text-xs text-slate-500 break-all">{user.email}</p>
+            </div>
         </aside>
     );
 };

@@ -99,6 +99,6 @@ class NotificationController extends Controller
             'data' => $data,
         ]);
 
-        return response()->json(["success" => true, "message" => "Instructor aceptado ", "notification" => $notification], 200);
+        return response()->json(["success" => true, "message" => "Estado de usuario actualizado correctamente", "notification" => $notification], 200);
     }
 }

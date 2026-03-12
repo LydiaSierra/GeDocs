@@ -37,7 +37,7 @@ export default function DependenciesSettingsSection() {
     }, [loading]);
 
     return (
-        <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <section className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 overflow-auto ">
             <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-4">
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
                     Dependencias
@@ -48,7 +48,7 @@ export default function DependenciesSettingsSection() {
                 </div>
             </header>
 
-            <div className="space-y-3">
+            <div className="space-y-3 ">
                 {dependencies.length === 0 && (
                     <div className="alert alert-info">
                         <span>No hay dependencias registradas</span>

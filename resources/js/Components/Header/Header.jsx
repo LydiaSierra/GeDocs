@@ -20,7 +20,7 @@ export default function Header() {
 
     const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
-  
+
 
     const logout = (e) => {
         e.preventDefault();
@@ -142,17 +142,21 @@ export default function Header() {
                         role="button"
                         className="cursor-pointer transition-colors rounded-full bg-gray-200 w-10 h-10 overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2"
                     >
-                        {user?.profile_photo && user?.profile_photo !== null && user?.profile_photo !== "" ? (
+                        {user?.profile_photo ? (
                             <img
-                                src={user.profile_photo}
+                                src={user.profile_photo || "/images/default-user-icon.png"}
                                 onLoad={() => setLoadingPhoto(false)}
-                                onError={() => setLoadingPhoto(false)}
+                                onError={e => {
+                                    setLoadingPhoto(false);
+                                    e.target.onerror = null;
+                                    e.target.src = "/images/default-user-icon.png";
+                                }}
                                 className={`w-full h-full object-cover ${loadingPhoto ? "opacity-0" : "opacity-100"
                                     }`}
                                 alt={`Foto de perfil de ${user?.name}`}
                             />
                         ) : (
-                            <UserIcon className="w-full h-full p-2 text-gray-400" />
+                            <img src={`https://ui-avatars.com/api/?name=${user?.name || 'User'}`} alt="Imagen de perfil de usuario" />
                         )}
                     </div>
 

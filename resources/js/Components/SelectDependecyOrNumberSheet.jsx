@@ -7,6 +7,7 @@ import { MailContext } from '@/context/MailContext/MailContext.jsx';
 const SelectDependecyOrNumberSheet = () => {
     const { sheets } = usePage().props;
     const mailContext = useContext(MailContext);
+    const role = usePage().props.auth.user.roles[0].name;
 
     const handleSelect = (type, id, name) => {
         if (mailContext) {
@@ -28,60 +29,60 @@ const SelectDependecyOrNumberSheet = () => {
         return "Ficha y/o dependencia";
     };
 
-    if (route().current() !== 'inbox') {
+    if (route().current() !== 'inbox' || role === 'Aprendiz') {
         return null;
     }
 
     return (
-            <Menu
-                menuButton={
-                    <MenuButton className="cursor-pointer w-max p-2 border border-gray-200 rounded-md flex items-center gap-2 text-md font-medium">
-                        {getButtonText()}
-                        {mailContext?.activeScopeFilter && (
-                            <button
-                                onClick={handleClear}
-                                className="text-gray-400 hover:text-red-500 rounded-full bg-gray-100 p-0.5 ml-2 leading-none"
-                                title="Limpiar filtro"
-                            >
-                                &times;
-                            </button>
-                        )}
-                    </MenuButton>
-                }
-                transition
-                position="right"
-            >
-                {sheets.map((sheet) => (
-                    sheet.dependencies?.length > 0 ? (
-                        <SubMenu
-                            key={sheet.id}
-                            label={sheet.number}
-                            className="p-0"
-                            openTrigger="clickOnly"
+        <Menu
+            menuButton={
+                <MenuButton className="cursor-pointer w-max p-2 border border-gray-200 rounded-md flex items-center gap-2 text-md font-medium">
+                    {getButtonText()}
+                    {mailContext?.activeScopeFilter && (
+                        <button
+                            onClick={handleClear}
+                            className="text-gray-400 hover:text-red-500 rounded-full bg-gray-100 p-0.5 ml-2 leading-none"
+                            title="Limpiar filtro"
                         >
-                            <MenuItem onClick={() => handleSelect('sheet', sheet.id, `Ficha ${sheet.number}`)}>
-                                <span className="font-bold">Todas (Ficha {sheet.number})</span>
-                            </MenuItem>
-                            <MenuDivider />
-                            {sheet.dependencies.map((dependency) => (
-                                <MenuItem
-                                    key={dependency.id}
-                                    onClick={() => handleSelect('dependency', dependency.id, dependency.name)}
-                                >
-                                    {dependency.name}
-                                </MenuItem>
-                            ))}
-                        </SubMenu>
-                    ) : (
-                        <MenuItem
-                            key={sheet.id}
-                            onClick={() => handleSelect('sheet', sheet.id, `Ficha ${sheet.number}`)}
-                        >
-                            {sheet.number}
+                            &times;
+                        </button>
+                    )}
+                </MenuButton>
+            }
+            transition
+            position="right"
+        >
+            {sheets.map((sheet) => (
+                sheet.dependencies?.length > 0 ? (
+                    <SubMenu
+                        key={sheet.id}
+                        label={sheet.number}
+                        className="p-0"
+                        openTrigger="clickOnly"
+                    >
+                        <MenuItem onClick={() => handleSelect('sheet', sheet.id, `Ficha ${sheet.number}`)}>
+                            <span className="font-bold">Todas (Ficha {sheet.number})</span>
                         </MenuItem>
-                    )
-                ))}
-            </Menu>
+                        <MenuDivider />
+                        {sheet.dependencies.map((dependency) => (
+                            <MenuItem
+                                key={dependency.id}
+                                onClick={() => handleSelect('dependency', dependency.id, dependency.name)}
+                            >
+                                {dependency.name}
+                            </MenuItem>
+                        ))}
+                    </SubMenu>
+                ) : (
+                    <MenuItem
+                        key={sheet.id}
+                        onClick={() => handleSelect('sheet', sheet.id, `Ficha ${sheet.number}`)}
+                    >
+                        {sheet.number}
+                    </MenuItem>
+                )
+            ))}
+        </Menu>
     )
 }
 

@@ -39,7 +39,7 @@ const NotificationDropDown = () => {
 
     return (
         <>
-            <div className="dropdown dropdown-end">
+            <div className="dropdown">
                 <div
                     tabIndex={0}
                     role="button"
@@ -57,7 +57,7 @@ const NotificationDropDown = () => {
                 </div>
 
                 <ul
-                    className="dropdown-content z-50 mt-3 w-88 max-w-[90vw] overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl"
+                    className="dropdown-content fixed left-2 right-2 top-16 z-50 mt-0 w-auto overflow-hidden rounded-2xl border border-gray-200 bg-white p-0 shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-88 sm:max-w-[calc(100vw-1rem)]"
                     tabIndex="-1"
                 >
                     <li className="flex w-full flex-col gap-0 hover:bg-transparent">

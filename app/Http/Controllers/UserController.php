@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
+use DB;
+
 
 class UserController extends Controller
 {
@@ -19,6 +21,12 @@ class UserController extends Controller
         $query = User::with('roles', "sheetNumbers");
 
         if ($authUser->hasRole("Instructor")) {
+            // Get sheet IDs of the instructor
+            $sheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
+            $query->whereHas('sheetNumbers', function ($q) use ($sheetIds) {
+                $q->whereIn('sheet_numbers.id', $sheetIds);
+            });
+            // Exclude Admins
             $query->whereDoesntHave('roles', function ($q) {
                 $q->where('name', 'Admin');
             });
@@ -139,6 +147,7 @@ class UserController extends Controller
             'status' => 'sometimes|nullable|string|in:pending,active',
             'sheet_numbers' => 'sometimes|array',
             'sheet_numbers.*' => 'exists:sheet_numbers,id',
+            'dependency_id' => 'sometimes|nullable|exists:dependencies,id',
             'password' => 'sometimes|required|string',
         ]);
 
@@ -173,7 +182,7 @@ class UserController extends Controller
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
 
-        $user->load('roles', 'sheetNumbers');
+        $user->load('roles', 'sheetNumbers', 'dependency');
 
         return response()->json([
             "success" => true,
@@ -233,8 +242,7 @@ class UserController extends Controller
 
     public function activate(User $user)
     {
-        $user->status = "active";
-        $user->save();
+        $user->update(['status' => "active"]);
 
         auth()->user()->notifications()
             ->where('data->user->id', $user->id)
@@ -251,26 +259,33 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+
     public function destroy(string $id)
     {
-        $user = User::find($id);
-        if (!$user) {
+        return DB::transaction(function () use ($id) {
+
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "Usuario no encontrado"
+                ], 404);
+            }
+
+            auth()->user()->notifications()
+                ->where('data->user->id', $user->id)
+                ->delete();
+
+            $user->delete();
+
             return response()->json([
-                "success" => false,
-                "message" => "Usuario no encontrado"
+                "success" => true,
+                "message" => "Usuario eliminado correctamente"
             ]);
-        }
-
-        auth()->user()->notifications()
-            ->where('data->user->id', $user->id)
-            ->delete();
-        $user->delete();
-
-        return response()->json([
-            "success" => true,
-            "message" => "Usuario eliminado correctamente"
-        ]);
+        });
     }
+
 
 
 

@@ -7,9 +7,10 @@ const CheckCircleIcon = lazy(() =>
     import("@heroicons/react/24/solid").then((m) => ({ default: m.CheckCircleIcon }))
 );
 
-export default function Form({ dependencies = []}) {
+export default function Form() {
     const [toasts, setToasts] = useState([]);
     const [submitted, setSubmitted] = useState(false);
+    const [authorizedDataTreatment, setAuthorizedDataTreatment] = useState(false);
 
     const [formData, setFormData] = useState({
         document_type: "CC",
@@ -20,7 +21,7 @@ export default function Form({ dependencies = []}) {
         description: "",
         request_type: "Peticion",
         number: "",
-        dependency_id: "",
+        dependency_id: 1,
         attachments: [],
     });
 
@@ -43,7 +44,7 @@ export default function Form({ dependencies = []}) {
             description: "",
             request_type: "Peticion",
             number: "",
-            dependency_id: "",
+            dependency_id: 1,
             attachments: [],
         });
         setSubmitted(false);
@@ -260,23 +261,6 @@ export default function Form({ dependencies = []}) {
                                     </select>
                                 </div>
 
-                                <div className="md:col-span-2">
-                                    <label htmlFor="dependency_id" className="label-text">Dependencia</label>
-                                    <select
-                                        id="dependency_id"
-                                        name="dependency_id"
-                                        className="select select-bordered w-full"
-                                        value={formData.dependency_id}
-                                        onChange={formDataHandler}
-                                    >
-                                        <option value="">Seleccione una dependencia (Opcional)</option>
-                                        {dependencies.map((dep) => (
-                                            <option key={dep.id} value={dep.id}>
-                                                {dep.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
                             </div>
 
                             <div className="w-full lg:w-4/5 xl:w-3/4 mt-6">
@@ -322,7 +306,8 @@ export default function Form({ dependencies = []}) {
                             <div className="flex w-full lg:w-4/5 xl:w-3/4 mt-5 gap-3 items-start text-sm sm:text-base">
                                 <input
                                     type="checkbox"
-                                    defaultChecked
+                                    checked={authorizedDataTreatment}
+                                    onChange={(e) => setAuthorizedDataTreatment(e.target.checked)}
                                     className="checkbox checkbox-success mt-1"
                                 />
                                 <label>
@@ -332,7 +317,8 @@ export default function Form({ dependencies = []}) {
 
                             <button
                                 type="submit"
-                                className="btn bg-primary text-white font-bold w-full sm:w-auto px-10 py-3 rounded-lg mt-6"
+                                disabled={!authorizedDataTreatment}
+                                className="btn bg-primary text-white font-bold w-full sm:w-auto px-10 py-3 rounded-lg mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Enviar PQRS
                             </button>

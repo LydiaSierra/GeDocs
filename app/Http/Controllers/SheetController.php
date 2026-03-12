@@ -36,10 +36,14 @@ class SheetController extends Controller
      */
     public function store(Request $request)
     {
-        return DB::transaction(function () use ($request) {
+        $validated = $request->validate([
+            'number' => 'required|numeric|unique:sheet_numbers,number',
+        ]);
+
+        return DB::transaction(function () use ($validated) {
             // Crear la ficha sin ventanilla_unica_id
             $sheetNumber = Sheet_number::create([
-                'number' => $request->input('number'),
+                'number' => $validated['number'],
                 // 'ventanilla_unica_id' => null
             ]);
 
