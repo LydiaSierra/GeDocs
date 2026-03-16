@@ -24,6 +24,7 @@ export default function InboxSidebar() {
         { label: "Quejas", value: "Queja" },
         { label: "Reclamos", value: "Reclamo" },
         { label: "Sugerencias", value: "Sugerencia" },
+        { label: "Otro", value: "Otro" },
     ];
 
     const currentMonthYear = new Intl.DateTimeFormat("es-ES", {

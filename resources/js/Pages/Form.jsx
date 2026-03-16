@@ -258,6 +258,7 @@ export default function Form() {
                                         <option>Queja</option>
                                         <option>Reclamo</option>
                                         <option>Sugerencia</option>
+                                        <option>Otro</option>
                                     </select>
                                 </div>
 

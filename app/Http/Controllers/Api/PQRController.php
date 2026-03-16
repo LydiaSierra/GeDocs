@@ -85,7 +85,7 @@ class PQRController extends Controller
             'sender_name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
-            'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
+            'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia,Otro',
             'response_time' => 'nullable|date|after_or_equal:today',
             'response_days' => 'nullable|in:10,15,30',
             'number' => 'required|string',

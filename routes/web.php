@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ExplorerController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -59,20 +60,40 @@ Route::middleware('auth')->group(function () {
         ])
     )->name('notifications.show');
 
-    Route::get('/explorer', [ExplorerController::class, 'index'])
+
+    //VISTA DE EXPLORADOR
+    Route::get('/explorer', [FolderController::class, 'explorer'])
         ->name('explorer');
+
+    Route::post('/folders', [FolderController::class, 'store'])
+        ->name('folders.store');
+
+    Route::post('/folders/{folder}/upload', [FolderController::class, 'upload'])
+        ->name('folders.upload');
+
+    Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder'])
+        ->name('folders.update');
+
+    Route::get('/folders/file/download/{file}', [FolderController::class, 'download'])
+        ->name('folders.download');
+
+    Route::post('/folders/delete-mixed', [FolderController::class, 'deleteMixed'])
+        ->name('folders.deleteMixed');
+
+    Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip'])
+        ->name('folders.downloadMixedZip');
 
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
 
     //Direccion a Formulario
     Route::get('/form', function () {
-    $dependencies = \App\Models\Dependency::select('id', 'name')->get();
-    return Inertia::render('Form', [
-        'dependencies' => $dependencies,
-    ]);
+        $dependencies = \App\Models\Dependency::select('id', 'name')->get();
+        return Inertia::render('Form', [
+            'dependencies' => $dependencies,
+        ]);
 
-})->name('form');
+    })->name('form');
 
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))

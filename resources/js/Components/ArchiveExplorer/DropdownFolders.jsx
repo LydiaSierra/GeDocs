@@ -1,14 +1,20 @@
 // DropdownFolders provides a collapsible tree view for navigating all folders in the archive. It allows users to expand/collapse folder hierarchies and quickly jump between folders.
-import React, { useContext, useEffect, useState } from "react";
-import { ExplorerDataContext } from "@/context/Explorer/ExplorerDataContext";
-import { ExplorerUIContext } from "@/context/Explorer/ExplorerUIContext";
+import React, { useEffect, useState } from "react";
+import { useExplorer } from "@/Hooks/useExplorer";
 import { FolderIcon } from "@heroicons/react/24/solid";
 import { ArrowLeftCircleIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { usePage } from "@inertiajs/react";
 
 const DropdownFolders = () => {
-    const { showDropFolders, toggleDropFolders } = useContext(ExplorerUIContext);
-    const { allFolders, openFolder, currentFolder, loadingAllFolders, activeSheetId } = useContext(ExplorerDataContext);
+    const { 
+        showDropFolders, 
+        toggleDropFolders, 
+        allFolders, 
+        openFolder, 
+        currentFolder, 
+        loadingAllFolders, 
+        activeSheetId 
+    } = useExplorer();
     const { url } = usePage();
 
     const [expandedFolders, setExpandedFolders] = useState(new Set());
@@ -97,7 +103,7 @@ const DropdownFolders = () => {
 
     return (
         <>
-            {url === "/explorer" && (
+            {url.startsWith("/explorer") && (
                 <div
                     className={`${showDropFolders ? "left-0 w-screen md:w-full" : "-left-full md:w-0 overflow-hidden"
                         } transition-all origin-left md:pt-16 pb-2 md:max-w-[400px] z-10 duration-300 h-screen inline-block absolute md:static  w-full top-0 background-[url(/gedocs-logo.svg)]  bg-transparent`}
@@ -115,13 +121,19 @@ const DropdownFolders = () => {
                             </span>
                             <p className="border-b py-2 font-medium">Carpetas</p>
                         </div>
-                        {loadingAllFolders ?
-                            <div className="p-2 flex items-center justify-center">Cargando Carpetas...</div>
-                            :
+                        {loadingAllFolders ? (
+                            <div className="p-2 flex items-center justify-center text-sm text-gray-500">Cargando Carpetas...</div>
+                        ) : !activeSheetId ? (
+                            <div className="p-6 text-center flex flex-col items-center justify-center h-40">
+                                <p className="text-sm text-gray-500 font-bold italic leading-relaxed">
+                                    Por favor, selecciona una ficha para visualizar sus carpetas.
+                                </p>
+                            </div>
+                        ) : (
                             <>
                                 {renderFolders()}
                             </>
-                        }
+                        )}
                     </div>
                 </div>
             )}

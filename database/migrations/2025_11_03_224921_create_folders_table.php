@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->integer('parent_id')->nullable();
             $table->boolean("active")->default(true);
             $table->string('folder_code')->nullable();
+            $table->integer('year')->nullable();
             $table->string("department");
             $table->unsignedBigInteger('sheet_number_id')->nullable();
             $table->foreign('sheet_number_id')->references('id')->on('sheet_numbers')->onDelete('set null');
