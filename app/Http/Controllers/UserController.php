@@ -205,7 +205,7 @@ class UserController extends Controller
             ]);
         }
         // Allowed filters
-        $allowed = ["name", "email", "document_number"];
+        $allowed = ["name", "email", "document_number", "search", "sheet_number"];
 
         // Validate if the used filter is allowed
         foreach ($request->query() as $key => $value) {
@@ -217,12 +217,28 @@ class UserController extends Controller
             }
         }
 
-        // loop through the array allowed to search for each selected filter
-
         $query = User::with('roles', "sheetNumbers");
 
-        foreach ($request->query() as $key => $value) {
-            $query->where($key, "LIKE", "%{$value}%");
+        if ($request->has('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', "LIKE", "%{$search}%")
+                    ->orWhere('email', "LIKE", "%{$search}%")
+                    ->orWhere('document_number', "LIKE", "%{$search}%")
+                    ->orWhereHas('sheetNumbers', function ($sq) use ($search) {
+                        $sq->where('number', 'LIKE', "%{$search}%");
+                    });
+            });
+        } else {
+            foreach ($request->query() as $key => $value) {
+                if ($key === 'sheet_number') {
+                    $query->whereHas('sheetNumbers', function ($sq) use ($value) {
+                        $sq->where('number', 'LIKE', "%{$value}%");
+                    });
+                } else {
+                    $query->where($key, "LIKE", "%{$value}%");
+                }
+            }
         }
 
         $authUser = $request->user();

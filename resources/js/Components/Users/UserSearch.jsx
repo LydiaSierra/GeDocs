@@ -19,9 +19,11 @@ function UserSearch({ url }) {
     const [openDrodown, setOpenDropdown] = useState(false);
 
     const filterLabels = {
+        search: "Todos",
         name: "Nombre",
         document_number: "Identificación",
         email: "Email",
+        sheet_number: "Ficha",
     };
 
     useEffect(() => {

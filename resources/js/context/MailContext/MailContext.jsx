@@ -45,7 +45,12 @@ export function MailProvider({ children }) {
             searchTerm === "" ||
             card.affair?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             card.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            card.id?.toString().includes(searchTerm);
+            card.id?.toString().includes(searchTerm) ||
+            card.sender_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            card.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            card.document?.toString().includes(searchTerm) ||
+            (card.sheet_number?.number?.toString().includes(searchTerm) || 
+             card.sheetNumber?.number?.toString().includes(searchTerm));
 
         let matchesScope = true;
         if (activeScopeFilter) {
