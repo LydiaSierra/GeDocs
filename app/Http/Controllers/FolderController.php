@@ -67,34 +67,21 @@ class FolderController extends Controller
      */
     public function index(Request $request)
     {
-        $sheetId = $request->query('sheet_number_id');
-
-        // Automatic Year Creation Logic
-        if ($sheetId) {
-            $currentYear = date('Y');
-            $yearExists = Folder::where('sheet_number_id', $sheetId)
-                ->where('year', $currentYear)
-                ->whereNull('parent_id')
-                ->where('active', true)
-                ->exists();
-
-            if (!$yearExists) {
-                \App\Services\FolderStructureService::createDefaultStructure($sheetId, (int)$currentYear);
-            }
-        }
-
         $query = Folder::whereNull('parent_id')
             ->where("active", true);
 
         // Filter by sheet_number_id if provided
-        if ($sheetId) {
-            $query->where('sheet_number_id', $sheetId);
+        if ($request->has('sheet_number_id')) {
+            $query->where('sheet_number_id', $request->query('sheet_number_id'));
         }
 
         $folders = $query->orderBy('created_at', 'desc')->get();
 
         // Returns the folders as a JSON response
-        return back();
+        return response()->json([
+            "success" => true,
+            "folders" => $folders
+        ], 200);
     }
 
 
@@ -136,7 +123,12 @@ class FolderController extends Controller
             });
 
         // Return folder data, child folders and files
-        return back();
+        return response()->json([
+            "success" => true,
+            "folder" => $folder,
+            "children" => $folder->children()->where('active', true)->get(),
+            "files" => $files
+        ]);
     }
 
 
@@ -266,7 +258,7 @@ class FolderController extends Controller
             "name" => $validated["name"],
             "parent_id" => $validated["parent_id"] ?? null,
             "folder_code" => $validated["folder_code"] ?? null,
-            "department" => $isYear ? 'Año' : $validated["department"],
+            "department" => $validated["department"],
             "sheet_number_id" => $validated["sheet_number_id"] ?? null,
         ];
 
@@ -274,6 +266,17 @@ class FolderController extends Controller
         if (!$data["parent_id"] && $data["sheet_number_id"]) {
             $data["year"] = is_numeric($data["name"]) ? (int)$data["name"] : date('Y');
             $data["department"] = "Año";
+
+            // Check for duplicates
+            $exists = Folder::where('sheet_number_id', $data["sheet_number_id"])
+                ->where('year', $data["year"])
+                ->whereNull('parent_id')
+                ->where('active', true)
+                ->exists();
+            
+            if ($exists) {
+                return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
+            }
         }
 
         $folder = Folder::create($data);
@@ -469,26 +472,87 @@ class FolderController extends Controller
 
     /**
      * Recursively deactivate a folder.
-     *
-     * This method:
-     * - Deactivates all files in the folder
-     * - Deactivates all child folders
-     * - Finally deactivates the folder itself
      */
     private function deactivateFolderRecursively($folder)
     {
-        // Deactivate files inside the folder
-        foreach ($folder->files as $file) {
-            $file->update(['active' => false]);
-        }
-
-        // Recursively deactivate child folders
+        $folder->files()->update(['active' => false]);
         foreach ($folder->children as $child) {
             $this->deactivateFolderRecursively($child);
         }
-
-        // Deactivate the folder
         $folder->update(['active' => false]);
+    }
+
+    /**
+     * Logically restore (send back from trash) files and folders.
+     */
+    public function restoreMixed(Request $request)
+    {
+        $request->validate([
+            'folders' => 'array',
+            'folders.*' => 'integer|exists:folders,id',
+            'files' => 'array',
+            'files.*' => 'integer|exists:files,id',
+        ]);
+
+        $fileIds = $request->input('files', []);
+        $folderIds = $request->input('folders', []);
+
+        if (!empty($fileIds)) {
+            File::whereIn('id', $fileIds)->update(['active' => true]);
+        }
+
+        $folders = Folder::whereIn('id', $folderIds)->get();
+        foreach ($folders as $folder) {
+            $this->activateFolderRecursively($folder);
+        }
+
+        return back();
+    }
+
+    private function activateFolderRecursively($folder)
+    {
+        $folder->files()->update(['active' => true]);
+        foreach ($folder->children as $child) {
+            $this->activateFolderRecursively($child);
+        }
+        $folder->update(['active' => true]);
+    }
+
+    /**
+     * Get archived items (active = false)
+     */
+    public function archived(Request $request)
+    {
+        $sheetId = $request->query('sheet_id');
+
+        $folders = Folder::where('active', false);
+        if ($sheetId) {
+            $folders->where('sheet_number_id', $sheetId);
+        }
+        
+        // Show only folders that are "roots" of a deletion 
+        // (Either have no parent, or their parent is still active)
+        $folders->where(function ($q) {
+            $q->whereNull('parent_id')
+              ->orWhereHas('parent', function ($pq) {
+                  $pq->where('active', true);
+              });
+        });
+
+        $folders = $folders->orderBy('updated_at', 'desc')->get();
+
+        $files = File::where('active', false)
+            ->whereHas('folder', function($q) {
+                $q->where('active', true);
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->json([
+            "success" => true,
+            "folders" => $folders,
+            "files" => $files
+        ]);
     }
 
 
@@ -510,8 +574,27 @@ class FolderController extends Controller
             "name" => "sometimes|required|string",
             "parent_id" => "sometimes|nullable|exists:folders,id",
             "folder_code" => "sometimes|nullable|string",
-            "department" => "sometimes|required|string"
+            "department" => "sometimes|required|string",
+            "year" => "sometimes|nullable|integer"
         ]);
+
+        // If updating a Year folder, check for duplicates
+        if (!$folder->parent_id && $folder->sheet_number_id && isset($validated['name'])) {
+            $newYear = is_numeric($validated['name']) ? (int)$validated['name'] : null;
+            if ($newYear) {
+                $exists = Folder::where('sheet_number_id', $folder->sheet_number_id)
+                    ->where('year', $newYear)
+                    ->where('id', '!=', $folderId)
+                    ->whereNull('parent_id')
+                    ->where('active', true)
+                    ->exists();
+                
+                if ($exists) {
+                    return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
+                }
+                $validated['year'] = $newYear;
+            }
+        }
 
         // Apply updates
         $folder->update($validated);

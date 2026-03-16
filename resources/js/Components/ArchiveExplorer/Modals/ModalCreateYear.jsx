@@ -70,7 +70,7 @@ const ModalCreateYear = () => {
                             required
                             type="number"
                             min="2000"
-                            max="2500"
+                            max={year}
                             className='w-full border-2 border-gray-100 rounded-xl p-3 text-center text-2xl font-black text-primary focus:border-primary focus:ring-0 transition-all'
                             value={year}
                             onChange={(e) => setYear(e.target.value)}

@@ -16,6 +16,7 @@ class File extends Model
         'extension',
         'mime_type',
         'size',
+        'active',
         'folder_id'
     ];
 

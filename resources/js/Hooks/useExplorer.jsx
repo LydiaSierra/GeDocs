@@ -15,6 +15,9 @@ let store = {
     historyStack: [],
     activeSheetId: null,
     folders: [],
+    archivedFolders: [],
+    archivedFiles: [],
+    archivedMode: false,
     gridView: false,
     showDropFolders: false,
     inputSearchTerm: ""
@@ -206,6 +209,49 @@ export const useExplorer = () => {
         });
     };
 
+    const fetchArchived = useCallback(async (sheetId = null) => {
+        setStore({ loading: true });
+        try {
+            const params = sheetId ? { sheet_id: sheetId } : {};
+            const response = await fetch(route('folders.archived', params));
+            const data = await response.json();
+            if (data.success) {
+                setStore({ 
+                    archivedFolders: data.folders || [], 
+                    archivedFiles: data.files || [],
+                    loading: false 
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching archived items:", error);
+            setStore({ loading: false });
+        }
+    }, []);
+
+    const restoreSelection = () => {
+        const foldersToRestore = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToRestore = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
+
+        if (foldersToRestore.length === 0 && filesToRestore.length === 0) return;
+
+        let toastId = toast.loading("Restaurando elementos...");
+        router.post(route('folders.restoreMixed'), {
+            folders: foldersToRestore,
+            files: filesToRestore
+        }, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Elementos restaurados");
+                setStore({ selectedItems: [] });
+                if (store.archivedMode) fetchArchived(store.activeSheetId);
+            },
+            onError: () => {
+                toast.dismiss(toastId);
+                toast.error("Error al restaurar");
+            }
+        });
+    };
+
     const selectItem = (id, type, event) => {
         const exists = store.selectedItems.find(item => item.id === id && item.type === type);
         let newSelection = [];
@@ -257,6 +303,7 @@ export const useExplorer = () => {
         });
 
         document.getElementById("drawer-information")?.close();
+        document.getElementById("confirmDeleteFolder")?.close();
 
         const timeoutId = setTimeout(() => {
             router.post(route('folders.deleteMixed'), {
@@ -366,6 +413,10 @@ export const useExplorer = () => {
     const setActiveSheetId = (id) => setStore({ activeSheetId: id });
     const setIsMultipleSelection = (val) => setStore({ isMultipleSelection: val });
     const setSelectedItems = (items) => setStore({ selectedItems: items });
+    const setArchivedMode = (val) => {
+        setStore({ archivedMode: val, selectedItems: [] });
+        if (val) fetchArchived(store.activeSheetId);
+    };
 
     // Permissions
     const role = props.auth?.user?.roles?.[0]?.name;
@@ -394,7 +445,10 @@ export const useExplorer = () => {
         setHistoryStack,
         setActiveSheetId,
         setIsMultipleSelection,
-        setSelectedItems
+        setSelectedItems,
+        setArchivedMode,
+        fetchArchived,
+        restoreSelection
     };
 };
 

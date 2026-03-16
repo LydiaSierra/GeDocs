@@ -83,6 +83,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip'])
         ->name('folders.downloadMixedZip');
 
+    Route::get('/folders/archived', [FolderController::class, 'archived'])
+        ->name('folders.archived');
+
+    Route::post('/folders/restore-mixed', [FolderController::class, 'restoreMixed'])
+        ->name('folders.restoreMixed');
+
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
 
