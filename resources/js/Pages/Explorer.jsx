@@ -19,7 +19,9 @@ export default function Explorer() {
         selectedItems,
         activeSheetId,
         setActiveSheetId,
-        setIsMultipleSelection, // Added setIsMultipleSelection
+        setIsMultipleSelection,
+        folders,
+        openFolder,
     } = useExplorerData();
     const [showPdfToast, setShowPdfToast] = useState(false);
     const { sheets, filters } = usePage().props;
@@ -111,6 +113,58 @@ export default function Explorer() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    ) : !activeSheetId || (!filters?.folder_id && !filters?.buscador) ? (
+                        /* ====== YEAR SELECTION VIEW ====== */
+                        <div className="flex flex-col h-full">
+                            <div className="hidden md:flex items-center gap-2 mb-2 p-4">
+                                <button
+                                    onClick={handleBackToSheets}
+                                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors cursor-pointer"
+                                >
+                                    <ArrowLeftCircleIcon className="size-5" />
+                                    Volver a fichas
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <span className="text-sm font-bold text-primary">
+                                    Ficha {sheets.find(s => s.id === activeSheetId)?.number}
+                                </span>
+                            </div>
+                            
+                            <h2 className="font-bold text-2xl mb-4 text-center mt-4">
+                                Selecciona el Año
+                            </h2>
+                            <p className="text-gray-500 text-center text-sm mb-6">
+                                Elige un año para ver su estructura documental
+                            </p>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                                {folders.filter(f => !f.parent_id && (f.year || !isNaN(f.name))).map((yearFolder) => (
+                                    <button
+                                        key={yearFolder.id}
+                                        onClick={() => openFolder(yearFolder.id)}
+                                        className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-gray-200 bg-white hover:border-primary hover:bg-primary/5 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
+                                    >
+                                        <FolderIcon className="size-10 text-gray-400 group-hover:text-primary transition-colors" />
+                                        <span className="text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">
+                                            Año {yearFolder.name}
+                                        </span>
+                                    </button>
+                                ))}
+                                
+                                {/* Option to create a new year manually if needed */}
+                                <button
+                                    onClick={() => document.getElementById('createFolder').showModal()}
+                                    className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 hover:border-primary hover:bg-primary/5 transition-all duration-200 cursor-pointer shadow-sm"
+                                >
+                                    <div className="size-10 flex items-center justify-center rounded-full bg-gray-200 group-hover:bg-primary/20 transition-colors">
+                                        <span className="text-2xl text-gray-500 group-hover:text-primary font-bold">+</span>
+                                    </div>
+                                    <span className="text-sm font-bold text-gray-500 group-hover:text-primary transition-colors">
+                                        Crear otro año
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         /* ====== FOLDER EXPLORER VIEW ====== */
