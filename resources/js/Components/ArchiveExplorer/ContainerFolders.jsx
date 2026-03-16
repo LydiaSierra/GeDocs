@@ -26,6 +26,7 @@ export default function ContainerFolders() {
         fetchFolders,
         setHistoryStack,
         selectedItems,
+        activeSheetId,
         setIsMultipleSelection,
     } = useExplorerData();
 
@@ -88,7 +89,7 @@ export default function ContainerFolders() {
                         </div>
                         <div className="cursor-pointer" onClick={() => {
                             localStorage.removeItem("folder_id")
-                            fetchFolders();
+                            fetchFolders(null, activeSheetId);
                             setHistoryStack([]);
                         }}>
                             Inicio

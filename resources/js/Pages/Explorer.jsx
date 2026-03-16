@@ -9,82 +9,67 @@ import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCr
 import { ArrowLeftCircleIcon, DocumentArrowDownIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon } from "@heroicons/react/24/outline";
 import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
 import { useExplorerData } from "@/Hooks/useExplorer";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 
 export default function Explorer() {
     const {
-        openFolder,
         setHistoryStack,
         fetchFolders,
-        getAllFolders,
         deleteSelectionItemsMixed,
         selectedItems,
         activeSheetId,
         setActiveSheetId,
+        setIsMultipleSelection, // Added setIsMultipleSelection
     } = useExplorerData();
     const [showPdfToast, setShowPdfToast] = useState(false);
-    const { sheets } = usePage().props;
+    const { sheets, filters } = usePage().props;
 
     const handleSelectSheet = (sheetId) => {
-        setActiveSheetId(sheetId);
-
-        localStorage.setItem("active_sheet_id", sheetId);
-
-        localStorage.removeItem("folder_id");
-        setHistoryStack([]);
-
         fetchFolders(null, sheetId);
-        getAllFolders();
+        localStorage.setItem("active_sheet_id", sheetId);
+        localStorage.removeItem("folder_id"); // Clear folder_id when selecting a new sheet
+        setHistoryStack([]);
     };
-
 
     const handleBackToSheets = () => {
-        setActiveSheetId(null);
-
         localStorage.removeItem("active_sheet_id");
-
-        localStorage.removeItem("folder_id");
-        setHistoryStack([]);
+        localStorage.removeItem("folder_id"); // Clear folder_id when going back to sheets
+        router.get(route('explorer'), {}, {
+            onSuccess: () => {
+                setActiveSheetId(null);
+                setHistoryStack([]);
+            }
+        });
     };
 
-
     useEffect(() => {
-
-        const savedSheet = localStorage.getItem("active_sheet_id");
-
-        if (savedSheet) {
-            const sheetId = Number(savedSheet);
-
-            setActiveSheetId(sheetId);
-
-            const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
-
-            if (savedHistory?.length > 0) {
-                setHistoryStack(savedHistory);
-                const lastFolder = savedHistory[savedHistory.length - 1];
-                openFolder(lastFolder, false);
-            } else {
-                fetchFolders(null, sheetId);
-            }
-
-            getAllFolders();
+        // Restore history stack for UI breadcrumbs from localStorage
+        const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
+        if (savedHistory?.length > 0) {
+            setHistoryStack(savedHistory);
         }
-
-    }, []);
-
+        // Clear active_sheet_id from localStorage if it's not set in props (e.g., after logout or direct navigation to explorer without sheet)
+        if (!activeSheetId && localStorage.getItem("active_sheet_id")) {
+            localStorage.removeItem("active_sheet_id");
+            localStorage.removeItem("folder_id");
+        }
+    }, [activeSheetId]); // Depend on activeSheetId to re-evaluate when it changes
 
     return (
         <>
             <DashboardLayout>
                 <div className="bg-white h-full rounded-lg p-2 relative flex flex-col min-h-0 overflow-x-hidden ">
                     <div className="md:hidden flex justify-center items-center relative bg-white border-b border-gray-300 rounded-br-md rounded-bl-md p-4 mb-4">
-                        <ArrowLeftCircleIcon className="size-8 absolute left-5 top-1/2 -translate-y-1/2" onClick={() => {
-                            if (activeSheetId) {
-                                handleBackToSheets();
-                            } else {
-                                window.history.back();
-                            }
-                        }} />
+                        <ArrowLeftCircleIcon 
+                            className="size-8 absolute left-5 top-1/2 -translate-y-1/2 cursor-pointer" 
+                            onClick={() => {
+                                if (activeSheetId) {
+                                    handleBackToSheets();
+                                } else {
+                                    window.history.back();
+                                }
+                            }} 
+                        />
                         <h1>{activeSheetId ? "Explora tus archivos" : "Selecciona una ficha"}</h1>
                     </div>
 
@@ -149,8 +134,7 @@ export default function Explorer() {
                             <ContainerFolders />
 
                             <dialog id="my_modal_1" className="modal w-full">
-                                <div
-                                    className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto">
+                                <div className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto">
                                     <form method="dialog">
                                         <button className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 z-10">✕</button>
                                     </form>
@@ -181,25 +165,19 @@ export default function Explorer() {
                                         </button>
                                     </div>
                                 </div>
-
                                 <form method="dialog" className="modal-backdrop">
                                     <button>close</button>
                                 </form>
-
                             </dialog>
 
                             <UploadModal />
-
                             <ModalDetails />
-
                             <ModalCreateOrEditFolder />
-
                             <InformationDrawer />
 
                             <dialog id="confirmDeleteFolder" className="modal">
                                 <div className="modal-box">
                                     <h3 className="font-bold text-xl text-red-600  text-center">
-                                        {/* ICON OF ALERT */}
                                         <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
                                         ADVERTENCIA!
                                     </h3>
@@ -209,20 +187,15 @@ export default function Explorer() {
                                     <div className="modal-action">
                                         <form method="dialog" className="flex justify-center items-center w-full">
                                             <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
-                                            <button className="btn bg-red-600  text-white m-2" onClick={deleteSelectionItemsMixed}>Eliminar</button>
+                                            <button className="btn bg-red-600 text-white m-2" onClick={deleteSelectionItemsMixed}>Eliminar</button>
                                         </form>
                                     </div>
                                 </div>
                             </dialog>
                         </>
                     )}
-
-                </div >
-
-
-
-            </DashboardLayout >
-
+                </div>
+            </DashboardLayout>
         </>
     );
 }

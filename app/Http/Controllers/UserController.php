@@ -17,27 +17,19 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $authUser = $request->user();
-
         $query = User::with('roles', "sheetNumbers");
-
         if ($authUser->hasRole("Instructor")) {
-            // Get sheet IDs of the instructor
             $sheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
             $query->whereHas('sheetNumbers', function ($q) use ($sheetIds) {
                 $q->whereIn('sheet_numbers.id', $sheetIds);
             });
-            // Exclude Admins
             $query->whereDoesntHave('roles', function ($q) {
                 $q->where('name', 'Admin');
             });
         }
-
         $users = $query->get();
-
-        return response()->json([
-            "success" => true,
-            "data" => $users
-        ]);
+        // Cambiar JSON por redirect/back
+        return redirect()->back()->with(['success' => true, 'data' => $users]);
     }
 
 
@@ -46,14 +38,9 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-
         if (!$request->user()->hasRole("Admin")) {
-            return response()->json([
-                "success" => false,
-                "message" => "No tienes permiso para crear usuarios"
-            ]);
+            return redirect()->back()->with(['success' => false, 'message' => 'No tienes permiso para crear usuarios']);
         }
-
         $validate = $request->validate([
             'type_document' => 'required|string|max:50',
             'document_number' => 'required|string|max:50|unique:users,document_number',
@@ -63,29 +50,16 @@ class UserController extends Controller
             "status" => "required|string",
             "role" => "required|string",
         ]);
-
         $statuFilter = ["pending", "active"];
-
         if (!in_array($validate["status"], $statuFilter)) {
-            return response()->json([
-                "success" => false,
-                "message" => "Estado no permitido"
-            ]);
+            return redirect()->back()->with(['success' => false, 'message' => 'Estado no permitido']);
         }
-
         $validate['password'] = Hash::make($validate['password']);
-
         $user = User::create($validate);
         $user->assignRole($validate["role"]);
-
         $user->load('roles');
         $user->load('sheetNumbers');
-
-        return response()->json([
-            "success" => true,
-            "message" => "Usuario creado correctamente",
-            "data" => $user
-        ], 201);
+        return redirect()->back()->with(['success' => true, 'message' => 'Usuario creado correctamente', 'data' => $user]);
     }
 
     /**
@@ -93,23 +67,16 @@ class UserController extends Controller
      */
     public function show(Request $request, string $id)
     {
-
         $authUser = $request->user();
-
         if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
             $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
         } else {
             $user = User::with('roles', "sheetNumbers")->find($id);
         }
-
-
         if (!$user) {
-            return response()->json(["success" => false, "message" => "Usuario no encontrado"], 404);
+            return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
         }
-
-
-
-        return response()->json(["success" => true, "data" => $user]);
+        return redirect()->back()->with(['success' => true, 'data' => $user]);
     }
 
     /**
@@ -117,27 +84,16 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $authUser = $request->user();
         $user = User::with('sheetNumbers')->find($id);
-
         if (!$user) {
-            return response()->json([
-                "success" => false,
-                "message" => "Usuario no encontrado"
-            ], 404);
+            return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
         }
-
-        //Verificar si la solicitud de actualizacion la hace un instructor para un aprendiz
         if ($authUser->hasRole("Instructor")) {
             if (!$user->hasRole("Aprendiz")) {
-                return response()->json([
-                    "sucess" => false,
-                    "message" => "No tienes permiso para editar este usuario",
-                ], 403);
+                return redirect()->back()->with(['success' => false, 'message' => 'No tienes permiso para editar este usuario']);
             }
         }
-
         $validate = $request->validate([
             'type_document' => 'sometimes|required|string|max:50',
             'document_number' => 'sometimes|required|string|max:50|unique:users,document_number,' . $user->id,
@@ -150,143 +106,74 @@ class UserController extends Controller
             'dependency_id' => 'sometimes|nullable|exists:dependencies,id',
             'password' => 'sometimes|required|string',
         ]);
-
-        // Encriptar password si viene
         if (!empty($validate['password'])) {
             $validate['password'] = Hash::make($validate['password']);
         } else {
             unset($validate['password']);
         }
-
-
         $user->update($validate);
-
-
         if (!empty($validate['role'])) {
             $user->syncRoles([$validate['role']]);
         }
-
-
         if (isset($validate['sheet_numbers'])) {
-            // El instructor solo puede asignar fichas de el
             if ($authUser->hasRole('Instructor')) {
                 $instructorSheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
                 $unauthorized = array_diff($validate['sheet_numbers'], $instructorSheetIds);
                 if (!empty($unauthorized)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'No tienes permisos sobre una o más fichas seleccionadas'
-                    ], 403);
+                    return redirect()->back()->with(['success' => false, 'message' => 'No tienes permisos sobre una o más fichas seleccionadas']);
                 }
             }
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
-
         $user->load('roles', 'sheetNumbers', 'dependency');
-
-        return response()->json([
-            "success" => true,
-            "message" => "Usuario actualizado correctamente",
-            "data" => $user
-        ]);
+        return redirect()->back()->with(['success' => true, 'message' => 'Usuario actualizado correctamente', 'data' => $user]);
     }
-
-
-
-
-
 
     public function userByFilter(Request $request)
     {
         if (!$request->query()) {
-            return response()->json([
-                "success" => false,
-                "message" => "No hay filtro seleccionado"
-            ]);
+            return redirect()->back()->with(['success' => false, 'message' => 'No hay filtro seleccionado']);
         }
-        // Allowed filters
         $allowed = ["name", "email", "document_number"];
-
-        // Validate if the used filter is allowed
         foreach ($request->query() as $key => $value) {
             if (!in_array($key, $allowed)) {
-                return response()->json([
-                    "success" => false,
-                    "message" => "Filtro '$key' no está permitido"
-                ], 400);
+                return redirect()->back()->with(['success' => false, 'message' => "Filtro '$key' no está permitido"]);
             }
         }
-
-        // loop through the array allowed to search for each selected filter
-
         $query = User::with('roles', "sheetNumbers");
-
         foreach ($request->query() as $key => $value) {
             $query->where($key, "LIKE", "%{$value}%");
         }
-
         $authUser = $request->user();
-
         if (!$authUser->hasRole("Admin")) {
             $query->role("Aprendiz");
         }
-
-
         $users = $query->get();
-
-        return response()->json([
-            "success" => true,
-            "data" => $users
-        ]);
+        return redirect()->back()->with(['success' => true, 'data' => $users]);
     }
 
     public function activate(User $user)
     {
         $user->update(['status' => "active"]);
-
         auth()->user()->notifications()
             ->where('data->user->id', $user->id)
             ->where('type', 'App\Notifications\NewUserRegistered')
             ->update(['read_at' => now()]);
-
-        return response()->json([
-            "success" => true,
-            "message" => "Usuario activado exitosamente"
-        ]);
+        return redirect()->back()->with(['success' => true, 'message' => 'Usuario activado exitosamente']);
     }
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
 
     public function destroy(string $id)
     {
         return DB::transaction(function () use ($id) {
-
             $user = User::find($id);
-
             if (!$user) {
-                return response()->json([
-                    "success" => false,
-                    "message" => "Usuario no encontrado"
-                ], 404);
+                return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
             }
-
             auth()->user()->notifications()
                 ->where('data->user->id', $user->id)
                 ->delete();
-
             $user->delete();
-
-            return response()->json([
-                "success" => true,
-                "message" => "Usuario eliminado correctamente"
-            ]);
+            return redirect()->back()->with(['success' => true, 'message' => 'Usuario eliminado correctamente']);
         });
     }
-
-
-
-
 }

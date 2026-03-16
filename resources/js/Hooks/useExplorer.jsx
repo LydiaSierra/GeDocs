@@ -1,64 +1,412 @@
-import { ExplorerDataContext } from "@/context/Explorer/ExplorerDataContext";
-import { ExplorerUIContext } from "@/context/Explorer/ExplorerUIContext";
-import { usePage } from "@inertiajs/react";
-import { useContext } from "react";
+import { router, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
+import { useState, useCallback, useEffect } from 'react';
 
-/**
- * Custom hook to access ExplorerDataContext
- * This provides access to all data-related state and actions
- * such as folders, files, selection, navigation, downloads, etc.
- */
-export const useExplorerData = () => {
-    // useContext allows consuming the nearest ExplorerDataContext provider
-    return useContext(ExplorerDataContext);
+// External store to share state without Context
+let store = {
+    allFolders: [],
+    currentFolder: null,
+    selectedItems: [],
+    isMultipleSelection: false,
+    pendingDelete: null,
+    files: [],
+    loading: false,
+    loadingAllFolders: false,
+    historyStack: [],
+    activeSheetId: null,
+    folders: [],
+    gridView: false,
+    showDropFolders: false,
+    inputSearchTerm: ""
 };
 
-/**
- * Custom hook to access ExplorerUIContext
- * This is typically used for UI-related state such as
- * view modes, drawers, modals, or layout preferences
- */
-export const useExplorerUI = () => {
-    // Returns UI state and actions related to the explorer interface
-    return useContext(ExplorerUIContext);
+let listeners = [];
+
+const emitChange = () => {
+    listeners.forEach(listener => listener());
 };
 
-/**
- * Custom hook to determine if the current user
- * has permission to edit folders/files
- *
- * It reads the authenticated user from Inertia's page props
- * and checks the user's role
- */
-export const useCanEdit = () => {
-    // Get the current user's role from Inertia shared props
-    const role = usePage().props.auth.user.roles[0].name;
+const setStore = (updates) => {
+    store = { ...store, ...updates };
+    emitChange();
+};
 
-    // User can edit only if role is Admin or Instructor
+let lastSyncedFilters = null;
+let lastSyncedProps = null;
+
+export const useExplorer = () => {
+    const { props, url } = usePage();
+    const { folders: propsFolders, files: propsFiles, currentFolder: propsCurrentFolder, filters } = props;
+
+    // Local state to trigger re-renders
+    const [, setTick] = useState(0);
+    const forceUpdate = useCallback(() => setTick(tick => tick + 1), []);
+
+    useEffect(() => {
+        listeners.push(forceUpdate);
+        return () => {
+            listeners = listeners.filter(l => l !== forceUpdate);
+        };
+    }, [forceUpdate]);
+
+    // Sync state with Inertia props
+    useEffect(() => {
+        // Prevent redundant syncs if props haven't changed since last sync
+        if (lastSyncedProps === props && lastSyncedFilters === filters) return;
+        lastSyncedProps = props;
+        lastSyncedFilters = filters;
+
+        const updates = {};
+        
+        // Sync folders and files
+        if (propsFolders !== undefined) updates.folders = propsFolders || [];
+        if (propsFiles !== undefined) updates.files = propsFiles || [];
+        if (propsCurrentFolder !== undefined) updates.currentFolder = propsCurrentFolder || null;
+        if (props.allFolders !== undefined) updates.allFolders = props.allFolders || [];
+        
+        // Sync sheet ID from URL filters
+        if (filters?.sheet_id) {
+            updates.activeSheetId = Number(filters.sheet_id);
+        } else if (url === '/explorer' && !filters?.folder_id && !filters?.buscador) {
+            // We are explicitly at the root of selection, clear active sheet
+            updates.activeSheetId = null;
+        } else if (!store.activeSheetId) {
+            // Fallback to localStorage if no activeSheetId and no explicit root
+            const savedSheet = localStorage.getItem("active_sheet_id");
+            if (savedSheet) updates.activeSheetId = Number(savedSheet);
+        }
+        
+        // Sync search term only if it's present in filters to avoid resetting local state
+        if (filters?.buscador !== undefined) {
+             updates.inputSearchTerm = filters.buscador;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            setStore(updates);
+        }
+    }, [propsFolders, propsFiles, propsCurrentFolder, props.allFolders, filters, url]);
+
+    // Initialize grid view from localStorage
+    useEffect(() => {
+        const savedView = localStorage.getItem("gridView");
+        if (savedView) setStore({ gridView: savedView === "true" });
+        
+        const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
+        if (savedHistory?.length > 0) {
+            setStore({ historyStack: savedHistory });
+        }
+    }, []);
+
+    // --- ACTIONS ---
+
+    const openFolder = (folderId, addToHistory = true) => {
+        setStore({ selectedItems: [] });
+        const params = { folder_id: folderId };
+        if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+
+        router.get(route('explorer'), params, {
+            preserveState: true,
+            onStart: () => setStore({ loading: true }),
+            onFinish: () => setStore({ loading: false }),
+            onSuccess: () => {
+                if (addToHistory) {
+                    const newHistory = [...store.historyStack, folderId];
+                    localStorage.setItem("folder_id", JSON.stringify(newHistory));
+                    setStore({ historyStack: newHistory });
+                }
+            }
+        });
+    };
+
+    const fetchFolders = (folderId = null, sheetId = null) => {
+        const params = {};
+        if (folderId) params.folder_id = folderId;
+        if (sheetId) params.sheet_id = sheetId;
+
+        router.get(route('explorer'), params, {
+            preserveState: true,
+            onStart: () => setStore({ loading: true }),
+            onFinish: () => setStore({ loading: false }),
+        });
+    };
+
+    const goBack = () => {
+        setStore({ selectedItems: [], isMultipleSelection: false });
+
+        if (store.historyStack.length === 0) {
+            fetchFolders(null, store.activeSheetId);
+            return;
+        }
+
+        const newHistory = [...store.historyStack];
+        newHistory.pop();
+        
+        localStorage.setItem("folder_id", JSON.stringify(newHistory));
+        setStore({ historyStack: newHistory });
+
+        if (newHistory.length === 0) {
+            fetchFolders(null, store.activeSheetId);
+        } else {
+            const lastId = newHistory[newHistory.length - 1];
+            openFolder(lastId, false);
+        }
+    };
+
+    const getAllFolders = () => {
+        // No longer needed as an action since allFolders comes from props
+    };
+
+    const uploadFiles = (folderId, files) => {
+        if (!files || files.length === 0) {
+            toast.error("No hay archivos seleccionados");
+            return;
+        }
+
+        router.post(route('folders.upload', folderId), {
+            files: Array.from(files)
+        }, {
+            forceFormData: true,
+            onStart: () => setStore({ loading: true }),
+            onFinish: () => setStore({ loading: false }),
+            onSuccess: () => toast.success("Archivos subidos con éxito"),
+            onError: () => toast.error("Error al subir archivos"),
+        });
+    };
+
+    const createFolder = ({ data }) => {
+        let toastId = toast.loading("Creando Carpeta");
+        const folderData = { ...data };
+        if (!folderData.parent_id && store.activeSheetId) {
+            folderData.sheet_number_id = store.activeSheetId;
+        }
+
+        router.post(route('folders.store'), folderData, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Carpeta creada con éxito");
+            },
+            onError: () => {
+                toast.dismiss(toastId);
+                toast.error("Error al crear carpeta");
+            }
+        });
+    };
+
+    const updateFolder = ({ data, folderId }) => {
+        let toastId = toast.loading("Editando carpeta");
+        router.put(route('folders.update', folderId), data, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Carpeta editada con éxito");
+            },
+            onError: () => {
+                toast.dismiss(toastId);
+                toast.error("Error al editar carpeta");
+            }
+        });
+    };
+
+    const selectItem = (id, type, event) => {
+        const exists = store.selectedItems.find(item => item.id === id && item.type === type);
+        let newSelection = [];
+
+        if (event.shiftKey || store.isMultipleSelection) {
+            if (exists) {
+                newSelection = store.selectedItems.filter(item => !(item.id === id && item.type === type));
+            } else {
+                newSelection = [...store.selectedItems, { id, type }];
+            }
+        } else {
+            newSelection = [{ id, type }];
+        }
+        
+        setStore({ selectedItems: newSelection });
+    };
+
+    const isSelected = (id, type) => {
+        return store.selectedItems.some(item => item.id === id && item.type === type);
+    };
+
+    const deleteSelection = () => {
+        setStore({ selectedItems: [], isMultipleSelection: false });
+    };
+
+    const deleteSelectionItemsMixed = () => {
+        const foldersToDelete = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToDelete = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
+
+        if (foldersToDelete.length === 0 && filesToDelete.length === 0) {
+            toast.error("No hay elementos seleccionados");
+            return;
+        }
+
+        // Store for undo
+        const deletedFolders = store.folders
+            .map((f, i) => foldersToDelete.includes(f.id) ? { ...f, __index: i } : null)
+            .filter(Boolean);
+        const deletedFiles = store.files
+            .map((f, i) => filesToDelete.includes(f.id) ? { ...f, __index: i } : null)
+            .filter(Boolean);
+
+        // Optimistic UI
+        setStore({
+            folders: store.folders.filter(f => !foldersToDelete.includes(f.id)),
+            files: store.files.filter(f => !filesToDelete.includes(f.id)),
+            selectedItems: [],
+            isMultipleSelection: false
+        });
+
+        document.getElementById("drawer-information")?.close();
+
+        const timeoutId = setTimeout(() => {
+            router.post(route('folders.deleteMixed'), {
+                folders: foldersToDelete,
+                files: filesToDelete
+            }, {
+                onSuccess: () => toast.success("Elementos eliminados"),
+                onFinish: () => setStore({ pendingDelete: null })
+            });
+        }, 10000);
+
+        const undoData = { folders: deletedFolders, files: deletedFiles, timeoutId };
+        setStore({ pendingDelete: undoData });
+
+        toast("Enviando a la papelera", {
+            action: { label: "Deshacer", onClick: () => undoDeleteMixed(undoData) },
+            duration: 10000
+        });
+    };
+
+    const undoDeleteMixed = (data) => {
+        if (!data) return;
+        clearTimeout(data.timeoutId);
+        
+        const restoredFolders = [...store.folders];
+        data.folders.sort((a,b) => a.__index - b.__index).forEach(f => restoredFolders.splice(f.__index, 0, f));
+        
+        const restoredFiles = [...store.files];
+        data.files.sort((a,b) => a.__index - b.__index).forEach(f => restoredFiles.splice(f.__index, 0, f));
+
+        setStore({ folders: restoredFolders, files: restoredFiles, pendingDelete: null });
+        toast.success("Cambios deshechos");
+    };
+
+    const globalSearch = (term) => {
+        setStore({ inputSearchTerm: term });
+        const params = { buscador: term };
+        if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+
+        router.get(route('explorer'), params, {
+            preserveState: true,
+            onStart: () => setStore({ loading: true }),
+            onFinish: () => setStore({ loading: false }),
+        });
+    };
+
+    const downloadZip = async () => {
+        if (store.selectedItems.length === 0) return;
+        
+        const files = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
+        const folders = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
+
+        if (files.length === 1 && folders.length === 0) {
+            window.location.href = route('folders.download', files[0]);
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = route('folders.downloadMixedZip');
+        form.target = '_blank';
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (token) {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = '_token'; input.value = token;
+            form.appendChild(input);
+        }
+
+        files.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'files[]'; input.value = id;
+            form.appendChild(input);
+        });
+
+        folders.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden'; input.name = 'folders[]'; input.value = id;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    };
+
+    // UI ACTIONS
+    const toggleGridView = () => {
+        const newValue = !store.gridView;
+        localStorage.setItem("gridView", newValue);
+        setStore({ gridView: newValue });
+    };
+
+    const toggleDropFolders = () => {
+        setStore({ showDropFolders: !store.showDropFolders });
+    };
+
+    const formatSize = (size) => {
+        if (!size) return "0 KB";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        const index = Math.floor(Math.log(size) / Math.log(1024));
+        return `${(size / Math.pow(1024, index)).toFixed(2)} ${units[index]}`;
+    };
+
+    const setInputSearchTerm = (term) => setStore({ inputSearchTerm: term });
+    const setHistoryStack = (stack) => setStore({ historyStack: stack });
+    const setActiveSheetId = (id) => setStore({ activeSheetId: id });
+    const setIsMultipleSelection = (val) => setStore({ isMultipleSelection: val });
+    const setSelectedItems = (items) => setStore({ selectedItems: items });
+
+    // Permissions
+    const role = props.auth?.user?.roles?.[0]?.name;
     const canEdit = role === "Admin" || role === "Instructor";
 
-    // Return a boolean flag to be used in components
-    return canEdit;
+    return {
+        ...store,
+        canEdit,
+        openFolder,
+        fetchFolders,
+        goBack,
+        getAllFolders,
+        uploadFiles,
+        createFolder,
+        updateFolder,
+        selectItem,
+        isSelected,
+        deleteSelection,
+        deleteSelectionItemsMixed,
+        globalSearch,
+        downloadZip,
+        toggleGridView,
+        toggleDropFolders,
+        formatSize,
+        setInputSearchTerm,
+        setHistoryStack,
+        setActiveSheetId,
+        setIsMultipleSelection,
+        setSelectedItems
+    };
 };
 
 /**
- * Utility hook/function to retrieve the currently selected item
- * (either a folder or a file) with full data
- *
- * This is useful when only ONE item is selected and you need
- * its full object instead of just its ID/type
+ * Backward compatibility aliases
  */
+export const useExplorerData = useExplorer;
+export const useExplorerUI = useExplorer;
+export const useCanEdit = () => useExplorer().canEdit;
 export const getSelectedItem = () => {
-    // Access explorer data: selected items, folders and files
-    const { selectedItems, folders, files } = useExplorerData();
-
-    // Get the first selected item (single-selection logic)
+    const { selectedItems, folders, files } = useExplorer();
     const selected = selectedItems[0];
-
-    // If there is a selected item:
-    // - If it's a folder, find it in the folders array
-    // - If it's a file, find it in the files array
-    // Otherwise, return null
     return selected
         ? selected.type === 'folder'
             ? folders.find(f => f.id === selected.id)

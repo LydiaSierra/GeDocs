@@ -53,7 +53,7 @@ export const InputSearch = ({ handleSearch }) => {
             </form>
 
 
-            {url === "/explorer" &&
+            {url.startsWith("/explorer") &&
                 <div className="w-full md:w-auto md:flex-1 flex items-center justify-between">
                     <div className="flex  gap-2">
                         {/* Filter button */}
@@ -139,9 +139,6 @@ export const InputSearch = ({ handleSearch }) => {
 
                     </div>
                 </div>
-
-
-
             }
         </div>
     );
