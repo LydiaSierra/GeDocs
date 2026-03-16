@@ -11,6 +11,7 @@ use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 use App\Http\Controllers\SheetUserController;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; //Import for the QR codes
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -198,4 +199,9 @@ Route::middleware("api")->post('/login', function (Request $request) {
         'token' => $token,
         'user' => $user
     ]);
+});
+
+//------------------------------QR Generator 
+Route::get('/qrcode', function () {
+    return QrCode::size(50)->generate('https://google.com');
 });
