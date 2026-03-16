@@ -60,13 +60,13 @@ export const useExplorer = () => {
         lastSyncedFilters = filters;
 
         const updates = {};
-        
+
         // Sync folders and files
         if (propsFolders !== undefined) updates.folders = propsFolders || [];
         if (propsFiles !== undefined) updates.files = propsFiles || [];
         if (propsCurrentFolder !== undefined) updates.currentFolder = propsCurrentFolder || null;
         if (props.allFolders !== undefined) updates.allFolders = props.allFolders || [];
-        
+
         // Sync sheet ID from URL filters
         if (filters?.sheet_id) {
             updates.activeSheetId = Number(filters.sheet_id);
@@ -78,10 +78,10 @@ export const useExplorer = () => {
             const savedSheet = localStorage.getItem("active_sheet_id");
             if (savedSheet) updates.activeSheetId = Number(savedSheet);
         }
-        
+
         // Sync search term only if it's present in filters to avoid resetting local state
         if (filters?.buscador !== undefined) {
-             updates.inputSearchTerm = filters.buscador;
+            updates.inputSearchTerm = filters.buscador;
         }
 
         if (Object.keys(updates).length > 0) {
@@ -93,7 +93,7 @@ export const useExplorer = () => {
     useEffect(() => {
         const savedView = localStorage.getItem("gridView");
         if (savedView) setStore({ gridView: savedView === "true" });
-        
+
         const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
         if (savedHistory?.length > 0) {
             setStore({ historyStack: savedHistory });
@@ -143,7 +143,7 @@ export const useExplorer = () => {
 
         const newHistory = [...store.historyStack];
         newHistory.pop();
-        
+
         localStorage.setItem("folder_id", JSON.stringify(newHistory));
         setStore({ historyStack: newHistory });
 
@@ -216,10 +216,10 @@ export const useExplorer = () => {
             const response = await fetch(route('folders.archived', params));
             const data = await response.json();
             if (data.success) {
-                setStore({ 
-                    archivedFolders: data.folders || [], 
+                setStore({
+                    archivedFolders: data.folders || [],
                     archivedFiles: data.files || [],
-                    loading: false 
+                    loading: false
                 });
             }
         } catch (error) {
@@ -265,7 +265,7 @@ export const useExplorer = () => {
         } else {
             newSelection = [{ id, type }];
         }
-        
+
         setStore({ selectedItems: newSelection });
     };
 
@@ -327,12 +327,12 @@ export const useExplorer = () => {
     const undoDeleteMixed = (data) => {
         if (!data) return;
         clearTimeout(data.timeoutId);
-        
+
         const restoredFolders = [...store.folders];
-        data.folders.sort((a,b) => a.__index - b.__index).forEach(f => restoredFolders.splice(f.__index, 0, f));
-        
+        data.folders.sort((a, b) => a.__index - b.__index).forEach(f => restoredFolders.splice(f.__index, 0, f));
+
         const restoredFiles = [...store.files];
-        data.files.sort((a,b) => a.__index - b.__index).forEach(f => restoredFiles.splice(f.__index, 0, f));
+        data.files.sort((a, b) => a.__index - b.__index).forEach(f => restoredFiles.splice(f.__index, 0, f));
 
         setStore({ folders: restoredFolders, files: restoredFiles, pendingDelete: null });
         toast.success("Cambios deshechos");
@@ -352,7 +352,7 @@ export const useExplorer = () => {
 
     const downloadZip = async () => {
         if (store.selectedItems.length === 0) return;
-        
+
         const files = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
         const folders = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
 

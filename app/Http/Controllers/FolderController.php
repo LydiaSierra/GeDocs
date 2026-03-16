@@ -170,7 +170,7 @@ class FolderController extends Controller
 
         if ($sheetId) {
             $foldersQuery->where('sheet_number_id', $sheetId);
-            
+
             // If we are at the root of a sheet (no folder_id), ensure current year folder exists
             if (!$folderId && !$buscador) {
                 $currentYear = date('Y');
@@ -264,7 +264,7 @@ class FolderController extends Controller
 
         // If it's a root folder for a sheet, it's a Year folder
         if (!$data["parent_id"] && $data["sheet_number_id"]) {
-            $data["year"] = is_numeric($data["name"]) ? (int)$data["name"] : date('Y');
+            $data["year"] = is_numeric($data["name"]) ? (int) $data["name"] : date('Y');
             $data["department"] = "Año";
 
             // Check for duplicates
@@ -273,7 +273,7 @@ class FolderController extends Controller
                 ->whereNull('parent_id')
                 ->where('active', true)
                 ->exists();
-            
+
             if ($exists) {
                 return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
             }
@@ -529,20 +529,20 @@ class FolderController extends Controller
         if ($sheetId) {
             $folders->where('sheet_number_id', $sheetId);
         }
-        
+
         // Show only folders that are "roots" of a deletion 
         // (Either have no parent, or their parent is still active)
         $folders->where(function ($q) {
             $q->whereNull('parent_id')
-              ->orWhereHas('parent', function ($pq) {
-                  $pq->where('active', true);
-              });
+                ->orWhereHas('parent', function ($pq) {
+                    $pq->where('active', true);
+                });
         });
 
         $folders = $folders->orderBy('updated_at', 'desc')->get();
 
         $files = File::where('active', false)
-            ->whereHas('folder', function($q) {
+            ->whereHas('folder', function ($q) {
                 $q->where('active', true);
             })
             ->orderBy('updated_at', 'desc')
@@ -580,7 +580,7 @@ class FolderController extends Controller
 
         // If updating a Year folder, check for duplicates
         if (!$folder->parent_id && $folder->sheet_number_id && isset($validated['name'])) {
-            $newYear = is_numeric($validated['name']) ? (int)$validated['name'] : null;
+            $newYear = is_numeric($validated['name']) ? (int) $validated['name'] : null;
             if ($newYear) {
                 $exists = Folder::where('sheet_number_id', $folder->sheet_number_id)
                     ->where('year', $newYear)
@@ -588,7 +588,7 @@ class FolderController extends Controller
                     ->whereNull('parent_id')
                     ->where('active', true)
                     ->exists();
-                
+
                 if ($exists) {
                     return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
                 }
@@ -696,7 +696,7 @@ class FolderController extends Controller
         if (!$yearFolder) {
             // Create the Year folder
             $yearFolder = Folder::create([
-                'name' => (string)$year,
+                'name' => (string) $year,
                 'year' => $year,
                 'sheet_number_id' => $sheetId,
                 'parent_id' => null,
