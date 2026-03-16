@@ -46,24 +46,22 @@ class PQRController extends Controller
             'sheetNumber'
         ])->where('archived', $archived);
 
-        // 🔹 Dependencia: only its own PQRs
-        if ($user->hasRole('Dependencia')) {
-            $query->where('dependency_id', $user->dependency_id);
+        // 🔹 Filter based on role to include only received items
+        if (!$user->hasRole('Admin')) {
+            $query->where(function($q) use ($user) {
+                // Received by the user (Role-based)
+                if ($user->hasRole('Dependencia') || $user->hasRole('Aprendiz')) {
+                    if ($user->dependency_id) {
+                        $q->where('dependency_id', $user->dependency_id);
+                    }
+                    $q->orWhere('responsible_id', $user->id);
+                } elseif ($user->hasRole('Instructor')) {
+                    $sheetIds = $user->sheetNumbers->pluck('id');
+                    $q->whereIn('sheet_number_id', $sheetIds);
+                }
+            });
         }
-
-        if ($user->hasRole('Aprendiz')) {
-            if ($user->dependency_id) {
-                $query->where('dependency_id', $user->dependency_id);
-            } else {
-                // Si no tiene dependencia asignada, no ve ninguna PQR
-                $query->whereRaw('1=0');
-            }
-        }
-
-        // 🔹 Admin: sees all (no extra filters)
-        if ($user->hasRole('Admin')) {
-        // no additional conditions
-        }
+        // Admin sees all, so no extra where clause needed for Admin
 
         $pqrs = $query->get();
 
