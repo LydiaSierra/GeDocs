@@ -16,6 +16,7 @@ use Exception;
  * Provides access to input data, files, headers, etc.
  */
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /**
  * Folder Eloquent model.
@@ -77,10 +78,7 @@ class FolderController extends Controller
         $folders = $query->orderBy('created_at', 'desc')->get();
 
         // Returns the folders as a JSON response
-        return response()->json([
-            "success" => true,
-            "folders" => $folders
-        ], 200);
+        return back();
     }
 
 
@@ -122,11 +120,98 @@ class FolderController extends Controller
             });
 
         // Return folder data, child folders and files
-        return response()->json([
-            "success" => true,
-            "folder" => $folder,
-            "children" => $folder->children()->where('active', true)->get(),
-            "files" => $files
+        return back();
+    }
+
+
+    public function explorer(Request $request)
+    {
+        $folderId = $request->query('folder_id');
+        $sheetId = $request->query('sheet_id');
+        $buscador = $request->query('buscador');
+
+        $foldersQuery = Folder::where("active", true);
+        $allFolders = Folder::where("active", true)->get();
+
+        // Global Search
+        if ($buscador) {
+            $folders = Folder::where('active', true)
+                ->where('name', 'LIKE', "%{$buscador}%")
+                ->get();
+
+            $files = File::where('active', true)
+                ->where('name', 'LIKE', "%{$buscador}%")
+                ->get()
+                ->map(fn($file) => [
+                    "id" => $file->id,
+                    "name" => $file->name,
+                    "extension" => $file->extension,
+                    "size" => $file->size,
+                    "url" => asset("storage/" . $file->path),
+                    "folder_id" => $file->folder_id
+                ]);
+
+            return Inertia::render('Explorer', [
+                "folders" => $folders,
+                "files" => $files,
+                "allFolders" => $allFolders,
+                "currentFolder" => null,
+                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
+            ]);
+        }
+
+        if ($sheetId) {
+            $foldersQuery->where('sheet_number_id', $sheetId);
+            
+            // If we are at the root of a sheet (no folder_id), ensure current year folder exists
+            if (!$folderId && !$buscador) {
+                $currentYear = date('Y');
+                $this->ensureYearFolderExists($sheetId, $currentYear);
+            }
+        }
+
+        if ($folderId) {
+            $folder = Folder::where('id', $folderId)
+                ->where('active', true)
+                ->firstOrFail();
+
+            $folders = $folder->children()
+                ->where("active", true)
+                ->get();
+
+            $files = $folder->files()
+                ->where("active", true)
+                ->get()
+                ->map(function ($file) {
+                    return [
+                        "id" => $file->id,
+                        "name" => $file->name,
+                        "extension" => $file->extension,
+                        "size" => $file->size,
+                        "url" => asset("storage/" . $file->path),
+                        "folder_id" => $file->folder_id
+                    ];
+                });
+
+            return Inertia::render('Explorer', [
+                "folders" => $folders,
+                "files" => $files,
+                "allFolders" => $allFolders,
+                "currentFolder" => $folder,
+                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
+            ]);
+        }
+
+        $folders = $foldersQuery
+            ->whereNull("parent_id")
+            ->get();
+
+        return Inertia::render('Explorer', [
+            "folders" => $folders,
+            "files" => [],
+            "allFolders" => $allFolders,
+            "currentFolder" => null,
+            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
         ]);
     }
 
@@ -140,10 +225,7 @@ class FolderController extends Controller
     {
         $folders = Folder::where("active", true)->get();
 
-        return response()->json([
-            "success" => true,
-            "folders" => $folders
-        ]);
+        return back();
     }
 
 
@@ -164,18 +246,28 @@ class FolderController extends Controller
         ]);
 
         // Create the folder record
-        $folder = Folder::create([
+        $data = [
             "name" => $validated["name"],
             "parent_id" => $validated["parent_id"] ?? null,
             "folder_code" => $validated["folder_code"] ?? null,
             "department" => $validated["department"],
             "sheet_number_id" => $validated["sheet_number_id"] ?? null,
-        ]);
+        ];
 
-        return response()->json([
-            "success" => true,
-            "folder" => $folder
-        ]);
+        // If it's a root folder for a sheet, it's a Year folder
+        if (!$data["parent_id"] && $data["sheet_number_id"]) {
+            $data["year"] = is_numeric($data["name"]) ? (int)$data["name"] : date('Y');
+            $data["department"] = "Año";
+        }
+
+        $folder = Folder::create($data);
+
+        // If it was a Year folder, seed the structure
+        if (!$data["parent_id"] && $data["sheet_number_id"]) {
+            $this->seedYearStructure($data["sheet_number_id"], $folder->id);
+        }
+
+        return back();
     }
 
 
@@ -203,10 +295,7 @@ class FolderController extends Controller
 
             // If no files are provided, return an error
             if (!$request->hasFile('files')) {
-                return response()->json([
-                    "success" => false,
-                    "message" => "No files provided"
-                ], 400);
+                return back()->withErrors(['files' => 'No files provided']);
             }
 
             /**
@@ -253,27 +342,14 @@ class FolderController extends Controller
 
             }
 
-            return response()->json([
-                "success" => true,
-                "files" => $uploadedFiles
-            ], 200);
+            return back();
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                "success" => false,
-                "message" => "Folder not found"
-            ], 404);
+            return back()->withErrors(['error' => 'Folder not found']);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                "success" => false,
-                "message" => "Validation error",
-                "errors" => $e->errors()
-            ], 422);
+            return back()->withErrors($e->errors());
         } catch (Exception $e) {
-            return response()->json([
-                "success" => false,
-                "message" => $e->getMessage()
-            ], 500);
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -282,11 +358,7 @@ class FolderController extends Controller
         $query = $request->query('q');
 
         if (!$query) {
-            return response()->json([
-                'success' => true,
-                'folders' => [],
-                'files' => []
-            ]);
+            return back();
         }
 
         $folders = Folder::where('active', true)
@@ -318,11 +390,7 @@ class FolderController extends Controller
                 "folder_id" => $file->folder_id
             ]);
 
-        return response()->json([
-            'success' => true,
-            'folders' => $folders,
-            'files' => $files
-        ]);
+        return back();
     }
 
 
@@ -336,10 +404,7 @@ class FolderController extends Controller
         $file = File::findOrFail($fileId);
 
         if (!Storage::disk('public')->exists($file->path)) {
-            return response()->json([
-                "success" => false,
-                "message" => "File not found"
-            ], 404);
+            return back()->withErrors(['error' => 'File not found on disk']);
         }
 
         return response()->download(
@@ -382,10 +447,7 @@ class FolderController extends Controller
             $this->deactivateFolderRecursively($folder);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Items sent to trash'
-        ]);
+        return back();
     }
 
 
@@ -397,7 +459,7 @@ class FolderController extends Controller
      * - Deactivates all child folders
      * - Finally deactivates the folder itself
      */
-    private function deactivateFolderRecursively(Folder $folder)
+    private function deactivateFolderRecursively($folder)
     {
         // Deactivate files inside the folder
         foreach ($folder->files as $file) {
@@ -424,10 +486,7 @@ class FolderController extends Controller
         $folder = Folder::find($folderId);
 
         if (!$folder) {
-            return response()->json([
-                "message" => "Folder not found",
-                "success" => false,
-            ], 404);
+            return back()->withErrors(['error' => 'Folder not found']);
         }
 
         // Validate fields only if they are present
@@ -441,10 +500,7 @@ class FolderController extends Controller
         // Apply updates
         $folder->update($validated);
 
-        return response()->json([
-            "success" => true,
-            "folder" => $folder
-        ]);
+        return back();
     }
 
 
@@ -474,10 +530,7 @@ class FolderController extends Controller
             $files = File::whereIn('id', $fileIds)->get();
 
             if ($folders->isEmpty() && $files->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No items to download'
-                ], 400);
+                return back()->withErrors(['error' => 'No items to download']);
             }
 
             // Create temporary directory if it does not exist
@@ -517,16 +570,9 @@ class FolderController extends Controller
             return response()->download($zipPath)->deleteFileAfterSend(true);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
+            return back()->withErrors($e->errors());
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ZIP generation error: ' . $e->getMessage()
-            ], 500);
+            return back()->withErrors(['error' => 'ZIP generation error: ' . $e->getMessage()]);
         }
     }
 
@@ -536,7 +582,129 @@ class FolderController extends Controller
      *
      * Preserves folder structure inside the ZIP.
      */
-    private function addFolderToZip(ZipArchive $zip, Folder $folder, $zipPath)
+    /**
+     * Ensures that a folder for the given year exists for a specific sheet.
+     * If it doesn't exist, it creates it and seeds the default structure.
+     */
+    private function ensureYearFolderExists($sheetId, $year)
+    {
+        $yearFolder = Folder::where('sheet_number_id', $sheetId)
+            ->where('year', $year)
+            ->whereNull('parent_id')
+            ->where('active', true)
+            ->first();
+
+        if (!$yearFolder) {
+            // Create the Year folder
+            $yearFolder = Folder::create([
+                'name' => (string)$year,
+                'year' => $year,
+                'sheet_number_id' => $sheetId,
+                'parent_id' => null,
+                'active' => true,
+                'department' => 'Año',
+                'folder_code' => $year
+            ]);
+
+            // Seed the default structure inside this year folder
+            $this->seedYearStructure($sheetId, $yearFolder->id);
+        }
+
+        return $yearFolder;
+    }
+
+    /**
+     * Seeds the default folder structure inside a specific year folder.
+     */
+    private function seedYearStructure($sheetId, $yearFolderId)
+    {
+        // Default structure from FoldersSeeder
+        $folders = [
+            // [tempKey, name, parentTempKey|null, folder_code, department]
+            [1, 'Gerencia General', null, 100, 'sección'],
+            [2, 'Oficina de Control Interno', null, 101, 'sección'],
+            [3, 'Oficina Jurídica', null, 102, 'sección'],
+            [4, 'Dirección administrativa y Financiera', 1, 110, 'Subsección'],
+            [5, 'Dirección Técnica', 1, 120, 'Subsección'],
+            [6, 'ACTAS', 4, 2, 'Serie'],
+            [7, 'CIRCULARES', 4, 4, 'Serie'],
+            [8, 'CONSECUTIVOS DE COMUNICACIONES OFICIALES', 4, 9, 'Serie'],
+            [9, 'INFORMES', 4, 16, 'Serie'],
+            [10, 'INSTRUMENTOS ARCHIVÍSTICOS', 4, 17, 'Serie'],
+            [11, 'NOMINA', 4, 24, 'Serie'],
+            [12, 'ACTAS', 5, 2, 'Serie'],
+            [13, 'DERECHOS DE PETICIÓN', 5, 12, 'Serie'],
+            [14, 'PROYECTOS', 5, 29, 'Serie'],
+            [15, 'REPORTES DE VISITAS DE CAMPO', 5, 31, 'Serie'],
+            [16, 'Actas de comité Técnico a la Contratación', 12, 8, 'Subserie'],
+            [17, 'Proyectos de Inversión', 14, 1, 'Subserie'],
+            [18, 'Actas de Comité Institucional de Gestión y Desempeño', 6, 6, 'Subserie'],
+            [19, 'Actas de Eliminacón Documental', 6, 9, 'Subserie'],
+            [20, 'Circulares Informativas', 7, 2, 'Subserie'],
+            [21, 'Consecutivos de Comunicaciones Oficiales Enviadas', 8, 1, 'Subserie'],
+            [22, 'Consecutivos de Comunicaciones Oficiales Recibidas', 8, 2, 'Subserie'],
+            [23, 'Informes de Ejecución Presupuestal', 9, 3, 'Subserie'],
+            [24, 'Informes Trimestrales de Seguimiento al Modelo Integrado de Planeación y COntrol MIPG', 9, 5, 'Subserie'],
+            [25, 'Bancos Terminológicos de Series Y Subseries Documentales', 10, 1, 'Subserie'],
+            [26, 'Cuadros de Clasificación Documental', 10, 2, 'Subserie'],
+            [27, 'Inventarios Documentales de Archivo Cental', 10, 3, 'Subserie'],
+            [28, 'Planes Institucionales de Archivos - PINAR', 10, 4, 'Subserie'],
+            [29, 'Programas de Gestión Documental PGD', 10, 5, 'Subserie'],
+            [30, 'Tablas de Control de Acceso', 10, 6, 'Subserie'],
+            [31, 'Tabla de Retención Documental TRD', 10, 7, 'Subserie'],
+            [32, 'Tablas de Valoración Documental TVD', 10, 8, 'Subserie'],
+            [33, 'ACCIONES CONSTITUCIONALES', 3, 1, 'Serie'],
+            [34, 'ACTAS', 3, 2, 'Serie'],
+            [35, 'CONCEPTOS', 3, 7, 'Serie'],
+            [36, 'DERECHOS DE PETICIÓN', 3, 12, 'Serie'],
+            [37, 'Acciones de Cumplimiento', 33, 1, 'SubSerie'],
+            [38, 'Acciones de Tutela', 33, 2, 'SubSerie'],
+            [39, 'Actas de Comité de Conciliación y Defensa Jurídica', 34, 2, 'SubSerie'],
+            [40, 'Conceptos Juríridicos', 35, 1, 'SubSerie'],
+            [41, 'ACTAS', 2, 2, 'Serie'],
+            [42, 'INFORMES', 2, 16, 'Serie'],
+            [43, 'PLANES', 2, 25, 'Serie'],
+            [44, 'Actas de Comité de Coordicación del Sistema de Control Interno', 41, 4, 'Subserie'],
+            [45, 'Informes a Entes de Control', 42, 1, 'Subserie'],
+            [46, 'Informes de Audiroría del Sistema de Gestión de Calidad', 42, 2, 'Subserie'],
+            [47, 'Planes de Auditoría', 43, 4, 'Subserie'],
+            [48, 'Planes de Mejoramiento Institucional', 43, 6, 'Subserie'],
+            [49, 'ACTAS', 1, 2, 'Serie'],
+            [50, 'ACTOS ADMINISTRATIVOS', 1, 3, 'Serie'],
+            [51, 'CICULARES', 1, 4, 'Serie'],
+            [52, 'CONTRATOS', 1, 10, 'Serie'],
+            [53, 'CONVENIOS', 1, 11, 'Serie'],
+            [54, 'DERECHOS DE PETICIÓN', 1, 12, 'Serie'],
+            [55, 'INFORMES', 1, 16, 'Serie'],
+            [56, 'Actas de Cómite de Gerencia', 49, 5, 'Subserie'],
+            [57, 'Actas Junta Directiva', 49, 10, 'Subserie'],
+            [58, 'Acuerdos de Junta Directiva', 50, 1, 'Subserie'],
+            [59, 'Resoluciones', 50, 2, 'Subserie'],
+            [60, 'Circulares Dispositivas', 51, 1, 'Subserie'],
+            [61, 'Contratos de Servicios Públicos', 52, 1, 'Subserie'],
+            [62, 'Convenios Interinstitucionales', 53, 1, 'Subserie'],
+            [63, 'Informes a Entes de Control', 55, 1, 'Subserie'],
+        ];
+
+        $map = [];
+
+        foreach ($folders as [$tempKey, $name, $parentTempKey, $folderCode, $department]) {
+            $parentId = $parentTempKey ? ($map[$parentTempKey] ?? $yearFolderId) : $yearFolderId;
+
+            $folder = Folder::create([
+                'name' => $name,
+                'parent_id' => $parentId,
+                'folder_code' => $folderCode,
+                'department' => $department,
+                'sheet_number_id' => null, // Sheets are now only linked to Year folders
+                'active' => true,
+            ]);
+
+            $map[$tempKey] = $folder->id;
+        }
+    }
+
+    private function addFolderToZip(ZipArchive $zip, $folder, $zipPath)
     {
         // Create empty directory inside ZIP
         $zip->addEmptyDir($zipPath);

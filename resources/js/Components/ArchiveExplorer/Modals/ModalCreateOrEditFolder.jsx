@@ -164,6 +164,7 @@ const ModalCreateOrEditFolder = () => {
                             <option value="subsección">Subsección</option>
                             <option value="serie">Serie</option>
                             <option value="subserie">Subserie</option>
+                            <option value="Año">Año</option>
                         </select>
                     </div>
 

@@ -5,53 +5,40 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 
-import { ExplorerUIProvider } from "./context/Explorer/ExplorerUIContext";
-import { ExplorerDataProvider } from "./context/Explorer/ExplorerDataContext";
-
-import { RightClickProvider } from "./context/Explorer/RightClickContext";
+import '@szhsin/react-menu/dist/index.css';
+import '@szhsin/react-menu/dist/transitions/zoom.css';
 
 import { NotificationsProvider } from "@/context/Notifications/NotificationsContext.jsx";
 import { UserProvider } from "./context/UserContext/UserContext";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
-import '@szhsin/react-menu/dist/index.css';
-import '@szhsin/react-menu/dist/transitions/zoom.css';
 import { Toaster } from "sonner";
 
 const appName = "GeDocs"
 
 createInertiaApp({
     title: (title) => ` ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: (name) => {
+        return resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob("./Pages/**/*.jsx"),
-        ),
+        );
+    },
 
     setup({ el, App, props }) {
         const root = createRoot(el);
 
         root.render(
-            <ExplorerUIProvider>
-                <ExplorerDataProvider>
-                    <RightClickProvider>
-                        <NotificationsProvider>
-                            <UserProvider>
-                                <SheetsProvider>
-                                    <DependenciesProvider>
-                                        <Toaster
-                                            position="top-center"
-                                            richColors
-                                        />
-
-                                        <App {...props} />
-                                    </DependenciesProvider>
-                                </SheetsProvider>
-                            </UserProvider>
-                        </NotificationsProvider>
-                    </RightClickProvider>
-                </ExplorerDataProvider>
-            </ExplorerUIProvider>,
+            <NotificationsProvider>
+                <UserProvider>
+                    <SheetsProvider>
+                        <DependenciesProvider>
+                            <Toaster position="top-center" richColors closeButton expand={false} />
+                            <App {...props} />
+                        </DependenciesProvider>
+                    </SheetsProvider>
+                </UserProvider>
+            </NotificationsProvider>
         );
     },
 
