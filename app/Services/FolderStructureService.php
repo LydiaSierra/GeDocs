@@ -8,10 +8,26 @@ class FolderStructureService
 {
     /**
      * Crea la estructura inicial de carpetas para una ficha (sheetId)
+     * Opcionalmente dentro de un año específico o un padre pre-existente.
      */
-    public static function createDefaultStructure(int $sheetId): void
+    public static function createDefaultStructure(int $sheetId, ?int $year = null, ?int $parentId = null): void
     {
         $map = [];
+        $rootParentId = $parentId;
+
+        // Si se especifica un año y no tenemos un padre, creamos la carpeta del año primero
+        if ($year && !$rootParentId) {
+            $yearFolder = Folder::create([
+                'name' => (string)$year,
+                'year' => $year,
+                'department' => 'Año',
+                'sheet_number_id' => $sheetId,
+                'active' => true,
+                'parent_id' => null
+            ]);
+            $rootParentId = $yearFolder->id;
+        }
+
         $folders = [
             [1, 'Gerencia General', null, 100, 'sección'],
             [2, 'Oficina de Control Interno', null, 101, 'sección'],
@@ -77,14 +93,16 @@ class FolderStructureService
             [62, 'Convenios Interinstitucionales', 53, 1, 'Subserie'],
             [63, 'Informes a Entes de Control', 55, 1, 'Subserie'],
         ];
+
         foreach ($folders as [$tempKey, $name, $parentTempKey, $folderCode, $department]) {
-            $parentId = $parentTempKey ? ($map[$parentTempKey] ?? null) : null;
+            $parentId = $parentTempKey ? ($map[$parentTempKey] ?? $rootParentId) : $rootParentId;
+            
             $folder = Folder::create([
                 'name' => $name,
                 'parent_id' => $parentId,
                 'folder_code' => $folderCode,
                 'department' => $department,
-                'sheet_number_id' => $parentId === null ? $sheetId : null,
+                'sheet_number_id' => $sheetId,
                 'active' => true,
             ]);
             $map[$tempKey] = $folder->id;

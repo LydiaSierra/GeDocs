@@ -66,12 +66,28 @@ class FolderController extends Controller
      */
     public function index(Request $request)
     {
+        $sheetId = $request->query('sheet_number_id');
+
+        // Automatic Year Creation Logic
+        if ($sheetId) {
+            $currentYear = date('Y');
+            $yearExists = Folder::where('sheet_number_id', $sheetId)
+                ->where('year', $currentYear)
+                ->whereNull('parent_id')
+                ->where('active', true)
+                ->exists();
+
+            if (!$yearExists) {
+                \App\Services\FolderStructureService::createDefaultStructure($sheetId, (int)$currentYear);
+            }
+        }
+
         $query = Folder::whereNull('parent_id')
             ->where("active", true);
 
         // Filter by sheet_number_id if provided
-        if ($request->has('sheet_number_id')) {
-            $query->where('sheet_number_id', $request->query('sheet_number_id'));
+        if ($sheetId) {
+            $query->where('sheet_number_id', $sheetId);
         }
 
         $folders = $query->orderBy('created_at', 'desc')->get();
@@ -164,13 +180,28 @@ class FolderController extends Controller
         ]);
 
         // Create the folder record
+        $isYear = false;
+        $yearValue = null;
+        if (!($validated["parent_id"] ?? null) && ($validated["sheet_number_id"] ?? null)) {
+            if (is_numeric($validated["name"])) {
+                $isYear = true;
+                $yearValue = (int)$validated["name"];
+            }
+        }
+
         $folder = Folder::create([
             "name" => $validated["name"],
             "parent_id" => $validated["parent_id"] ?? null,
             "folder_code" => $validated["folder_code"] ?? null,
-            "department" => $validated["department"],
+            "department" => $isYear ? 'Año' : $validated["department"],
             "sheet_number_id" => $validated["sheet_number_id"] ?? null,
+            "year" => $yearValue,
         ]);
+
+        // If it was a year folder, seed the default structure
+        if ($isYear) {
+            \App\Services\FolderStructureService::createDefaultStructure($validated["sheet_number_id"], $yearValue, $folder->id);
+        }
 
         return response()->json([
             "success" => true,
