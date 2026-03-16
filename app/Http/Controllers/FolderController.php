@@ -290,11 +290,24 @@ class FolderController extends Controller
         }
 
         $folders = Folder::where('active', true)
-            ->where('name', 'LIKE', "%{$query}%")
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('department', 'LIKE', "%{$query}%")
+                    ->orWhere('folder_code', 'LIKE', "%{$query}%")
+                    ->orWhereHas('sheetNumber', function ($sq) use ($query) {
+                        $sq->where('number', 'LIKE', "%{$query}%");
+                    });
+            })
             ->get();
 
         $files = File::where('active', true)
-            ->where('name', 'LIKE', "%{$query}%")
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                    ->orWhere('extension', 'LIKE', "%{$query}%")
+                    ->orWhereHas('folder.sheetNumber', function ($sq) use ($query) {
+                        $sq->where('number', 'LIKE', "%{$query}%");
+                    });
+            })
             ->get()
             ->map(fn($file) => [
                 "id" => $file->id,
