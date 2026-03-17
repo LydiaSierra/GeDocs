@@ -190,7 +190,9 @@ export const useExplorer = () => {
             },
             onError: () => {
                 toast.dismiss(toastId);
-                toast.error("Error al crear carpeta");
+                toast.error("Error al crear carpeta", {
+                    description: "Verifica que no exista es mismo año"
+                });
             }
         });
     };
@@ -204,7 +206,9 @@ export const useExplorer = () => {
             },
             onError: () => {
                 toast.dismiss(toastId);
-                toast.error("Error al editar carpeta");
+                toast.error("Error al editar carpeta", {
+                    description: "Verifica que no exista es mismo año"
+                });
             }
         });
     };
@@ -212,8 +216,10 @@ export const useExplorer = () => {
     const fetchArchived = useCallback(async (sheetId = null) => {
         setStore({ loading: true });
         try {
-            const params = sheetId ? { sheet_id: sheetId } : {};
-            const response = await fetch(route('folders.archived', params));
+            const baseUrl = route('folders.archived');
+            const url = sheetId ? `${baseUrl}?sheet_id=${sheetId}` : baseUrl;
+
+            const response = await fetch(url);
             const data = await response.json();
             if (data.success) {
                 setStore({
@@ -228,9 +234,9 @@ export const useExplorer = () => {
         }
     }, []);
 
-    const restoreSelection = () => {
-        const foldersToRestore = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
-        const filesToRestore = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
+    const restoreSelection = (manualItems = null) => {
+        const foldersToRestore = manualItems ? manualItems.folders : store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToRestore = manualItems ? manualItems.files : store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
 
         if (foldersToRestore.length === 0 && filesToRestore.length === 0) return;
 
@@ -243,12 +249,17 @@ export const useExplorer = () => {
                 toast.dismiss(toastId);
                 toast.success("Elementos restaurados");
                 setStore({ selectedItems: [] });
-                if (store.archivedMode) fetchArchived(store.activeSheetId);
+                if (store.archivedMode) {
+                    fetchArchived(store.activeSheetId);
+                } else {
+                    fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                }
             },
             onError: () => {
                 toast.dismiss(toastId);
                 toast.error("Error al restaurar");
-            }
+            },
+            preserveState: true
         });
     };
 
@@ -277,24 +288,19 @@ export const useExplorer = () => {
         setStore({ selectedItems: [], isMultipleSelection: false });
     };
 
-    const deleteSelectionItemsMixed = () => {
-        const foldersToDelete = store.selectedItems.filter(i => i.type === 'folder').map(i => i.id);
-        const filesToDelete = store.selectedItems.filter(i => i.type === 'file').map(i => i.id);
+    const deleteSelectionItemsMixed = (manualItems = null) => {
+        // Handle case where manualItems might be a React event object
+        const itemsToProcess = Array.isArray(manualItems) ? manualItems : store.selectedItems;
+
+        const foldersToDelete = itemsToProcess.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToDelete = itemsToProcess.filter(i => i.type === 'file').map(i => i.id);
 
         if (foldersToDelete.length === 0 && filesToDelete.length === 0) {
             toast.error("No hay elementos seleccionados");
             return;
         }
 
-        // Store for undo
-        const deletedFolders = store.folders
-            .map((f, i) => foldersToDelete.includes(f.id) ? { ...f, __index: i } : null)
-            .filter(Boolean);
-        const deletedFiles = store.files
-            .map((f, i) => filesToDelete.includes(f.id) ? { ...f, __index: i } : null)
-            .filter(Boolean);
-
-        // Optimistic UI
+        // Optimistic UI: remove from current view
         setStore({
             folders: store.folders.filter(f => !foldersToDelete.includes(f.id)),
             files: store.files.filter(f => !filesToDelete.includes(f.id)),
@@ -305,50 +311,63 @@ export const useExplorer = () => {
         document.getElementById("drawer-information")?.close();
         document.getElementById("confirmDeleteFolder")?.close();
 
-        const timeoutId = setTimeout(() => {
-            router.post(route('folders.deleteMixed'), {
-                folders: foldersToDelete,
-                files: filesToDelete
-            }, {
-                onSuccess: () => toast.success("Elementos eliminados"),
-                onFinish: () => setStore({ pendingDelete: null })
-            });
-        }, 10000);
+        router.post(route('folders.deleteMixed'), {
+            folders: foldersToDelete,
+            files: filesToDelete
+        }, {
+            onSuccess: () => {
+                toast.success("Elementos archivados", {
+                    action: {
+                        label: "Deshacer",
+                        onClick: () => restoreSelection({
+                            folders: foldersToDelete,
+                            files: filesToDelete
+                        })
+                    },
+                    duration: 5000
+                });
 
-        const undoData = { folders: deletedFolders, files: deletedFiles, timeoutId };
-        setStore({ pendingDelete: undoData });
+                // Recargar datos desde el servidor
+                fetchFolders(store.currentFolder?.id, store.activeSheetId);
 
-        toast("Enviando a la papelera", {
-            action: { label: "Deshacer", onClick: () => undoDeleteMixed(undoData) },
-            duration: 10000
+                if (store.archivedMode) fetchArchived(store.activeSheetId);
+            },
+            onError: () => {
+                toast.error("Error al archivar");
+                fetchFolders(store.currentFolder?.id, store.activeSheetId);
+            }
         });
     };
 
-    const undoDeleteMixed = (data) => {
-        if (!data) return;
-        clearTimeout(data.timeoutId);
-
-        const restoredFolders = [...store.folders];
-        data.folders.sort((a, b) => a.__index - b.__index).forEach(f => restoredFolders.splice(f.__index, 0, f));
-
-        const restoredFiles = [...store.files];
-        data.files.sort((a, b) => a.__index - b.__index).forEach(f => restoredFiles.splice(f.__index, 0, f));
-
-        setStore({ folders: restoredFolders, files: restoredFiles, pendingDelete: null });
-        toast.success("Cambios deshechos");
-    };
-
     const globalSearch = (term) => {
-        setStore({ inputSearchTerm: term });
-        const params = { buscador: term };
+    setStore({ inputSearchTerm: term });
+
+    if (!term.trim()) {
+        const params = {};
         if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+        if (store.currentFolder?.id) params.folder_id = store.currentFolder.id;
+        // Si hay historial, usar el último folder_id del stack
+        else if (store.historyStack.length > 0) {
+            params.folder_id = store.historyStack[store.historyStack.length - 1];
+        }
 
         router.get(route('explorer'), params, {
             preserveState: true,
             onStart: () => setStore({ loading: true }),
             onFinish: () => setStore({ loading: false }),
         });
-    };
+        return;
+    }
+
+    const params = { buscador: term };
+    if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+
+    router.get(route('explorer'), params, {
+        preserveState: true,
+        onStart: () => setStore({ loading: true }),
+        onFinish: () => setStore({ loading: false }),
+    });
+};
 
     const downloadZip = async () => {
         if (store.selectedItems.length === 0) return;
@@ -413,9 +432,10 @@ export const useExplorer = () => {
     const setActiveSheetId = (id) => setStore({ activeSheetId: id });
     const setIsMultipleSelection = (val) => setStore({ isMultipleSelection: val });
     const setSelectedItems = (items) => setStore({ selectedItems: items });
-    const setArchivedMode = (val) => {
+    const setArchivedMode = (val, sheetId = null) => {
+        const currentSheetId = sheetId ?? store.activeSheetId;
         setStore({ archivedMode: val, selectedItems: [] });
-        if (val) fetchArchived(store.activeSheetId);
+        if (val) fetchArchived(currentSheetId);
     };
 
     // Permissions

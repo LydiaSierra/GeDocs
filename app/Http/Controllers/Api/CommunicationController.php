@@ -25,6 +25,11 @@ class CommunicationController extends Controller
             return response()->json(['error' => 'PQR no encontrada'], 404);
         }
 
+        // Verificar si ya ha sido respondida
+        if ($pqr->response_status === 'responded') {
+            return response()->json(['error' => 'Esta PQR ya ha sido respondida y no admite más comunicaciones de respuesta.'], 422);
+        }
+
         $validated = $request->validate([
             'message' => 'required|string|min:10|max:2000',
             'requires_response' => 'boolean',
@@ -57,22 +62,37 @@ class CommunicationController extends Controller
                         'name' => $file->getClientOriginalName(),
                         'path' => $path,
                         'type' => $file->getClientOriginalExtension(),
+                        'origin' => 'ENV',
                         'size' => $file->getSize(),
                         'pqr_id' => $pqr->id,
                     ]);
                 }
             }
 
-            // Enviar email
-            //$emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
-            //Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
+            // Enviar email con fallback seguro
+            $emailRecipient = $pqr->email ?: ($pqr->creator?->email ?? null);
+            if ($emailRecipient) {
+                Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
+            } else {
+                Log::warning('No se envio correo: PQR sin destinatario', ['pqr_id' => $pqr->id]);
+            }
+
+            // Marcar la PQR como respondida y guardar el mensaje
+            $pqr->update([
+                'response_message' => $validated['message'],
+                'response_status' => 'responded',
+                'response_date' => now(),
+                'state' => true
+            ]);
 
             DB::commit();
 
             return response()->json([
                 'data' => $comunication->load(['attachedSupports']),
                 'message' => 'Comunicación enviada exitosamente',
-                'response_url' => $responseUrl
+                'response_url' => $responseUrl,
+                'pqr_status' => $pqr->response_status,
+                'response_date' => $pqr->response_date,
             ], 201);
 
         }

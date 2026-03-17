@@ -1,13 +1,17 @@
 import { PaperClipIcon } from "@heroicons/react/24/solid";
 import { useState, lazy, Suspense } from "react";
 import axios from "axios";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
+import { useEffect } from "react";
 
 const CheckCircleIcon = lazy(() =>
     import("@heroicons/react/24/solid").then((m) => ({ default: m.CheckCircleIcon }))
 );
 
 export default function Form() {
+    const { auth, sheets = [] } = usePage().props;
+    const userRole = auth?.user?.roles?.[0]?.name;
+
     const [toasts, setToasts] = useState([]);
     const [submitted, setSubmitted] = useState(false);
     const [authorizedDataTreatment, setAuthorizedDataTreatment] = useState(false);
@@ -24,6 +28,12 @@ export default function Form() {
         dependency_id: 1,
         attachments: [],
     });
+
+    useEffect(() => {
+        if (userRole === "Aprendiz" && sheets.length === 1) {
+            setFormData(prev => ({ ...prev, number: sheets[0].number }));
+        }
+    }, [userRole, sheets]);
 
     const addToast = (type, message) => {
         const id = `${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -54,7 +64,6 @@ export default function Form() {
         const { name, value, type, files } = e.target;
 
         if (name === "document" && !/^\d*$/.test(value)) return;
-        if (name === "number" && !/^\d*$/.test(value)) return;
 
         setFormData((prev) => ({
             ...prev,
@@ -195,15 +204,22 @@ export default function Form() {
                                 </div>
 
                                 <div>
-                                    <label htmlFor="number" className="label-text">Número de Ficha</label>
-                                    <input
+                                    <label htmlFor="number" className="label-text">Ficha</label>
+                                    <select
                                         id="number"
                                         name="number"
-                                        type="text"
-                                        className="input input-bordered w-full"
+                                        className="select select-bordered w-full"
                                         value={formData.number}
                                         onChange={formDataHandler}
-                                    />
+                                        disabled={userRole === "Aprendiz" && sheets.length === 1}
+                                    >
+                                        <option value="" disabled>Seleccione una ficha</option>
+                                        {sheets.map((sheet) => (
+                                            <option key={sheet.id} value={sheet.number}>
+                                                {sheet.number}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div>

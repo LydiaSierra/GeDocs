@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
@@ -12,6 +11,7 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+    Route::get('/create-pdf', fn() => Inertia::render('CreatePDF'))->name('create-pdf');
 
 
     // Inbox principal

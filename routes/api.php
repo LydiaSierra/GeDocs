@@ -11,29 +11,17 @@ use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 use App\Http\Controllers\SheetUserController;
+use App\Http\Controllers\PdfController;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; //Import for the QR codes
 
 Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
-    // Get the contents (subfolders and files) of a specific folder
-    Route::get('/folders/parent_id/{id}', [FolderController::class, 'show']);
 
-    // Get all root-level folders (no parent)
-    Route::get('/folders', [FolderController::class, 'index']);
-
-    // Global search for folders and files
-    Route::get('/search', [FolderController::class, 'globalSearch']);
-
-
-    // Get all folders in the system (used for selectors or trees)
-    Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
 
     // Upload one or more files to a specific folder
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
-
-    // Delete a single file by its ID
-    Route::delete('/folders/file/{fileId}', [FolderController::class, 'destroyFile']);
-
 
     // --------- NOTIFICATIONS ---------
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -67,10 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
             //  Downloads multiple folders and/or files as a ZIP archive.p
             Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip']);
 
-            //   Deletes multiple folders or files at once.
-            Route::post('/folders/delete-multiple', [FolderController::class, 'deleteMultiple']);
-
-
+        
             // ============= SHEETS ==============
             Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
             Route::get('/sheets', [SheetController::class, 'index']);
@@ -137,6 +122,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Edit the profile photo
     Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
+
+    // ----------- RESPUESTA PQR -------------
+    // Genera PDF de comunicación oficial, lo almacena y lo registra como adjunto
+    Route::post('/pdf/generate-response', [PdfController::class, 'generateAndStore']);
 });
 
 // ----------- CREAR PQRS -------------
@@ -198,4 +187,13 @@ Route::middleware("api")->post('/login', function (Request $request) {
         'token' => $token,
         'user' => $user
     ]);
+});
+
+//------------------------------QR Generator 
+Route::get('/qrcode', function (Request $request) {
+    $request->validate([
+        'url' => 'required',
+        'file_name' => 'required'
+    ]);
+    return QrCode::format('png')->size(56)->generate($request->url, storage_path('\qrcodes\ '.$request->file_name.'.png'));
 });

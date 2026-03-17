@@ -1,12 +1,13 @@
 import { createContext, useEffect, useState } from "react";
-import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import api from "@/lib/axios.js";
 import { toast } from "sonner";
+import { usePage } from "@inertiajs/react";
 
 export const MailContext = createContext(null);
 
 export function MailProvider({ children }) {
+    const { auth } = usePage().props;
     const [mailCards, setMailCards] = useState([]);
     const [selectedMail, setSelectedMail] = useState("");
     const [loading, setLoading] = useState(false);
@@ -65,15 +66,18 @@ export function MailProvider({ children }) {
                 matchesScope = card.dependency_id === activeScopeFilter.id;
             }
         }
-
-        const matchesSide = sideFilter === 'sent' ? false : true;
+        //con este filtro se muestra los pqr respondidos o no respondidos
+        const isResponded = card.response_status === 'responded' || card.response_status === 'closed';
+        const matchesSide = sideFilter === 'sent' ? isResponded : !isResponded;
 
         return matchesSide && matchesFilter && matchesSearch && matchesScope;
     });
 
     useEffect(() => {
-        loadMailCards();
-    }, []);
+        if (auth?.user?.id) {
+            loadMailCards();
+        }
+    }, [auth?.user?.id]);
 
     useEffect(() => {
         setSelectedMail("");
