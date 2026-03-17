@@ -174,12 +174,14 @@ class PQRController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('pqr_attachments', 'public');
+                $hash = hash('adler32',time());
 
                 $pqr->attachedSupports()->create([
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
                     'type' => $file->getClientOriginalExtension(),
                     'size' => $file->getSize(),
+                    'hash'=>$hash,
                 ]);
             }
         }

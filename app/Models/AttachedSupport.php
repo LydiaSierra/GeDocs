@@ -18,7 +18,8 @@ class AttachedSupport extends Model
         'type',
         'size',
         'pqr_id',
-        'comunication_id'
+        'comunication_id',
+        'hash',
     ];
 
     public function pqr()
