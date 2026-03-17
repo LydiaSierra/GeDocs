@@ -43,9 +43,7 @@ export function NotificationsProvider({ children }) {
         }
     }, []);
 
-    // useEffect(() => {
-    //     fetchNotifications();
-    // }, [fetchNotifications]);
+
 
     const visibleDetails = useMemo(() => {
         if (!notificationSeleted) return null;
