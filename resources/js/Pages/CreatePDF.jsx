@@ -481,8 +481,8 @@ export default function CreatePDF() {
         <DashboardLayout>
             <div className="h-full overflow-y-auto bg-gray-100 flex flex-col">
                 {uploadToastState && (
-                    <div className="toast toast-top toast-end z-80 mt-16">
-                        <div className={`alert ${uploadToastState.type === "error" ? "alert-error" : "alert-success"} shadow-lg`}>
+                    <div className="toast toast-bottom toast-end z-80 mb-4 mr-4">
+                        <div className={`alert shadow-lg ${uploadToastState.type === "error" ? "alert-error" : "bg-[#0FB849] text-white border-[#0FB849]"}`}>
                             <span>{uploadToastState.message}</span>
                         </div>
                     </div>
