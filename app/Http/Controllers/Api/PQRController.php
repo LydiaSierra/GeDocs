@@ -46,23 +46,47 @@ class PQRController extends Controller
             'sheetNumber'
         ])->where('archived', $archived);
 
-        // 🔹 Dependencia: only its own PQRs
-        if ($user->hasRole('Dependencia')) {
-            $query->where('dependency_id', $user->dependency_id);
-        }
+        // 🔹 Non-admin: role-based visibility with archive-specific apprentice restriction.
+        if (!$user->hasRole('Admin')) {
+            $query->where(function ($q) use ($user, $archived) {
+                if ($user->hasRole('Dependencia')) {
+                    if ($user->dependency_id) {
+                        $q->where('dependency_id', $user->dependency_id);
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
 
-        if ($user->hasRole('Aprendiz')) {
-            if ($user->dependency_id) {
-                $query->where('dependency_id', $user->dependency_id);
-            } else {
-                // Si no tiene dependencia asignada, no ve ninguna PQR
-                $query->whereRaw('1=0');
-            }
-        }
+                    // Keep merge behavior: also include items assigned directly to the user.
+                    $q->orWhere('responsible_id', $user->id);
+                    return;
+                }
 
-        // 🔹 Admin: sees all (no extra filters)
-        if ($user->hasRole('Admin')) {
-        // no additional conditions
+                if ($user->hasRole('Aprendiz')) {
+                    if ($archived) {
+                        // Keep previous behavior: archive is restricted to own dependency only.
+                        if ($user->dependency_id) {
+                            $q->where('dependency_id', $user->dependency_id);
+                        } else {
+                            $q->whereRaw('1=0');
+                        }
+                        return;
+                    }
+
+                    // Keep merge behavior for inbox/non-archived flow.
+                    if ($user->dependency_id) {
+                        $q->where('dependency_id', $user->dependency_id);
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
+                    $q->orWhere('responsible_id', $user->id);
+                    return;
+                }
+
+                if ($user->hasRole('Instructor')) {
+                    $sheetIds = $user->sheetNumbers->pluck('id');
+                    $q->whereIn('sheet_number_id', $sheetIds);
+                }
+            });
         }
 
         $pqrs = $query->get();
@@ -325,7 +349,7 @@ class PQRController extends Controller
     {
         return response()->json(['message' => 'No está permitido eliminar PQRs'], 405);
     }
-    //Dar respuesta final y cerrar la pqr   
+    //Dar respuesta final y cerrar la pqr
     public function finalizeResponse(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
