@@ -7,6 +7,13 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 // Importa Request para poder recibir datos de formularios
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use App\Models\PQR;
+use App\Models\AttachedSupport;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PQRResponseMail;
 
 // Controlador encargado de generar el PDF
 class PdfController extends Controller
@@ -22,11 +29,13 @@ class PdfController extends Controller
             $safeDocumentType = preg_replace('/[^a-z0-9_-]/i', '', $documentType);
             $fileName = ($safeDocumentType ?: 'documento') . '.pdf';
             $logoDataUri = $this->resolveLogoDataUri($request);
+            $signatureDataUri = $this->resolveSignatureDataUri($request);
 
             // Carga la vista 'pdf.template' (Blade) y le pasa la variable $data
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
                 'logoDataUri' => $logoDataUri,
+                'signatureDataUri' => $signatureDataUri,
             ]);
 
             // Retorna el PDF descargable con el nombre "acta.pdf"
@@ -92,6 +101,50 @@ class PdfController extends Controller
 
         $content = base64_encode(file_get_contents($defaultLogoPath));
         return "data:image/png;base64,{$content}";
+    }
+
+    private function resolveSignatureDataUri(Request $request): ?string
+    {
+        $minFileBytes = 4 * 1024;
+        $maxFileBytes = 1024 * 1024;
+        $minWidth = 120;
+        $minHeight = 40;
+        $maxWidth = 2400;
+        $maxHeight = 1200;
+
+        if (!$request->hasFile('signature_file')) {
+            return null;
+        }
+
+        $file = $request->file('signature_file');
+        $mimeType = $file->getMimeType();
+        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            throw new \InvalidArgumentException('Tipo de archivo no permitido para firma. Solo PNG, JPG o SVG.');
+        }
+
+        $fileSize = $file->getSize() ?? 0;
+        if ($fileSize < $minFileBytes) {
+            throw new \InvalidArgumentException('La firma es demasiado pequena. Minimo: 4 KB.');
+        }
+
+        if ($fileSize > $maxFileBytes) {
+            throw new \InvalidArgumentException('La firma es demasiado pesada. Maximo: 1 MB.');
+        }
+
+        [$width, $height] = $this->extractDimensionsFromUploadedFile($file);
+        if (
+            $width < $minWidth ||
+            $height < $minHeight ||
+            $width > $maxWidth ||
+            $height > $maxHeight
+        ) {
+            throw new \InvalidArgumentException('Dimensiones de firma invalidas. Use entre 120x40 y 2400x1200 px.');
+        }
+
+        $content = base64_encode(file_get_contents($file->getPathname()));
+        return "data:{$mimeType};base64,{$content}";
     }
 
     private function extractDimensionsFromUploadedFile($file): array

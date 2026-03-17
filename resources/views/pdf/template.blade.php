@@ -44,6 +44,20 @@
             padding-top: 6px;
         }
 
+        .signature-stamp {
+            height: 48px;
+            width: auto;
+            max-width: 220px;
+            display: block;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+
+        .signature-blank {
+            height: 48px;
+            margin-bottom: 6px;
+        }
+
         .footer {
             text-align: center;
             font-size: 10pt;
@@ -130,6 +144,11 @@
     <div class="section"><div class="line">{{ $data['despedida1'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -162,6 +181,11 @@
     <div class="section"><div class="line">{{ $data['despedida1'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -241,6 +265,11 @@
     <div class="section"><div class="line">{{ $data['convocatoria'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -312,6 +341,11 @@
     @endif
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -338,6 +372,11 @@
     <div class="section"><div class="large-text">{!! nl2br(e($data['constancia_cuerpo'] ?? '')) !!}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
         </div>

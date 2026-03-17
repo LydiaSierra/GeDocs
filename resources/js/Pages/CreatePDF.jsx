@@ -19,6 +19,13 @@ const MIN_LOGO_FILE_BYTES = 10 * 1024;
 const MAX_LOGO_FILE_BYTES = 2 * 1024 * 1024;
 const MIN_LOGO_DIMENSION = 64;
 const MAX_LOGO_DIMENSION = 2000;
+const ALLOWED_SIGNATURE_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+const MIN_SIGNATURE_FILE_BYTES = 4 * 1024;
+const MAX_SIGNATURE_FILE_BYTES = 1024 * 1024;
+const MIN_SIGNATURE_WIDTH = 120;
+const MIN_SIGNATURE_HEIGHT = 40;
+const MAX_SIGNATURE_WIDTH = 2400;
+const MAX_SIGNATURE_HEIGHT = 1200;
 
 const DocInput = ({ name, placeholder, className = "", type = "text", ...props }) => (
     <input
@@ -113,8 +120,11 @@ export default function CreatePDF() {
     const [documentType, setDocumentType] = useState("carta");
     const [logoPreviewUrl, setLogoPreviewUrl] = useState(DEFAULT_LOGO_PATH);
     const [customLogoFile, setCustomLogoFile] = useState(null);
+    const [signaturePreviewUrl, setSignaturePreviewUrl] = useState(null);
+    const [customSignatureFile, setCustomSignatureFile] = useState(null);
     const [uploadToastState, setUploadToastState] = useState(null);
     const logoInputRef = useRef(null);
+    const signatureInputRef = useRef(null);
 
     const [actaAsistentes, setActaAsistentes] = useState([""]);
     const [actaInvitados, setActaInvitados] = useState([""]);
@@ -127,6 +137,7 @@ export default function CreatePDF() {
     const [informeConclusiones, setInformeConclusiones] = useState([""]);
     const [informeRecomendaciones, setInformeRecomendaciones] = useState([""]);
     const isUsingCustomLogo = customLogoFile !== null && logoPreviewUrl !== DEFAULT_LOGO_PATH;
+    const isUsingCustomSignature = customSignatureFile !== null && !!signaturePreviewUrl;
 
     const showUploadToast = (type, message) => {
         setUploadToastState({ type, message });
@@ -218,8 +229,76 @@ export default function CreatePDF() {
         showUploadToast("success", "Se restauro el logo predeterminado.");
     };
 
+    const handleSignatureChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!ALLOWED_SIGNATURE_TYPES.includes(file.type)) {
+            showUploadToast("error", "Tipo de archivo no permitido para firma. Solo PNG, JPG o SVG.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size < MIN_SIGNATURE_FILE_BYTES) {
+            showUploadToast("error", "La firma es demasiado pequena. Minimo: 4 KB.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > MAX_SIGNATURE_FILE_BYTES) {
+            showUploadToast("error", "La firma es demasiado pesada. Maximo: 1 MB.");
+            event.target.value = "";
+            return;
+        }
+
+        try {
+            const { width, height } = await getImageDimensions(file);
+            if (
+                width < MIN_SIGNATURE_WIDTH ||
+                height < MIN_SIGNATURE_HEIGHT ||
+                width > MAX_SIGNATURE_WIDTH ||
+                height > MAX_SIGNATURE_HEIGHT
+            ) {
+                showUploadToast(
+                    "error",
+                    "Dimensiones de firma invalidas. Use entre 120x40 y 2400x1200 px."
+                );
+                event.target.value = "";
+                return;
+            }
+        } catch {
+            showUploadToast("error", "No se pudo procesar la firma seleccionada.");
+            event.target.value = "";
+            return;
+        }
+
+        if (signaturePreviewUrl?.startsWith("blob:")) {
+            URL.revokeObjectURL(signaturePreviewUrl);
+        }
+
+        setCustomSignatureFile(file);
+        setSignaturePreviewUrl(URL.createObjectURL(file));
+        showUploadToast("success", "Firma cargada correctamente.");
+    };
+
+    const resetSignature = () => {
+        if (signaturePreviewUrl?.startsWith("blob:")) {
+            URL.revokeObjectURL(signaturePreviewUrl);
+        }
+        setCustomSignatureFile(null);
+        setSignaturePreviewUrl(null);
+        if (signatureInputRef.current) {
+            signatureInputRef.current.value = "";
+        }
+        showUploadToast("success", "Se elimino la firma cargada.");
+    };
+
     const openLogoPicker = () => {
         logoInputRef.current?.click();
+    };
+
+    const openSignaturePicker = () => {
+        signatureInputRef.current?.click();
     };
 
     const syncActaDesarrolloLength = (nextOrdenDia) => {
@@ -267,6 +346,9 @@ export default function CreatePDF() {
             const form = new FormData(e.target);
             if (customLogoFile) {
                 form.set("logo_file", customLogoFile);
+            }
+            if (customSignatureFile) {
+                form.set("signature_file", customSignatureFile);
             }
 
             const response = await api.post("/generate-pdf", form, {
@@ -382,6 +464,13 @@ export default function CreatePDF() {
                             className="hidden"
                             onChange={handleLogoChange}
                         />
+                        <input
+                            ref={signatureInputRef}
+                            type="file"
+                            accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                            className="hidden"
+                            onChange={handleSignatureChange}
+                        />
 
                         <div className="mb-8">
                             <div className="relative inline-block group">
@@ -441,9 +530,45 @@ export default function CreatePDF() {
                                 <DocInput name="despedida1" placeholder="Despedida" className="w-full text-[11pt] mb-16" />
 
                                 <div className="mt-8 mb-10">
-                                    <div className="w-[250px] border-t border-gray-800 pt-2 space-y-1">
+                                    <div className="w-[250px] space-y-1">
+                                        <div className="relative group mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={openSignaturePicker}
+                                                className="relative rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                aria-label="Cambiar firma"
+                                            >
+                                                {signaturePreviewUrl ? (
+                                                    <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-[220px] object-contain" />
+                                                ) : (
+                                                    <div className="h-12 w-[220px]" />
+                                                )}
+                                                <span className="absolute inset-0 rounded-md bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                                        <PencilIcon className="size-4 text-gray-700" />
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isUsingCustomSignature && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        resetSignature();
+                                                    }}
+                                                    className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                                    aria-label="Quitar firma"
+                                                >
+                                                    <XMarkIcon className="size-4 text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-800 pt-2 space-y-1">
                                         <DocInput name="firma_nombres" placeholder="Nombres y apellidos del firmante" className="w-full text-[11pt] font-bold" />
                                         <DocInput name="firma_cargo" placeholder="Cargo del firmante" className="w-full text-[11pt]" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -473,9 +598,45 @@ export default function CreatePDF() {
                                 <DocInput name="despedida1" placeholder="Despedida" className="w-full text-[11pt] mb-16" />
 
                                 <div className="mt-8 mb-10">
-                                    <div className="w-[250px] border-t border-gray-800 pt-2 space-y-1">
+                                    <div className="w-[250px] space-y-1">
+                                        <div className="relative group mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={openSignaturePicker}
+                                                className="relative rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                aria-label="Cambiar firma"
+                                            >
+                                                {signaturePreviewUrl ? (
+                                                    <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-[220px] object-contain" />
+                                                ) : (
+                                                    <div className="h-12 w-[220px]" />
+                                                )}
+                                                <span className="absolute inset-0 rounded-md bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                                        <PencilIcon className="size-4 text-gray-700" />
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isUsingCustomSignature && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        resetSignature();
+                                                    }}
+                                                    className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                                    aria-label="Quitar firma"
+                                                >
+                                                    <XMarkIcon className="size-4 text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-800 pt-2 space-y-1">
                                         <DocInput name="firma_nombres" placeholder="Nombres y apellidos del firmante" className="w-full text-[11pt] font-bold" />
                                         <DocInput name="firma_cargo" placeholder="Cargo del firmante" className="w-full text-[11pt]" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -553,9 +714,45 @@ export default function CreatePDF() {
                                 <DocInput name="convocatoria" placeholder="Convocatoria" className="w-full text-[11pt] mb-16" />
 
                                 <div className="mt-8 mb-10">
-                                    <div className="w-[250px] border-t border-gray-800 pt-2 space-y-1">
+                                    <div className="w-[250px] space-y-1">
+                                        <div className="relative group mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={openSignaturePicker}
+                                                className="relative rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                aria-label="Cambiar firma"
+                                            >
+                                                {signaturePreviewUrl ? (
+                                                    <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-[220px] object-contain" />
+                                                ) : (
+                                                    <div className="h-12 w-[220px]" />
+                                                )}
+                                                <span className="absolute inset-0 rounded-md bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                                        <PencilIcon className="size-4 text-gray-700" />
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isUsingCustomSignature && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        resetSignature();
+                                                    }}
+                                                    className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                                    aria-label="Quitar firma"
+                                                >
+                                                    <XMarkIcon className="size-4 text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-800 pt-2 space-y-1">
                                         <DocInput name="firma_nombres" placeholder="Nombres y apellidos" className="w-full text-[11pt] font-bold" />
                                         <DocInput name="firma_cargo" placeholder="Cargo" className="w-full text-[11pt]" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -610,9 +807,45 @@ export default function CreatePDF() {
                                 />
 
                                 <div className="mt-8 mb-10">
-                                    <div className="w-[250px] border-t border-gray-800 pt-2 space-y-1">
+                                    <div className="w-[250px] space-y-1">
+                                        <div className="relative group mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={openSignaturePicker}
+                                                className="relative rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                aria-label="Cambiar firma"
+                                            >
+                                                {signaturePreviewUrl ? (
+                                                    <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-[220px] object-contain" />
+                                                ) : (
+                                                    <div className="h-12 w-[220px]" />
+                                                )}
+                                                <span className="absolute inset-0 rounded-md bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                                        <PencilIcon className="size-4 text-gray-700" />
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isUsingCustomSignature && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        resetSignature();
+                                                    }}
+                                                    className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                                    aria-label="Quitar firma"
+                                                >
+                                                    <XMarkIcon className="size-4 text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-800 pt-2 space-y-1">
                                         <DocInput name="firma_nombres" placeholder="Nombres y apellidos" className="w-full text-[11pt] font-bold" />
                                         <DocInput name="firma_cargo" placeholder="Cargo" className="w-full text-[11pt]" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -631,8 +864,44 @@ export default function CreatePDF() {
                                 <DocArea name="constancia_cuerpo" rows={10} placeholder="Cuerpo de la constancia" className="text-justify mb-10" />
 
                                 <div className="mt-8 mb-10">
-                                    <div className="w-[250px] border-t border-gray-800 pt-2 space-y-1">
+                                    <div className="w-[250px] space-y-1">
+                                        <div className="relative group mb-2">
+                                            <button
+                                                type="button"
+                                                onClick={openSignaturePicker}
+                                                className="relative rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                                aria-label="Cambiar firma"
+                                            >
+                                                {signaturePreviewUrl ? (
+                                                    <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-[220px] object-contain" />
+                                                ) : (
+                                                    <div className="h-12 w-[220px]" />
+                                                )}
+                                                <span className="absolute inset-0 rounded-md bg-black/0 group-hover:bg-black/20 transition-colors" />
+                                                <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                                        <PencilIcon className="size-4 text-gray-700" />
+                                                    </span>
+                                                </span>
+                                            </button>
+
+                                            {isUsingCustomSignature && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        resetSignature();
+                                                    }}
+                                                    className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                                    aria-label="Quitar firma"
+                                                >
+                                                    <XMarkIcon className="size-4 text-gray-600" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-gray-800 pt-2 space-y-1">
                                         <DocInput name="firma_nombres" placeholder="Nombres y apellidos" className="w-full text-[11pt] font-bold" />
+                                        </div>
                                     </div>
                                 </div>
 
