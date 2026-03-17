@@ -1,7 +1,7 @@
 // InputSearch provides the search input and related controls for filtering files and folders in the archive explorer. It also includes view toggles and quick actions.
 import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
 
 import { toast } from "sonner";
@@ -126,9 +126,7 @@ export const InputSearch = ({ handleSearch }) => {
 
                                 <button
                                     className="p-3 flex items-center gap-5 hover:bg-base-300/30 w-full rounded-md border-b border-gray-100"
-                                    onClick={() =>
-                                        document.getElementById("my_modal_1").showModal()
-                                    }
+                                    onClick={() => router.visit(route("create-pdf"))}
                                 >
                                     <DocumentPlusIcon className="size-5" />
 

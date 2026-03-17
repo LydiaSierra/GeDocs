@@ -18,13 +18,16 @@ class PdfController extends Controller
             // Obtiene todos los datos enviados desde el formulario React
             // Se convierte en un array asociativo con todos los campos
             $data = $request->all();
+            $documentType = $data['document_type'] ?? 'documento';
+            $safeDocumentType = preg_replace('/[^a-z0-9_-]/i', '', $documentType);
+            $fileName = ($safeDocumentType ?: 'documento') . '.pdf';
 
             // Carga la vista 'pdf.template' (Blade) y le pasa la variable $data
             // Esta vista será convertida en un archivo PDF por DOMPDF
             $pdf = Pdf::loadView('pdf.template', ['data' => $data]);
 
             // Retorna el PDF descargable con el nombre "acta.pdf"
-            return $pdf->download('acta.pdf');
+            return $pdf->download($fileName);
 
         } catch (\Exception $e) {
             // Si ocurre algún error (por ejemplo, la vista no existe)
