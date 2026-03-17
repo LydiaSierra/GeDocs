@@ -64,7 +64,6 @@ export default function Form() {
         const { name, value, type, files } = e.target;
 
         if (name === "document" && !/^\d*$/.test(value)) return;
-        // if (name === "number" && !/^\d*$/.test(value)) return; // Removed since it's now a select or handled differently
 
         setFormData((prev) => ({
             ...prev,
