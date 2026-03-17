@@ -16,6 +16,7 @@ class AttachedSupport extends Model
         'name',
         'path',
         'type',
+        'origin',
         'size',
         'pqr_id',
         'comunication_id'
