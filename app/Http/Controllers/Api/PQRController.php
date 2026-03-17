@@ -51,7 +51,7 @@ class PQRController extends Controller
             $query->where('dependency_id', $user->dependency_id);
         }
 
-        if ($user->hasRole('Aprendiz')) {
+        if ($archived && $user->hasRole('Aprendiz')) {
             if ($user->dependency_id) {
                 $query->where('dependency_id', $user->dependency_id);
             } else {
@@ -325,7 +325,7 @@ class PQRController extends Controller
     {
         return response()->json(['message' => 'No está permitido eliminar PQRs'], 405);
     }
-    //Dar respuesta final y cerrar la pqr   
+    //Dar respuesta final y cerrar la pqr
     public function finalizeResponse(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
