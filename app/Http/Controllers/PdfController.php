@@ -31,6 +31,17 @@ class PdfController extends Controller
             $logoDataUri = $this->resolveLogoDataUri($request);
             $signatureDataUri = $this->resolveSignatureDataUri($request);
 
+            $defaultFooter = "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.";
+            $requestedFooter = trim((string) ($data['footer_text'] ?? ''));
+            $savedFooter = trim((string) ($request->user()?->pdf_footer_text ?? ''));
+            $resolvedFooter = $requestedFooter !== '' ? $requestedFooter : ($savedFooter !== '' ? $savedFooter : $defaultFooter);
+            $data['footer_text'] = $resolvedFooter;
+
+            // Keep footer preference in sync with current user's account.
+            if ($request->user() && $requestedFooter !== '' && $request->user()->pdf_footer_text !== $requestedFooter) {
+                $request->user()->update(['pdf_footer_text' => $requestedFooter]);
+            }
+
             // Carga la vista 'pdf.template' (Blade) y le pasa la variable $data
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
@@ -53,6 +64,25 @@ class PdfController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function saveFooterPreference(Request $request)
+    {
+        $validated = $request->validate([
+            'footer_text' => 'nullable|string|max:2000',
+        ]);
+
+        $defaultFooter = "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.";
+        $footerText = trim((string) ($validated['footer_text'] ?? ''));
+
+        $request->user()->update([
+            'pdf_footer_text' => $footerText !== '' ? $footerText : $defaultFooter,
+        ]);
+
+        return response()->json([
+            'message' => 'Pie de pagina guardado correctamente.',
+            'footer_text' => $request->user()->pdf_footer_text,
+        ]);
     }
 
     private function resolveLogoDataUri(Request $request): string

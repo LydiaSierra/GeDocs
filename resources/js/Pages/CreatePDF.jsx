@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { DocumentArrowDownIcon, ArrowLeftIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import api from "@/lib/axios";
 import { toast } from "sonner";
@@ -116,7 +116,10 @@ const EditableList = ({ title, items, setItems, placeholder, numbered = false, m
 };
 
 export default function CreatePDF() {
+    const { auth } = usePage().props;
+    const defaultFooterText = `SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs ${new Date().getFullYear()} Todos los derechos reservados.`;
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isSavingFooter, setIsSavingFooter] = useState(false);
     const [documentType, setDocumentType] = useState("carta");
     const [logoPreviewUrl, setLogoPreviewUrl] = useState(DEFAULT_LOGO_PATH);
     const [customLogoFile, setCustomLogoFile] = useState(null);
@@ -125,6 +128,7 @@ export default function CreatePDF() {
     const [uploadToastState, setUploadToastState] = useState(null);
     const logoInputRef = useRef(null);
     const signatureInputRef = useRef(null);
+    const footerModalRef = useRef(null);
 
     const [actaAsistentes, setActaAsistentes] = useState([""]);
     const [actaInvitados, setActaInvitados] = useState([""]);
@@ -136,6 +140,7 @@ export default function CreatePDF() {
     const [informeObjetivos, setInformeObjetivos] = useState([""]);
     const [informeConclusiones, setInformeConclusiones] = useState([""]);
     const [informeRecomendaciones, setInformeRecomendaciones] = useState([""]);
+    const [footerText, setFooterText] = useState(auth?.user?.pdf_footer_text || defaultFooterText);
     const isUsingCustomLogo = customLogoFile !== null && logoPreviewUrl !== DEFAULT_LOGO_PATH;
     const isUsingCustomSignature = customSignatureFile !== null && !!signaturePreviewUrl;
 
@@ -301,6 +306,14 @@ export default function CreatePDF() {
         signatureInputRef.current?.click();
     };
 
+    const openFooterModal = () => {
+        footerModalRef.current?.showModal();
+    };
+
+    const closeFooterModal = () => {
+        footerModalRef.current?.close();
+    };
+
     const syncActaDesarrolloLength = (nextOrdenDia) => {
         setActaDesarrollo((prev) => {
             const next = [...prev];
@@ -344,6 +357,7 @@ export default function CreatePDF() {
 
         try {
             const form = new FormData(e.target);
+            form.set("footer_text", footerText);
             if (customLogoFile) {
                 form.set("logo_file", customLogoFile);
             }
@@ -392,6 +406,26 @@ export default function CreatePDF() {
         }
     };
 
+    const handleSaveFooter = async () => {
+        setIsSavingFooter(true);
+        try {
+            const response = await api.post("/pdf/footer-preference", {
+                footer_text: footerText,
+            });
+
+            if (response.data?.footer_text) {
+                setFooterText(response.data.footer_text);
+            }
+            showUploadToast("success", "Pie de pagina guardado correctamente.");
+            closeFooterModal();
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.response?.data?.error || "No se pudo guardar el pie de pagina.";
+            showUploadToast("error", errorMessage);
+        } finally {
+            setIsSavingFooter(false);
+        }
+    };
+
     return (
         <DashboardLayout>
             <div className="h-full overflow-y-auto bg-gray-100 flex flex-col">
@@ -427,6 +461,14 @@ export default function CreatePDF() {
                                 <option key={type.value} value={type.value}>{type.label}</option>
                             ))}
                         </select>
+
+                        <button
+                            type="button"
+                            onClick={openFooterModal}
+                            className="btn btn-sm rounded-xl bg-base-200 border-gray-200 text-gray-700 hover:bg-base-300"
+                        >
+                            Editar pie de pagina
+                        </button>
 
                         <button
                             type="submit"
@@ -912,14 +954,49 @@ export default function CreatePDF() {
                             </>
                         )}
 
-                        <div className="mt-16 text-center text-[10pt] text-gray-500 leading-snug">
-                            SENA - Centro de comercio y servicios - Area de gestion documental
-                            <br />
-                            &copy; Gedocs {new Date().getFullYear()} Todos los derechos reservados.
+                        <div className="mt-10 text-center text-[10pt] text-gray-500 leading-snug whitespace-pre-line">
+                            {footerText}
                         </div>
                     </form>
                 </div>
             </div>
+
+            <dialog ref={footerModalRef} className="modal">
+                <div className="modal-box max-w-xl">
+                    <h3 className="font-bold text-lg mb-4">Personalizar pie de pagina</h3>
+                    <p className="text-sm text-gray-500 mb-3">
+                        Este pie se guarda por cuenta y se reutiliza al volver al creador de PDF.
+                    </p>
+                    <textarea
+                        value={footerText}
+                        onChange={(e) => setFooterText(e.target.value)}
+                        rows={4}
+                        className="w-full textarea textarea-bordered text-sm leading-relaxed"
+                        placeholder="Escribe el pie de pagina del documento"
+                    />
+
+                    <div className="modal-action">
+                        <button
+                            type="button"
+                            onClick={closeFooterModal}
+                            className="btn btn-ghost"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSaveFooter}
+                            disabled={isSavingFooter}
+                            className="btn bg-primary text-white border-0 disabled:opacity-50"
+                        >
+                            {isSavingFooter ? "Guardando..." : "Guardar pie de pagina"}
+                        </button>
+                    </div>
+                </div>
+                <form method="dialog" className="modal-backdrop">
+                    <button>Cerrar</button>
+                </form>
+            </dialog>
         </DashboardLayout>
     );
 }

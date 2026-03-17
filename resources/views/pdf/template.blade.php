@@ -113,6 +113,10 @@
     $informeRecomendaciones = $decodeList('informe_recomendaciones_json');
 @endphp
 
+@php
+    $footerText = $data['footer_text'] ?? ("SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.");
+@endphp
+
 @if(!empty($logoDataUri))
     <div class="logo-wrapper">
         <img src="{{ $logoDataUri }}" alt="Logo institucional" class="document-logo">
@@ -389,8 +393,7 @@
 @endif
 
 <div class="footer">
-    SENA - Centro de comercio y servicios - Area de gestion documental<br>
-    &copy; Gedocs {{ date('Y') }} Todos los derechos reservados.
+    {!! nl2br(e($footerText)) !!}
 </div>
 
 </body>

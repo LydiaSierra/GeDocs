@@ -12,6 +12,7 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+    Route::post('/pdf/footer-preference', [PdfController::class, 'saveFooterPreference'])->name('pdf.footer-preference');
     Route::get('/create-pdf', fn() => Inertia::render('CreatePDF'))->name('create-pdf');
 
 

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'status',
         'profile_photo',
         'dependency_id',
+        'pdf_footer_text',
     ];
 
     /**
