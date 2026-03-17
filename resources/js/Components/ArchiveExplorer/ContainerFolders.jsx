@@ -11,11 +11,16 @@ import FileExplorer from "@/Components/ArchiveExplorer/FileExplorer.jsx"
 import SelectionActionBar from "./SelectionActionBar";
 import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
 import EmptyState from "../EmptyState";
+import ElectronicIndex from "@/Pages/ElectronicIndex";
+import { Link, usePage } from "@inertiajs/react";
 
 
 // Main ArchiveExplorer component
 
 export default function ContainerFolders() {
+    const { props } = usePage();
+    const sheets = props?.sheets || [];
+
    const {
         folders,
         loading,
@@ -34,6 +39,12 @@ export default function ContainerFolders() {
         gridView,
         inputSearchTerm
     } = useExplorerUI();
+
+    const activeSheet = sheets.find((sheet) => sheet.id === activeSheetId);
+    const electronicIndexHref = route("electronic-index", {
+        sheet_id: activeSheetId || undefined,
+        sheet_number: activeSheet?.number || undefined,
+    });
 
 
     useEffect(() => {
@@ -65,7 +76,7 @@ export default function ContainerFolders() {
             <div className="relative h-full pb-[12vh]">
                 {/* It displays the current folder where it is located. */}
                 {(selectedItems.length === 0) &&
-                    <div>
+                    <div className="w-full flex justify-between items-center">
                         <h1 className="font-bold text-lg my-2">
                             {
                                 inputSearchTerm === "" ?
@@ -76,6 +87,21 @@ export default function ContainerFolders() {
                                     "Modo busqueda "
                             }
                         </h1>
+                        <Link
+                            href={electronicIndexHref}
+                            className="bg-none text-primary font-semibold underline py-2 px-4"
+                            onClick={() => {
+                                if (activeSheetId) {
+                                    localStorage.setItem("active_sheet_id", String(activeSheetId));
+                                }
+
+                                if (activeSheet?.number) {
+                                    localStorage.setItem("active_sheet_number", String(activeSheet.number));
+                                }
+                            }}
+                        >
+                                Indice
+                        </Link>
                     </div>
                 }
 
