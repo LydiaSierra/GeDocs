@@ -15,25 +15,10 @@ use App\Http\Controllers\SheetUserController;
 Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
-    // Get the contents (subfolders and files) of a specific folder
-    Route::get('/folders/parent_id/{id}', [FolderController::class, 'show']);
 
-    // Get all root-level folders (no parent)
-    Route::get('/folders', [FolderController::class, 'index']);
-
-    // Global search for folders and files
-    Route::get('/search', [FolderController::class, 'globalSearch']);
-
-
-    // Get all folders in the system (used for selectors or trees)
-    Route::get('/folders-all', [FolderController::class, 'getAllFolders']);
 
     // Upload one or more files to a specific folder
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
-
-    // Delete a single file by its ID
-    Route::delete('/folders/file/{fileId}', [FolderController::class, 'destroyFile']);
-
 
     // --------- NOTIFICATIONS ---------
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -67,10 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
             //  Downloads multiple folders and/or files as a ZIP archive.p
             Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip']);
 
-            //   Deletes multiple folders or files at once.
-            Route::post('/folders/delete-multiple', [FolderController::class, 'deleteMultiple']);
-
-
+        
             // ============= SHEETS ==============
             Route::post('/sheets/add/user/{numberSheet}/{idUser}', [SheetController::class, 'addUserFromSheet']);
             Route::get('/sheets', [SheetController::class, 'index']);

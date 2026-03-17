@@ -89,7 +89,7 @@ export default function Explorer() {
                         <h1>{activeSheetId ? "Explora tus archivos" : "Selecciona una ficha"}</h1>
                     </div>
 
-                    {(!currentFolder && !filters?.buscador) ? (
+                    {((!currentFolder && !filters?.buscador) || archivedMode) ? (
                         /* ====== DUAL COLUMN SELECTION VIEW ====== */
                         <div className="flex flex-col md:flex-row h-full min-h-[500px] border border-gray-100 rounded-2xl bg-white shadow-xl overflow-hidden">
                             {/* LEFT COLUMN: Sheets (Fichas) List */}
@@ -108,17 +108,21 @@ export default function Explorer() {
                                     {sheets.map((sheet) => (
                                         <button
                                             key={sheet.id}
-                                            onClick={() => handleSelectSheet(sheet.id)}
-                                            className={`w-full group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left ${
-                                                activeSheetId === sheet.id
+                                            onClick={()=>{
+                                                handleSelectSheet(sheet.id);
+                                                if(archivedMode){
+                                                    setArchivedMode(false);
+                                                }
+
+                                            }}
+                                            className={`w-full group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left ${activeSheetId === sheet.id
                                                     ? "bg-primary text-white shadow-lg shadow-primary/30 ring-2 ring-primary ring-offset-2"
                                                     : "bg-white hover:bg-white hover:shadow-md text-gray-700 border border-gray-100"
-                                            }`}
+                                                }`}
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className={`size-10 flex items-center justify-center rounded-xl font-black text-sm transition-colors ${
-                                                    activeSheetId === sheet.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary"
-                                                }`}>
+                                                <div className={`size-10 flex items-center justify-center rounded-xl font-black text-sm transition-colors ${activeSheetId === sheet.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary"
+                                                    }`}>
                                                     #
                                                 </div>
                                                 <span className="font-bold tracking-tight">Ficha {sheet.number}</span>
@@ -149,12 +153,12 @@ export default function Explorer() {
                                             <div>
                                                 <h3 className="font-black text-lg text-gray-800 flex items-center gap-3">
                                                     <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                                                        <CalendarIcon className="size-5 text-primary" />
+                                                        {archivedMode ? <ArchiveBoxIcon className="size-5 text-primary" /> : <CalendarIcon className="size-5 text-primary" />}
                                                     </div>
                                                     {archivedMode ? "Archivo / Papelera" : "Periodos Anuales"}
                                                 </h3>
                                                 <p className="text-xs text-gray-500 mt-2 font-medium">
-                                                    {archivedMode 
+                                                    {archivedMode
                                                         ? "Elementos desactivados que pueden ser restaurados."
                                                         : <>Mostrando años disponibles para la <span className="text-primary font-bold italic">Ficha {sheets.find(s => s.id === activeSheetId)?.number}</span></>
                                                     }
@@ -162,12 +166,11 @@ export default function Explorer() {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <button
-                                                    onClick={() => setArchivedMode(!archivedMode)}
-                                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                                        archivedMode 
-                                                            ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                                                    onClick={() => setArchivedMode(!archivedMode, activeSheetId)}
+                                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${archivedMode
+                                                            ? "bg-primary text-white shadow-lg shadow-primary/20"
                                                             : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <ArchiveBoxIcon className="size-4" />
                                                     {archivedMode ? "Volver" : "Archivados"}
@@ -190,20 +193,19 @@ export default function Explorer() {
                                                     ) : (
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                             {archivedFolders.map(folder => (
-                                                                <div 
+                                                                <div
                                                                     key={folder.id}
-                                                                    className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${
-                                                                        selectedItems.some(i => i.id === folder.id && i.type === 'folder')
+                                                                    className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${selectedItems.some(i => i.id === folder.id && i.type === 'folder')
                                                                             ? "border-primary bg-primary/5"
                                                                             : "border-gray-100 bg-white"
-                                                                    }`}
+                                                                        }`}
                                                                     onClick={() => setSelectedItems([{ id: folder.id, type: 'folder' }])}
                                                                 >
                                                                     <div className="flex items-center gap-3 truncate">
                                                                         <FolderIcon className="size-8 text-amber-400 shrink-0" />
                                                                         <span className="font-bold text-sm truncate">{folder.name}</span>
                                                                     </div>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
                                                                         className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
                                                                         title="Restaurar"
@@ -213,20 +215,19 @@ export default function Explorer() {
                                                                 </div>
                                                             ))}
                                                             {archivedFiles.map(file => (
-                                                                <div 
+                                                                <div
                                                                     key={file.id}
-                                                                    className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${
-                                                                        selectedItems.some(i => i.id === file.id && i.type === 'file')
+                                                                    className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${selectedItems.some(i => i.id === file.id && i.type === 'file')
                                                                             ? "border-primary bg-primary/5"
                                                                             : "border-gray-100 bg-white"
-                                                                    }`}
+                                                                        }`}
                                                                     onClick={() => setSelectedItems([{ id: file.id, type: 'file' }])}
                                                                 >
                                                                     <div className="flex items-center gap-3 truncate">
                                                                         <DocumentTextIcon className="size-8 text-blue-400 shrink-0" />
                                                                         <span className="font-bold text-sm truncate">{file.name}</span>
                                                                     </div>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: file.id, type: 'file' }]); restoreSelection(); }}
                                                                         className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
                                                                         title="Restaurar"
@@ -264,7 +265,7 @@ export default function Explorer() {
                                                             
                                                             {/* Year Actions */}
                                                             <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-                                                                <button 
+                                                                <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setEditingYear(yearFolder);
@@ -278,8 +279,7 @@ export default function Explorer() {
                                                                 <button 
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        setSelectedItems([{ id: yearFolder.id, type: 'folder' }]);
-                                                                        deleteSelectionItemsMixed(); // Skip modal, use direct undo toast
+                                                                        deleteSelectionItemsMixed([{ id: yearFolder.id, type: 'folder' }]);
                                                                     }}
                                                                     className="size-8 bg-white shadow-soft rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:scale-110 transition-all"
                                                                     title="Archivar"
@@ -314,27 +314,38 @@ export default function Explorer() {
                     ) : (
                         /* ====== FOLDER EXPLORER VIEW ====== */
                         <div className="flex flex-col h-full animate-slide-up">
-                            <div className="hidden md:flex items-center gap-3 mb-4 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                                <button
-                                    onClick={handleBackToSheets}
-                                    className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-all group"
-                                >
-                                    <ArrowLeftCircleIcon className="size-5 transition-transform group-hover:-translate-x-1" />
-                                    Panel Selección
-                                </button>
-                                <div className="h-4 w-px bg-gray-100"></div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-black text-primary px-2 py-1 bg-primary/5 rounded-lg border border-primary/10">
-                                        Ficha {sheets.find(s => s.id === activeSheetId)?.number}
-                                    </span>
-                                    {currentFolder && (
-                                        <>
-                                            <span className="text-gray-300 text-xs">/</span>
-                                            <span className="text-xs font-black text-gray-400 truncate max-w-[200px]">
-                                                {currentFolder.name}
-                                            </span>
-                                        </>
-                                    )}
+                            <div className="hidden md:flex items-center justify-between mb-4 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleBackToSheets}
+                                        className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-all group"
+                                    >
+                                        <ArrowLeftCircleIcon className="size-5 transition-transform group-hover:-translate-x-1" />
+                                        Panel Selección
+                                    </button>
+                                    <div className="h-4 w-px bg-gray-100"></div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-black text-primary px-2 py-1 bg-primary/5 rounded-lg border border-primary/10">
+                                            Ficha {sheets.find(s => s.id === activeSheetId)?.number}
+                                        </span>
+                                        {currentFolder && (
+                                            <>
+                                                <span className="text-gray-300 text-xs">/</span>
+                                                <span className="text-xs font-black text-gray-400 truncate max-w-[200px]">
+                                                    {currentFolder.name}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setArchivedMode(true, activeSheetId)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all"
+                                    >
+                                        <ArchiveBoxIcon className="size-4" />
+                                        Papelera
+                                    </button>
                                 </div>
                             </div>
 
@@ -404,8 +415,8 @@ export default function Explorer() {
                                         <form method="dialog" className="w-full">
                                             <button className="btn btn-ghost w-full rounded-2xl font-bold">Mantener</button>
                                         </form>
-                                        <button 
-                                            className="btn bg-red-600 hover:bg-red-700 text-white w-full rounded-2xl border-0 shadow-lg shadow-red-200 font-bold" 
+                                        <button
+                                            className="btn bg-red-600 hover:bg-red-700 text-white w-full rounded-2xl border-0 shadow-lg shadow-red-200 font-bold"
                                             onClick={deleteSelectionItemsMixed}
                                         >
                                             Mover a papelera

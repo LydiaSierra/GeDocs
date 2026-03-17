@@ -123,7 +123,7 @@ class FoldersSeeder extends Seeder
                 'parent_id' => $parentId,
                 'folder_code' => $folderCode,
                 'department' => $department,
-                'sheet_number_id' => null, // Sheets are now only linked to Year folders
+                'sheet_number_id' => $sheetId,
                 'active' => true,
             ]);
 

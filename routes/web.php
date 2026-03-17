@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;

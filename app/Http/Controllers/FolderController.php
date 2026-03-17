@@ -65,72 +65,6 @@ class FolderController extends Controller
      * - That are marked as active
      * - Ordered by newest first
      */
-    public function index(Request $request)
-    {
-        $query = Folder::whereNull('parent_id')
-            ->where("active", true);
-
-        // Filter by sheet_number_id if provided
-        if ($request->has('sheet_number_id')) {
-            $query->where('sheet_number_id', $request->query('sheet_number_id'));
-        }
-
-        $folders = $query->orderBy('created_at', 'desc')->get();
-
-        // Returns the folders as a JSON response
-        return response()->json([
-            "success" => true,
-            "folders" => $folders
-        ], 200);
-    }
-
-
-    /**
-     * Show a single folder with its children and files.
-     *
-     * This method:
-     * - Retrieves one active folder
-     * - Loads its active subfolders
-     * - Loads its active files
-     * - Transforms file data for frontend consumption
-     */
-    public function show($id)
-    {
-        // Retrieve the folder or fail if it does not exist or is inactive
-        $folder = Folder::where('id', $id)
-            ->where('active', true)
-            ->firstOrFail();
-
-        /**
-         * Retrieve all active files belonging to the folder
-         * and map them into a frontend-friendly structure.
-         */
-        $files = $folder->files()
-            ->where('active', true)
-            ->get()
-            ->map(function ($file) {
-                return [
-                    "id" => $file->id,
-                    "name" => $file->name,
-                    "extension" => $file->extension,
-                    "mime_type" => $file->mime_type,
-                    "size" => $file->size,
-                    "url" => asset("storage/" . $file->path),
-                    "is_pdf" => $file->extension === "pdf",
-                    "created_at" => $file->created_at,
-                    "updated_at" => $file->updated_at,
-                ];
-            });
-
-        // Return folder data, child folders and files
-        return response()->json([
-            "success" => true,
-            "folder" => $folder,
-            "children" => $folder->children()->where('active', true)->get(),
-            "files" => $files
-        ]);
-    }
-
 
     public function explorer(Request $request)
     {
@@ -170,12 +104,6 @@ class FolderController extends Controller
 
         if ($sheetId) {
             $foldersQuery->where('sheet_number_id', $sheetId);
-
-            // If we are at the root of a sheet (no folder_id), ensure current year folder exists
-            if (!$folderId && !$buscador) {
-                $currentYear = date('Y');
-                $this->ensureYearFolderExists($sheetId, $currentYear);
-            }
         }
 
         if ($folderId) {
@@ -224,17 +152,6 @@ class FolderController extends Controller
     }
 
 
-    /**
-     * Get all folders (without filtering).
-     *
-     * Mainly useful for administrative or internal operations.
-     */
-    public function getAllFolders(Request $request)
-    {
-        $folders = Folder::where("active", true)->get();
-
-        return back();
-    }
 
 
     /**
@@ -252,6 +169,14 @@ class FolderController extends Controller
             "department" => "required|string",
             "sheet_number_id" => "nullable|exists:sheet_numbers,id",
         ]);
+
+        // If it has a parent, inherit the sheet_number_id
+        if ($validated["parent_id"]) {
+            $parent = Folder::find($validated["parent_id"]);
+            if ($parent && !($validated["sheet_number_id"] ?? null)) {
+                $validated["sheet_number_id"] = $parent->sheet_number_id;
+            }
+        }
 
         // Create the folder record
         $data = [
@@ -372,47 +297,6 @@ class FolderController extends Controller
         }
     }
 
-    public function globalSearch(Request $request)
-    {
-        $query = $request->query('q');
-
-        if (!$query) {
-            return back();
-        }
-
-        $folders = Folder::where('active', true)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                    ->orWhere('department', 'LIKE', "%{$query}%")
-                    ->orWhere('folder_code', 'LIKE', "%{$query}%")
-                    ->orWhereHas('sheetNumber', function ($sq) use ($query) {
-                        $sq->where('number', 'LIKE', "%{$query}%");
-                    });
-            })
-            ->get();
-
-        $files = File::where('active', true)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'LIKE', "%{$query}%")
-                    ->orWhere('extension', 'LIKE', "%{$query}%")
-                    ->orWhereHas('folder.sheetNumber', function ($sq) use ($query) {
-                        $sq->where('number', 'LIKE', "%{$query}%");
-                    });
-            })
-            ->get()
-            ->map(fn($file) => [
-                "id" => $file->id,
-                "name" => $file->name,
-                "extension" => $file->extension,
-                "size" => $file->size,
-                "url" => asset("storage/" . $file->path),
-                "folder_id" => $file->folder_id
-            ]);
-
-        return back();
-    }
-
-
     /**
      * Download a single file.
      *
@@ -525,28 +409,33 @@ class FolderController extends Controller
     {
         $sheetId = $request->query('sheet_id');
 
-        $folders = Folder::where('active', false);
+        // Folders archivados
+        $foldersQuery = Folder::where('active', false);
+
         if ($sheetId) {
-            $folders->where('sheet_number_id', $sheetId);
+            $foldersQuery->where('sheet_number_id', $sheetId);
         }
 
-        // Show only folders that are "roots" of a deletion 
-        // (Either have no parent, or their parent is still active)
-        $folders->where(function ($q) {
+        // Solo mostrar la raíz del árbol archivado (año o carpeta sin padre activo)
+        $foldersQuery->where(function ($q) {
             $q->whereNull('parent_id')
                 ->orWhereHas('parent', function ($pq) {
                     $pq->where('active', true);
                 });
         });
 
-        $folders = $folders->orderBy('updated_at', 'desc')->get();
+        $folders = $foldersQuery->orderBy('updated_at', 'desc')->get();
 
-        $files = File::where('active', false)
-            ->whereHas('folder', function ($q) {
-                $q->where('active', true);
-            })
-            ->orderBy('updated_at', 'desc')
-            ->get();
+        // Files archivados, filtrando por sheet si aplica
+        $filesQuery = File::where('active', false)
+            ->whereHas('folder', function ($q) use ($sheetId) {
+                $q->where('active', true); // carpeta padre activa
+                if ($sheetId) {
+                    $q->where('sheet_number_id', $sheetId);
+                }
+            });
+
+        $files = $filesQuery->orderBy('updated_at', 'desc')->get();
 
         return response()->json([
             "success" => true,
@@ -676,41 +565,8 @@ class FolderController extends Controller
     }
 
 
-    /**
-     * Recursively adds a folder and its contents to a ZIP archive.
-     *
-     * Preserves folder structure inside the ZIP.
-     */
-    /**
-     * Ensures that a folder for the given year exists for a specific sheet.
-     * If it doesn't exist, it creates it and seeds the default structure.
-     */
-    private function ensureYearFolderExists($sheetId, $year)
-    {
-        $yearFolder = Folder::where('sheet_number_id', $sheetId)
-            ->where('year', $year)
-            ->whereNull('parent_id')
-            ->where('active', true)
-            ->first();
-
-        if (!$yearFolder) {
-            // Create the Year folder
-            $yearFolder = Folder::create([
-                'name' => (string) $year,
-                'year' => $year,
-                'sheet_number_id' => $sheetId,
-                'parent_id' => null,
-                'active' => true,
-                'department' => 'Año',
-                'folder_code' => $year
-            ]);
-
-            // Seed the default structure inside this year folder
-            $this->seedYearStructure($sheetId, $yearFolder->id);
-        }
-
-        return $yearFolder;
-    }
+   
+    
 
     /**
      * Seeds the default folder structure inside a specific year folder.
@@ -795,7 +651,7 @@ class FolderController extends Controller
                 'parent_id' => $parentId,
                 'folder_code' => $folderCode,
                 'department' => $department,
-                'sheet_number_id' => null, // Sheets are now only linked to Year folders
+                'sheet_number_id' => $sheetId,
                 'active' => true,
             ]);
 
