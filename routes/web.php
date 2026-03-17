@@ -116,6 +116,10 @@ Route::middleware('auth')->group(function () {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    //Vistas indice Electronico
+    Route::get('/electronic-index', fn() => Inertia::render('ElectronicIndex'))
+        ->name('electronic-index');
 });
 
 
