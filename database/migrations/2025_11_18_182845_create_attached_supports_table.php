@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreign('comunication_id')->references('id')->on('comunications')->onDelete('cascade');
             $table->timestamps();
             $table->string('hash');
+            $table->string('no_radicado');
         });
     }
 

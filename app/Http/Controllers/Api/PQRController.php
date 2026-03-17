@@ -175,6 +175,13 @@ class PQRController extends Controller
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('pqr_attachments', 'public');
                 $hash = hash('adler32',time());
+                $pqrID = $pqr->id;
+                if($pqrID<99){
+                    if($pqrID<9){
+                        $pqrID = "00$pqrID";
+                    }
+                    $pqrID = "0$pqrID";
+                }
 
                 $pqr->attachedSupports()->create([
                     'name' => $file->getClientOriginalName(),
@@ -182,6 +189,7 @@ class PQRController extends Controller
                     'type' => $file->getClientOriginalExtension(),
                     'size' => $file->getSize(),
                     'hash'=>$hash,
+                    'no_radicado' => $pqrID,
                 ]);
             }
         }

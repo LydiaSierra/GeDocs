@@ -20,6 +20,7 @@ class AttachedSupport extends Model
         'pqr_id',
         'comunication_id',
         'hash',
+        'no_radicado',
     ];
 
     public function pqr()
