@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Folder;
 use App\Models\Sheet_number;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -57,9 +58,26 @@ class SheetController extends Controller
             $sheetNumber->ventanilla_unica_id = $ventanilla->id;
             $sheetNumber->save();
 
-            // Crear estructura de carpetas por defecto para la ficha
-            FolderStructureService::createDefaultStructure($sheetNumber->id);
+            // Crear carpeta del año por defecto para la ficha
+            $yearFolder = Folder::create([
+                'name' => date('Y'),
+                'year' => date('Y'),
+                'sheet_number_id' => $sheetNumber->id,
+                'parent_id' => null,
+                'active' => true,
+                'department' => 'Año',
+                'folder_code' => date('Y'),
+            ]);
 
+            // Crear carpeta ventanilla unica dentro del año
+            Folder::create([
+                'name' => 'ventanilla unica',
+                'parent_id' => $yearFolder->id,
+                'folder_code' => null,
+                'department' => 'sección',
+                'sheet_number_id' => $sheetNumber->id,
+                'active' => true,
+            ]);
             // Retornar la ficha con la relación cargada
             return response()->json($sheetNumber->load('dependencies'), 201);
         });

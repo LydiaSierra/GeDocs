@@ -60,7 +60,7 @@ export default function ContainerFolders() {
 
 
     return (
-        <div className="relative my-4 flex flex-col h-full overflow-hidden">
+        <div className="relative my-4 flex flex-col h-full overflow-hidden p-3">
 
             <div className="relative h-full pb-[12vh]">
                 {/* It displays the current folder where it is located. */}

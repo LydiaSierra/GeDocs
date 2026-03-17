@@ -66,8 +66,9 @@ export function MailProvider({ children }) {
                 matchesScope = card.dependency_id === activeScopeFilter.id;
             }
         }
-
-        const matchesSide = sideFilter === 'sent' ? false : true;
+        //con este filtro se muestra los pqr respondidos o no respondidos
+        const isResponded = card.response_status === 'responded' || card.response_status === 'closed';
+        const matchesSide = sideFilter === 'sent' ? isResponded : !isResponded;
 
         return matchesSide && matchesFilter && matchesSearch && matchesScope;
     });

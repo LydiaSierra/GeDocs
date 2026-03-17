@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Folder;
 use App\Models\Sheet_number;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -25,6 +26,15 @@ class SheetSeeder extends Seeder
             'name' => 'Ventanilla Unica',
             'sheet_number_id' => $sheet->id,
         ]);
+
+        //  Folder::create([
+        //     'name' => $ventanilla->name,
+        //     'year' => date('Y'),
+        //     'sheet_number_id' => $sheet->id,
+        //     'parent_id' => null,
+        //     'active' => true,
+        //     'department' => 'Año',
+        // ]);
 
         // Actualizar la ficha con el id de la ventanilla unica
         $sheet->ventanilla_unica_id = $ventanilla->id;

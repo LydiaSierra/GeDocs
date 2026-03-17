@@ -12,6 +12,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 use App\Http\Controllers\SheetUserController;
 use App\Http\Controllers\PdfController;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; //Import for the QR codes
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -185,4 +187,13 @@ Route::middleware("api")->post('/login', function (Request $request) {
         'token' => $token,
         'user' => $user
     ]);
+});
+
+//------------------------------QR Generator 
+Route::get('/qrcode', function (Request $request) {
+    $request->validate([
+        'url' => 'required',
+        'file_name' => 'required'
+    ]);
+    return QrCode::format('png')->size(56)->generate($request->url, storage_path('\qrcodes\ '.$request->file_name.'.png'));
 });
