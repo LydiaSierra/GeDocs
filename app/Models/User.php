@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'status',
         'profile_photo',
+        'pdf_logo_path',
         'dependency_id',
         'pdf_footer_text',
     ];

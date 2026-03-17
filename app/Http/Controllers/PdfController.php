@@ -66,6 +66,61 @@ class PdfController extends Controller
         }
     }
 
+    public function saveLogoPreference(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$request->hasFile('logo_file')) {
+            return response()->json(['error' => 'Debe seleccionar un archivo de logo.'], 422);
+        }
+
+        try {
+            $file = $request->file('logo_file');
+            $this->validateLogoFile($file);
+
+            $previousLogoPath = $user->pdf_logo_path;
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'png');
+            $newLogoPath = $file->storeAs(
+                'pdf_logos',
+                'user_' . $user->id . '_' . now()->timestamp . '.' . $extension,
+                'public'
+            );
+
+            $user->update(['pdf_logo_path' => $newLogoPath]);
+
+            if ($previousLogoPath && $previousLogoPath !== $newLogoPath && Storage::disk('public')->exists($previousLogoPath)) {
+                Storage::disk('public')->delete($previousLogoPath);
+            }
+
+            return response()->json([
+                'message' => 'Logo guardado correctamente.',
+                'logo_url' => Storage::url($newLogoPath),
+                'logo_path' => $newLogoPath,
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'No se pudo guardar el logo.'], 500);
+        }
+    }
+
+    public function resetLogoPreference(Request $request)
+    {
+        $user = $request->user();
+        $previousLogoPath = $user->pdf_logo_path;
+
+        if ($previousLogoPath && Storage::disk('public')->exists($previousLogoPath)) {
+            Storage::disk('public')->delete($previousLogoPath);
+        }
+
+        $user->update(['pdf_logo_path' => null]);
+
+        return response()->json([
+            'message' => 'Logo restablecido correctamente.',
+            'logo_url' => '/SENA-LOGO.png',
+        ]);
+    }
+
     public function saveFooterPreference(Request $request)
     {
         $validated = $request->validate([
@@ -87,41 +142,21 @@ class PdfController extends Controller
 
     private function resolveLogoDataUri(Request $request): string
     {
-        $minFileBytes = 10 * 1024;
-        $maxFileBytes = 2 * 1024 * 1024;
-        $minDimension = 64;
-        $maxDimension = 2000;
-
         if ($request->hasFile('logo_file')) {
             $file = $request->file('logo_file');
-            $mimeType = $file->getMimeType();
-            $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
-
-            if (!in_array($mimeType, $allowedMimeTypes, true)) {
-                throw new \InvalidArgumentException('Tipo de archivo no permitido. Solo PNG, JPG o SVG.');
-            }
-
-            $fileSize = $file->getSize() ?? 0;
-            if ($fileSize < $minFileBytes) {
-                throw new \InvalidArgumentException('El logo es demasiado pequeno. Minimo: 10 KB.');
-            }
-
-            if ($fileSize > $maxFileBytes) {
-                throw new \InvalidArgumentException('El logo es demasiado pesado. Maximo: 2 MB.');
-            }
-
-            [$width, $height] = $this->extractDimensionsFromUploadedFile($file);
-            if (
-                $width < $minDimension ||
-                $height < $minDimension ||
-                $width > $maxDimension ||
-                $height > $maxDimension
-            ) {
-                throw new \InvalidArgumentException('Dimensiones invalidas. Use una imagen entre 64x64 y 2000x2000 px.');
-            }
+            $this->validateLogoFile($file);
 
             $content = base64_encode(file_get_contents($file->getPathname()));
+            $mimeType = $file->getMimeType();
             return "data:{$mimeType};base64,{$content}";
+        }
+
+        $savedLogoPath = $request->user()?->pdf_logo_path;
+        if ($savedLogoPath && Storage::disk('public')->exists($savedLogoPath)) {
+            $fullSavedLogoPath = Storage::disk('public')->path($savedLogoPath);
+            $savedMimeType = mime_content_type($fullSavedLogoPath) ?: 'image/png';
+            $savedContent = base64_encode(file_get_contents($fullSavedLogoPath));
+            return "data:{$savedMimeType};base64,{$savedContent}";
         }
 
         $defaultLogoPath = public_path('SENA-LOGO.png');
@@ -131,6 +166,40 @@ class PdfController extends Controller
 
         $content = base64_encode(file_get_contents($defaultLogoPath));
         return "data:image/png;base64,{$content}";
+    }
+
+    private function validateLogoFile($file): void
+    {
+        $minFileBytes = 10 * 1024;
+        $maxFileBytes = 2 * 1024 * 1024;
+        $minDimension = 64;
+        $maxDimension = 2000;
+
+        $mimeType = $file->getMimeType();
+        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            throw new \InvalidArgumentException('Tipo de archivo no permitido. Solo PNG, JPG o SVG.');
+        }
+
+        $fileSize = $file->getSize() ?? 0;
+        if ($fileSize < $minFileBytes) {
+            throw new \InvalidArgumentException('El logo es demasiado pequeno. Minimo: 10 KB.');
+        }
+
+        if ($fileSize > $maxFileBytes) {
+            throw new \InvalidArgumentException('El logo es demasiado pesado. Maximo: 2 MB.');
+        }
+
+        [$width, $height] = $this->extractDimensionsFromUploadedFile($file);
+        if (
+            $width < $minDimension ||
+            $height < $minDimension ||
+            $width > $maxDimension ||
+            $height > $maxDimension
+        ) {
+            throw new \InvalidArgumentException('Dimensiones invalidas. Use una imagen entre 64x64 y 2000x2000 px.');
+        }
     }
 
     private function resolveSignatureDataUri(Request $request): ?string

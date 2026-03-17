@@ -117,11 +117,13 @@ const EditableList = ({ title, items, setItems, placeholder, numbered = false, m
 
 export default function CreatePDF() {
     const { auth } = usePage().props;
+    const initialUserLogoUrl = auth?.user?.pdf_logo_path ? `/storage/${auth.user.pdf_logo_path}` : DEFAULT_LOGO_PATH;
     const defaultFooterText = `SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs ${new Date().getFullYear()} Todos los derechos reservados.`;
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isSavingLogo, setIsSavingLogo] = useState(false);
     const [isSavingFooter, setIsSavingFooter] = useState(false);
     const [documentType, setDocumentType] = useState("carta");
-    const [logoPreviewUrl, setLogoPreviewUrl] = useState(DEFAULT_LOGO_PATH);
+    const [logoPreviewUrl, setLogoPreviewUrl] = useState(initialUserLogoUrl);
     const [customLogoFile, setCustomLogoFile] = useState(null);
     const [signaturePreviewUrl, setSignaturePreviewUrl] = useState(null);
     const [customSignatureFile, setCustomSignatureFile] = useState(null);
@@ -141,7 +143,7 @@ export default function CreatePDF() {
     const [informeConclusiones, setInformeConclusiones] = useState([""]);
     const [informeRecomendaciones, setInformeRecomendaciones] = useState([""]);
     const [footerText, setFooterText] = useState(auth?.user?.pdf_footer_text || defaultFooterText);
-    const isUsingCustomLogo = customLogoFile !== null && logoPreviewUrl !== DEFAULT_LOGO_PATH;
+    const isUsingCustomLogo = logoPreviewUrl !== DEFAULT_LOGO_PATH;
     const isUsingCustomSignature = customSignatureFile !== null && !!signaturePreviewUrl;
 
     const showUploadToast = (type, message) => {
@@ -217,21 +219,47 @@ export default function CreatePDF() {
             URL.revokeObjectURL(logoPreviewUrl);
         }
 
-        setCustomLogoFile(file);
-        setLogoPreviewUrl(URL.createObjectURL(file));
-        showUploadToast("success", "Logo cargado correctamente.");
+        setIsSavingLogo(true);
+        try {
+            const uploadData = new FormData();
+            uploadData.set("logo_file", file);
+            const response = await api.post("/pdf/logo-preference", uploadData);
+
+            setCustomLogoFile(null);
+            setLogoPreviewUrl(response.data?.logo_url || DEFAULT_LOGO_PATH);
+            showUploadToast("success", "Logo guardado correctamente.");
+        } catch (error) {
+            const errorMessage = error?.response?.data?.error || "No se pudo guardar el logo.";
+            showUploadToast("error", errorMessage);
+            event.target.value = "";
+        } finally {
+            setIsSavingLogo(false);
+        }
     };
 
     const resetLogo = () => {
-        if (logoPreviewUrl.startsWith("blob:")) {
-            URL.revokeObjectURL(logoPreviewUrl);
-        }
-        setCustomLogoFile(null);
-        setLogoPreviewUrl(DEFAULT_LOGO_PATH);
-        if (logoInputRef.current) {
-            logoInputRef.current.value = "";
-        }
-        showUploadToast("success", "Se restauro el logo predeterminado.");
+        const run = async () => {
+            setIsSavingLogo(true);
+            try {
+                await api.delete("/pdf/logo-preference");
+                if (logoPreviewUrl.startsWith("blob:")) {
+                    URL.revokeObjectURL(logoPreviewUrl);
+                }
+                setCustomLogoFile(null);
+                setLogoPreviewUrl(DEFAULT_LOGO_PATH);
+                if (logoInputRef.current) {
+                    logoInputRef.current.value = "";
+                }
+                showUploadToast("success", "Se restauro el logo predeterminado.");
+            } catch (error) {
+                const errorMessage = error?.response?.data?.error || "No se pudo restablecer el logo.";
+                showUploadToast("error", errorMessage);
+            } finally {
+                setIsSavingLogo(false);
+            }
+        };
+
+        run();
     };
 
     const handleSignatureChange = async (event) => {
@@ -557,11 +585,12 @@ export default function CreatePDF() {
                                 {isUsingCustomLogo && (
                                     <button
                                         type="button"
+                                        disabled={isSavingLogo}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             resetLogo();
                                         }}
-                                        className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                        className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100 disabled:opacity-50"
                                         aria-label="Restaurar logo predeterminado"
                                     >
                                         <XMarkIcon className="size-4 text-gray-600" />
