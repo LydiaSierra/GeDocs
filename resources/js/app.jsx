@@ -13,6 +13,7 @@ import { UserProvider } from "./context/UserContext/UserContext";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
 import { Toaster } from "sonner";
+import { ElectronicIndexProvider } from "./context/ElectronicIndexContext/ElectronicIndexContext";
 
 const appName = "GeDocs"
 
@@ -33,8 +34,11 @@ createInertiaApp({
                 <UserProvider>
                     <SheetsProvider>
                         <DependenciesProvider>
-                            <Toaster position="top-center" richColors closeButton expand={false} />
-                            <App {...props} />
+                            <ElectronicIndexProvider>
+                                <Toaster position="top-center" richColors closeButton expand={false} />
+
+                                <App {...props} />
+                            </ElectronicIndexProvider>
                         </DependenciesProvider>
                     </SheetsProvider>
                 </UserProvider>
