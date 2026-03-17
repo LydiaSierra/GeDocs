@@ -202,6 +202,6 @@ Route::middleware("api")->post('/login', function (Request $request) {
 });
 
 //------------------------------QR Generator 
-Route::get('/qrcode', function () {
-    return QrCode::size(50)->generate('https://google.com');
+Route::get('/qrcode/{url}', function ($url) {
+    return QrCode::size(50)->generate($url);
 });
