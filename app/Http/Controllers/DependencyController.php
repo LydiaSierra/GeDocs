@@ -31,7 +31,7 @@ class DependencyController extends Controller
      */
     public function create()
     {
-    //
+        //
     }
 
     /**
@@ -52,11 +52,9 @@ class DependencyController extends Controller
         // Prioridad: 1) Ficha del usuario, 2) Enviada en JSON
         if ($sheet) {
             $sheetId = $sheet->id;
-        }
-        elseif (isset($validate['sheet_number_id'])) {
+        } elseif (isset($validate['sheet_number_id'])) {
             $sheetId = $validate['sheet_number_id'];
-        }
-        else {
+        } else {
             return response()->json([
                 "success" => false,
                 "message" => "Debe proporcionar un sheet_number_id o tener una ficha asignada"
@@ -136,13 +134,15 @@ class DependencyController extends Controller
         if (!$dependency) {
             return response()->json([
                 "status" => "error",
-                "message" => "Dependencia no encontrada"], 404);
+                "message" => "Dependencia no encontrada"
+            ], 404);
         }
 
         $dependency->delete();
 
         return response()->json([
             "success" => true,
-            "message" => "Dependencia eliminada"], 200);
+            "message" => "Dependencia eliminada"
+        ], 200);
     }
 }
