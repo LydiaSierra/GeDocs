@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 /**
  * PQRs Excel Export (template)
@@ -130,18 +131,32 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function headings(): array
     {
         return [
-            'ID',
-            'Creado',
-            'Remitente',
-            'Email',
+             // Fila 1 (headers)
+        [
+            'Numero Radicado',
+            'Fecha(dd/mm/aa)',
+            'Hora',
+            'Cod. Barras',
+            'Codigo de la Dependencia',
+            'Nombre de la Dependencia',
+            'Nombre y Apellidos',
+            'Cargo',
+            'Empresa',
+            'Direccion',
+            'Correo Electronico',
+            'Telefono',
+            'Tipo de Comunicacion',
             'Asunto',
-            'Tipo Solicitud',
-            'Estado Respuesta',
-            'Fecha Respuesta',
-            'Dependencia',
-            'Responsable',
-            'Archivado',
-            'Número de Ficha',
+            'Anexos',
+            'Fecha Limite Respuesta(dd/mm/aa)',
+            'Firma de Recibido',
+            'Observaciones',
+            'Numero Consecutivo',
+            'Fecha (dd/mm/aa)'
+        ],
+
+        // 👇 Fila 2 VACÍA (clave)
+        array_fill(0, 20, '')
         ];
     }
 
@@ -155,7 +170,8 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     {
         return [
             $p->id,
-            optional($p->created_at)->format('Y-m-d H:i'),
+            optional($p->created_at)->format('Y-m-d'),
+            optional($p->created_at)->format('H:i'),
             $p->sender_name,
             $p->email,
             $p->affair,
@@ -189,7 +205,7 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function styles(Worksheet $sheet)
     {
         // Header row style
-        $headerRange = 'A1:L1';
+        $headerRange = 'A1:T2';
         $sheet->getStyle($headerRange)->getFont()->setBold(true);
         $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFE5F1FB'); // light blue
@@ -214,4 +230,29 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
             1 => ['font' => ['bold' => true]],
         ];
     }
+
+
+    public function registerEvents(): array
+{
+    return [
+        AfterSheet::class => function($event) {
+
+            // Total de columnas = 20 (A → T)
+            foreach (range('A', 'T') as $col) {
+                $event->sheet->mergeCells($col . '1:' . $col . '2');
+            }
+
+            // Centrar vertical y horizontal
+            $event->sheet->getStyle('A1:T2')
+                ->getAlignment()
+                ->setVertical('center')
+                ->setHorizontal('center');
+
+            // Negrita
+            $event->sheet->getStyle('A1:T2')
+                ->getFont()
+                ->setBold(true);
+        },
+    ];
+}
 }
