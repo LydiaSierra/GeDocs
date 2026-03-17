@@ -1,7 +1,8 @@
 import SenderInformationCard from "@/Components/SenderInformationCard/SenderInformationCard";
 import PdfThumbnail from "@/Components/PdfThumbnail/PdfThumbnail";
 import { MailContext } from "@/context/MailContext/MailContext";
-import { useContext, useState } from "react";
+import { useContext, useState, useMemo } from "react";
+import { usePage } from "@inertiajs/react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import {
@@ -16,10 +17,22 @@ export function MailReader() {
         selectedMail,
         setSelectedMail,
         setMailCards,
-        isArchiveView, // boolean you pass from Inbox / Archive
+        isArchiveView, 
     } = useContext(MailContext);
 
+    const { auth, dependencies = [] } = usePage().props;
+    const userRole = auth?.user?.roles?.[0]?.name;
+    const isInstructor = userRole === 'Instructor';
+    const isAdmin = userRole === 'Admin';
+
     const currentMail = mailCards.find((mail) => mail.id === selectedMail);
+
+    const relevantDependencies = useMemo(() => {
+        if (!currentMail) return [];
+        return dependencies.filter(
+            (dep) => dep.sheet_number_id === currentMail.sheet_number_id
+        );
+    }, [dependencies, currentMail]);
 
     const [responseText, setResponseText] = useState("");
     const [sending, setSending] = useState(false);
@@ -125,6 +138,32 @@ export function MailReader() {
         }
     };
 
+    const handleAssignDependency = async (dependencyId) => {
+        try {
+            const response = await axios.patch(`/api/pqrs/${currentMail.id}`, {
+                dependency_id: dependencyId,
+            });
+
+            setMailCards((prev) =>
+                prev.map((mail) =>
+                    mail.id === currentMail.id
+                        ? { ...mail, dependency: response.data.data.dependency, dependency_id: response.data.data.dependency_id }
+                        : mail
+                )
+            );
+
+            const elem = document.activeElement;
+            if (elem) {
+                elem.blur();
+            }
+        } catch (error) {
+            console.error("Assign dependency error:", error);
+            if (error.response) {
+                alert(error.response.data.message || error.response.data.error || "Error al asignar dependencia");
+            }
+        }
+    };
+
     // Calculate time remaining to response
     const getDeadlineColor = (createdDateStr, responseDateStr) => {
         if (!createdDateStr || !responseDateStr) return "text-gray-700";
@@ -207,22 +246,45 @@ export function MailReader() {
 
                     {/* -------------Button to assing a limit date----------------*/}
                     {""}
-                    {currentMail.response_time ? (
-                        <span className={`text-sm font-medium ml-auto ${getDeadlineColor(currentMail.created_at, currentMail.response_time)}`}>
-                            Fecha límite: {new Date(currentMail.response_time).toLocaleDateString()}
-                        </span>
-                    ) : (
-                        <div className="dropdown dropdown-end ml-auto">
-                            <div tabIndex={0} role="button" className="btn btn-primary text-white"> 
-                                Asignar fecha límite 
+                    <div className="flex items-center gap-2 ml-auto">
+                        {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
+                            <div className="dropdown dropdown-end">
+                                <div tabIndex={0} role="button" className="btn btn-sm btn-outline border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary">
+                                    {currentMail.dependency ? currentMail.dependency.name : "Asignar Dependencia"}
+                                </div>
+                                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 max-h-60 overflow-y-auto">
+                                    <li className="menu-title">Seleccionar Dependencia</li>
+                                    {relevantDependencies.map((dep) => (
+                                        <li key={dep.id}>
+                                            <a
+                                                className={currentMail.dependency_id === dep.id ? "bg-primary/10 text-primary font-medium" : ""}
+                                                onClick={() => handleAssignDependency(dep.id)}
+                                            >
+                                                {dep.name}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a onClick={() => handleAssignDate(10)}>10 días </a></li>
-                                <li><a onClick={() => handleAssignDate(15)}>15 días </a></li>
-                                <li><a onClick={() => handleAssignDate(30)}>30 días </a></li>
-                            </ul>
-                        </div>
-                    )}
+                        )}
+
+                        {currentMail.response_time ? (
+                            <span className={`text-sm font-medium ${getDeadlineColor(currentMail.created_at, currentMail.response_time)}`}>
+                                Fecha límite: {new Date(currentMail.response_time).toLocaleDateString()}
+                            </span>
+                        ) : (
+                            <div className="dropdown dropdown-end">
+                                <div tabIndex={0} role="button" className="btn btn-sm btn-primary text-white">
+                                    Asignar fecha límite
+                                </div>
+                                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                    <li><a onClick={() => handleAssignDate(10)}>10 días </a></li>
+                                    <li><a onClick={() => handleAssignDate(15)}>15 días </a></li>
+                                    <li><a onClick={() => handleAssignDate(30)}>30 días </a></li>
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Subject */}
