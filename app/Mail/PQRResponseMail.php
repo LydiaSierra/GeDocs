@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -29,12 +28,6 @@ class PQRResponseMail extends Mailable
         $this->pqr = $pqr;
         $this->comunication = $comunication;
         $this->responseUrl = $responseUrl;
-    }
-
-     public function build()
-    {
-        return $this->subject('Respuesta a tu PQR - SENA')
-                    ->view('emails.pqr_response');
     }
 
     /**

@@ -69,10 +69,12 @@ class CommunicationController extends Controller
                 }
             }
 
-            // Enviar email
-            $emailRecipient = $pqr->email ? $pqr->email : $pqr->creator->email;
+            // Enviar email con fallback seguro
+            $emailRecipient = $pqr->email ?: ($pqr->creator?->email ?? null);
             if ($emailRecipient) {
                 Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, $comunication, $responseUrl));
+            } else {
+                Log::warning('No se envio correo: PQR sin destinatario', ['pqr_id' => $pqr->id]);
             }
 
             // Marcar la PQR como respondida y guardar el mensaje
