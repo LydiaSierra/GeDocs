@@ -152,6 +152,25 @@ export function MailReader() {
                     <span className="text-sm text-gray-400">
                         {new Date(currentMail.created_at).toLocaleDateString()}
                     </span>
+
+                    {/* -------------Button to assing a limit date----------------*/}
+                    {""}
+                    {currentMail.response_time ? (
+                        <span className="text-sm font-medium text-gray-700 ml-auto">
+                            Fecha límite: {new Date(currentMail.response_time).toLocaleDateString()}
+                        </span>
+                    ) : (
+                        <div className="dropdown dropdown-end ml-auto">
+                            <div tabIndex={0} role="button" className="btn btn-primary text-white"> 
+                                Asignar fecha límite 
+                            </div>
+                            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li><a>10 días </a></li>
+                                <li><a>15 días </a></li>
+                                <li><a>30 días </a></li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
 
                 {/* Subject */}
