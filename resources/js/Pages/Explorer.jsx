@@ -5,12 +5,13 @@ import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
-import { ArrowLeftCircleIcon, CalendarIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon, ArchiveBoxIcon, PencilIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, CalendarIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon, ArchiveBoxIcon, PencilIcon, TrashIcon, ArrowPathIcon, DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
 import { useExplorerData } from "@/Hooks/useExplorer";
 import { usePage, router } from "@inertiajs/react";
 import ModalCreateYear from "@/Components/ArchiveExplorer/Modals/ModalCreateYear";
 import ModalEditYear from "@/Components/ArchiveExplorer/Modals/ModalEditYear";
+import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 
 export default function Explorer() {
     const {

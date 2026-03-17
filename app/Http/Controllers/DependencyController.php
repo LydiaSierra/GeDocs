@@ -41,7 +41,9 @@ class DependencyController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $user = $request->user();
+
+        $validate = $request->validate([
             "name" => "required|string|max:255|unique:dependencies,name",
             "sheet_number_id" => "nullable|exists:sheet_numbers,id",
             "folder_code" => "nullable|string|max:255"
