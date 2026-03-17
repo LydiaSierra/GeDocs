@@ -11,6 +11,7 @@ use App\Http\Controllers\FolderController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SheetController;
 use App\Http\Controllers\SheetUserController;
+use App\Http\Controllers\PdfController;
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -119,6 +120,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Edit the profile photo
     Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto']);
+
+    // ----------- RESPUESTA PQR -------------
+    // Genera PDF de comunicación oficial, lo almacena y lo registra como adjunto
+    Route::post('/pdf/generate-response', [PdfController::class, 'generateAndStore']);
 });
 
 // ----------- CREAR PQRS -------------

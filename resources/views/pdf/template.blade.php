@@ -23,9 +23,9 @@
             height: 15px;
             margin-bottom: 40px;
         }
-        .bar-SenaGreen { width: 30%; height: 100%; background-color: #0FB849; float: left; }
-        .bar-blue { width: 40%; height: 100%; background-color: #2c3e50; float: left; }
-        .bar-SenaGreen-right { width: 30%; height: 100%; background-color: #0FB849; float: left; }
+        .bar-SenaGreen { width: 30%; height: 100%; background-color: #3F9964; float: left; }
+        .bar-blue { width: 40%; height: 100%; background-color: #3F9964; float: left; }
+        .bar-SenaGreen-right { width: 30%; height: 100%; background-color: #3F9964; float: left; }
 
         /* Título Principal */
         .main-title {
@@ -157,12 +157,6 @@
             <div style="margin-top: 10px;"><strong>Transcriptor:</strong> {{ $data['transcriptor'] }}</div>
         @endif
     </div>
-
-    <!-- <div class="top-bar clearfix">
-        <div class="bar-SenaGreen"></div>
-        <div class="bar-blue"></div>
-        <div class="bar-SenaGreen-right"></div>
-    </div> -->
     <br>
     <div class="footer">
         <div>
