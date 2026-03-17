@@ -80,7 +80,7 @@ const File = ({ file }) => {
                             ) : file.is_pdf ? (
                                 <DocumentIcon className="w-8 text-red-500" />
                             ) : (
-                                <DocumentIcon className="w-8 text-gray-800" />
+                                <DocumentIcon className="w-8 text-red-500" />
                             )}
 
                             <span className="text-gray-600 shrink-0">{file.file_code}</span>

@@ -340,16 +340,34 @@ export const useExplorer = () => {
     };
 
     const globalSearch = (term) => {
-        setStore({ inputSearchTerm: term });
-        const params = { buscador: term };
+    setStore({ inputSearchTerm: term });
+
+    if (!term.trim()) {
+        const params = {};
         if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+        if (store.currentFolder?.id) params.folder_id = store.currentFolder.id;
+        // Si hay historial, usar el último folder_id del stack
+        else if (store.historyStack.length > 0) {
+            params.folder_id = store.historyStack[store.historyStack.length - 1];
+        }
 
         router.get(route('explorer'), params, {
             preserveState: true,
             onStart: () => setStore({ loading: true }),
             onFinish: () => setStore({ loading: false }),
         });
-    };
+        return;
+    }
+
+    const params = { buscador: term };
+    if (store.activeSheetId) params.sheet_id = store.activeSheetId;
+
+    router.get(route('explorer'), params, {
+        preserveState: true,
+        onStart: () => setStore({ loading: true }),
+        onFinish: () => setStore({ loading: false }),
+    });
+};
 
     const downloadZip = async () => {
         if (store.selectedItems.length === 0) return;

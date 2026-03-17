@@ -16,7 +16,7 @@ import EmptyState from "../EmptyState";
 // Main ArchiveExplorer component
 
 export default function ContainerFolders() {
-   const {
+    const {
         folders,
         loading,
         goBack,
@@ -117,8 +117,10 @@ export default function ContainerFolders() {
                                     </div>
                                 </div>
 
-                                <strong className="truncate max-w-[50vw] w-full hidden md:inline-block">Clasificación</strong>
-                                <strong className="truncate max-w-[50vw] w-full">Fecha de creación</strong>
+                                <div className="flex items-center gap-8">
+                                    <strong className="truncate max-w-[50vw]  hidden md:inline-block">Clasificación</strong>
+                                    <strong className="truncate max-w-[50vw]">Fecha de creación</strong>
+                                </div>
                             </div>
                         }
                     </>
