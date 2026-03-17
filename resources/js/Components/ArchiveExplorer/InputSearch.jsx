@@ -1,7 +1,7 @@
 // InputSearch provides the search input and related controls for filtering files and folders in the archive explorer. It also includes view toggles and quick actions.
 import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
 
 import { toast } from "sonner";
@@ -17,9 +17,7 @@ export const InputSearch = ({ handleSearch }) => {
             {/* Search field */}
             <form onSubmit={(e) => {
                 e.preventDefault();
-                if (url === "/explorer") {
-                    globalSearch(inputSearchTerm);
-                }
+                globalSearch(inputSearchTerm);
             }} className="flex flex-1 md:flex-none items-center bg-base-200 px-2 rounded-md">
                 <input
                     placeholder="Buscar"
@@ -28,12 +26,9 @@ export const InputSearch = ({ handleSearch }) => {
                     value={inputSearchTerm}
                     onChange={(e) => {
                         setInputSearchTerm(e.target.value);
-                        if (e.target.value.trim() == "") {
-                            if (url === "/explorer") {
-                                globalSearch("");
-                            }
+                        if (e.target.value.trim() === "") {
+                            globalSearch("");
                         }
-
                     }}
                 />
 
@@ -53,7 +48,7 @@ export const InputSearch = ({ handleSearch }) => {
             </form>
 
 
-            {url === "/explorer" &&
+            {url.startsWith("/explorer") &&
                 <div className="w-full md:w-auto md:flex-1 flex items-center justify-between">
                     <div className="flex  gap-2">
                         {/* Filter button */}
@@ -126,9 +121,7 @@ export const InputSearch = ({ handleSearch }) => {
 
                                 <button
                                     className="p-3 flex items-center gap-5 hover:bg-base-300/30 w-full rounded-md border-b border-gray-100"
-                                    onClick={() =>
-                                        document.getElementById("my_modal_1").showModal()
-                                    }
+                                    onClick={() => router.visit(route("create-pdf"))}
                                 >
                                     <DocumentPlusIcon className="size-5" />
 
@@ -139,9 +132,6 @@ export const InputSearch = ({ handleSearch }) => {
 
                     </div>
                 </div>
-
-
-
             }
         </div>
     );

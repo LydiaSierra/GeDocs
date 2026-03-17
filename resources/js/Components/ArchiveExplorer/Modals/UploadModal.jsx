@@ -1,10 +1,10 @@
 // UploadModal provides a modal dialog for uploading files to the current folder, supporting drag-and-drop and file type validation.
-import { ExplorerDataContext } from '@/context/Explorer/ExplorerDataContext';
+import { useExplorer } from '@/Hooks/useExplorer';
 import { PlusIcon } from '@heroicons/react/24/solid';
-import React, { useContext, useState, useEffect, useRef } from 'react'
+import React, { useState } from 'react'
 
 const UploadModal = () => {
-    const { uploadFiles, currentFolder } = useContext(ExplorerDataContext)
+    const { uploadFiles, currentFolder } = useExplorer()
     const [dragActive, setdragActive] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([])
     const [error, seterror] = useState("")

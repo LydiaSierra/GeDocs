@@ -13,21 +13,14 @@ class SheetUserController extends Controller
     //
     public function index(Request $request){
         $user = $request->user();
+        $sheets_id = null;
         if($user && $user->hasRole('Instructor')){
             $sheets_id = $user->sheetNumbers;
-        };
-
-        if(!$sheets_id){
-            response()->json([
-                "sucess"=>false,
-                "message"=>"El usuario no tiene fichas asignadas",
-            ]);
         }
-        return response()->json([
-            "sucess"=>true,
-            "message"=>"Fichas encontradas",
-            "fichas"=>$sheets_id,
-        ],200);
+        if (!$sheets_id) {
+            return response()->json(['success' => false, 'message' => 'El usuario no tiene fichas asignadas'], 404);
+        }
+        return response()->json(['success' => true, 'message' => 'Fichas encontradas', 'fichas' => $sheets_id]);
     }
 
 

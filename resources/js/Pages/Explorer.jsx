@@ -4,225 +4,448 @@ import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
-import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
-import { ArrowLeftCircleIcon, DocumentArrowDownIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, CalendarIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon, ArchiveBoxIcon, PencilIcon, TrashIcon, ArrowPathIcon, DocumentArrowDownIcon } from "@heroicons/react/24/outline";
 import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
 import { useExplorerData } from "@/Hooks/useExplorer";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
+import ModalCreateYear from "@/Components/ArchiveExplorer/Modals/ModalCreateYear";
+import ModalEditYear from "@/Components/ArchiveExplorer/Modals/ModalEditYear";
+import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 
 export default function Explorer() {
     const {
-        openFolder,
         setHistoryStack,
         fetchFolders,
-        getAllFolders,
         deleteSelectionItemsMixed,
         selectedItems,
         activeSheetId,
         setActiveSheetId,
+        setIsMultipleSelection,
+        folders,
+        openFolder,
+        currentFolder,
+        loading,
+        archivedMode,
+        setArchivedMode,
+        archivedFolders,
+        archivedFiles,
+        restoreSelection,
+        setSelectedItems,
+        updateFolder,
     } = useExplorerData();
+    const [editingYear, setEditingYear] = useState(null);
     const [showPdfToast, setShowPdfToast] = useState(false);
-    const { sheets } = usePage().props;
+    const { sheets, filters, auth } = usePage().props;
 
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
-
-        localStorage.setItem("active_sheet_id", sheetId);
-
-        localStorage.removeItem("folder_id");
-        setHistoryStack([]);
-
         fetchFolders(null, sheetId);
-        getAllFolders();
+        localStorage.setItem("active_sheet_id", sheetId);
+        localStorage.removeItem("folder_id"); // Clear folder_id when selecting a new sheet
+        setHistoryStack([]);
     };
-
 
     const handleBackToSheets = () => {
-        setActiveSheetId(null);
-
         localStorage.removeItem("active_sheet_id");
-
-        localStorage.removeItem("folder_id");
-        setHistoryStack([]);
+        localStorage.removeItem("folder_id"); // Clear folder_id when going back to sheets
+        router.get(route('explorer'), {}, {
+            onSuccess: () => {
+                setActiveSheetId(null);
+                setArchivedMode(false);
+                setHistoryStack([]);
+            }
+        });
     };
 
-
     useEffect(() => {
-
-        const savedSheet = localStorage.getItem("active_sheet_id");
-
-        if (savedSheet) {
-            const sheetId = Number(savedSheet);
-
-            setActiveSheetId(sheetId);
-
-            const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
-
-            if (savedHistory?.length > 0) {
-                setHistoryStack(savedHistory);
-                const lastFolder = savedHistory[savedHistory.length - 1];
-                openFolder(lastFolder, false);
-            } else {
-                fetchFolders(null, sheetId);
-            }
-
-            getAllFolders();
+        // Restore history stack for UI breadcrumbs from localStorage
+        const savedHistory = JSON.parse(localStorage.getItem("folder_id"));
+        if (savedHistory?.length > 0) {
+            setHistoryStack(savedHistory);
         }
-
-    }, []);
-
+        // Clear active_sheet_id from localStorage if it's not set in props (e.g., after logout or direct navigation to explorer without sheet)
+        if (!activeSheetId && localStorage.getItem("active_sheet_id")) {
+            localStorage.removeItem("active_sheet_id");
+            localStorage.removeItem("folder_id");
+        }
+    }, [activeSheetId]); // Depend on activeSheetId to re-evaluate when it changes
 
     return (
         <>
             <DashboardLayout>
                 <div className="bg-white h-full rounded-lg p-2 relative flex flex-col min-h-0 overflow-x-hidden ">
                     <div className="md:hidden flex justify-center items-center relative bg-white border-b border-gray-300 rounded-br-md rounded-bl-md p-4 mb-4">
-                        <ArrowLeftCircleIcon className="size-8 absolute left-5 top-1/2 -translate-y-1/2" onClick={() => {
-                            if (activeSheetId) {
-                                handleBackToSheets();
-                            } else {
-                                window.history.back();
-                            }
-                        }} />
+                        <ArrowLeftCircleIcon
+                            className="size-8 absolute left-5 top-1/2 -translate-y-1/2 cursor-pointer"
+                            onClick={() => {
+                                if (activeSheetId) {
+                                    handleBackToSheets();
+                                } else {
+                                    window.history.back();
+                                }
+                            }}
+                        />
                         <h1>{activeSheetId ? "Explora tus archivos" : "Selecciona una ficha"}</h1>
                     </div>
 
-                    {!activeSheetId ? (
-                        /* ====== SHEET SELECTION VIEW ====== */
-                        <div className="flex flex-col h-full">
-                            <h2 className="font-bold text-2xl mb-4 text-center mt-4">
-                                Selecciona una ficha
-                            </h2>
-                            <p className="text-gray-500 text-center text-sm mb-6">
-                                Elige una ficha para ver sus carpetas y archivos
-                            </p>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-                                {sheets.map((sheet) => (
-                                    <button
-                                        key={sheet.id}
-                                        onClick={() => handleSelectSheet(sheet.id)}
-                                        className="group flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-gray-200 bg-white hover:border-primary hover:bg-primary/5 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md"
-                                    >
-                                        <FolderIcon className="size-10 text-gray-400 group-hover:text-primary transition-colors" />
-                                        <span className="text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">
-                                            Ficha {sheet.number}
-                                        </span>
-                                    </button>
-                                ))}
+                    {((!filters?.buscador) || archivedMode) && (
+                        /* ====== DUAL COLUMN SELECTION VIEW ====== */
+                        <div className="flex flex-col md:flex-row h-full min-h-[500px] border border-gray-100 rounded-2xl bg-white shadow-xl overflow-hidden">
+                            {/* LEFT COLUMN: Sheets (Fichas) List */}
+                            <div className="w-full md:w-1/3 lg:w-1/4 border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/50 flex flex-col md:h-full max-h-[300px] md:max-h-none">
+                                <div className="p-6 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+                                    <h3 className="font-black text-lg text-gray-800 flex items-center gap-3">
+                                        <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                            <FolderIcon className="size-5 text-primary" />
+                                        </div>
+                                        Fichas
+                                    </h3>
+                                    <p className="text-xs text-gray-500 mt-2 font-medium">Selecciona una ficha para gestionar sus archivos.</p>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                    {sheets.map((sheet) => (
+                                        <button
+                                            key={sheet.id}
+                                            onClick={() => {
+                                                handleSelectSheet(sheet.id);
+                                                if (archivedMode) {
+                                                    setArchivedMode(false);
+                                                }
+
+                                            }}
+                                            className={`w-full group flex items-center justify-between p-4 rounded-xl transition-all duration-300 text-left ${activeSheetId === sheet.id
+                                                ? "bg-primary text-white shadow-lg shadow-primary/30 ring-2 ring-primary ring-offset-2"
+                                                : "bg-white hover:bg-white hover:shadow-md text-gray-700 border border-gray-100"
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`size-10 flex items-center justify-center rounded-xl font-black text-sm transition-colors ${activeSheetId === sheet.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-400 group-hover:bg-primary/10 group-hover:text-primary"
+                                                    }`}>
+                                                    #
+                                                </div>
+                                                <span className="font-bold tracking-tight">Ficha {sheet.number}</span>
+                                            </div>
+                                            {activeSheetId === sheet.id && (
+                                                <div className="size-2.5 bg-white rounded-full animate-pulse shadow-glow"></div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
-                            {sheets.length === 0 && (
-                                <div className="flex flex-col items-center justify-center p-10 text-gray-600 text-center font-bold w-full">
-                                    <div className="relative flex justify-center items-center">
-                                        <p className="absolute z-1">No hay fichas disponibles</p>
-                                        <div className="h-full w-full">
-                                            <img
-                                                className="opacity-60 lg:h-110"
-                                                src="/images/OBJECTS.svg"
-                                                alt=""
-                                            />
+                            {/* RIGHT COLUMN: Years List */}
+                            {(!currentFolder || archivedMode) && (
+                                <div className="flex-1 flex flex-col h-full bg-white relative">
+                                    {!activeSheetId ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
+                                            <div className="size-20 bg-white/80 rounded-3xl shadow-soft flex items-center justify-center mb-6 animate-float">
+                                                <FolderIcon className="size-10 text-gray-200" />
+                                            </div>
+                                            <h4 className="font-black text-xl text-gray-300 uppercase tracking-widest">Panel de Archivos</h4>
+                                            <p className="max-w-xs mt-3 text-sm font-medium leading-relaxed">
+                                                Elige una ficha del panel izquierdo para comenzar a explorar sus periodos anuales y documentos.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col h-full animate-fade-in text-gray-800">
+                                            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10 backdrop-blur-md">
+                                                <div>
+                                                    <h3 className="font-black text-lg text-gray-800 flex items-center gap-3">
+                                                        <div className="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                                                            {archivedMode ? <ArchiveBoxIcon className="size-5 text-primary" /> : <CalendarIcon className="size-5 text-primary" />}
+                                                        </div>
+                                                        {archivedMode ? "Archivo / Papelera" : "Periodos Anuales"}
+                                                    </h3>
+                                                    <p className="text-xs text-gray-500 mt-2 font-medium">
+                                                        {archivedMode
+                                                            ? "Elementos desactivados que pueden ser restaurados."
+                                                            : <>Mostrando años disponibles para la <span className="text-primary font-bold italic">Ficha {sheets.find(s => s.id === activeSheetId)?.number}</span></>
+                                                        }
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => setArchivedMode(!archivedMode, activeSheetId)}
+                                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${archivedMode
+                                                            ? "bg-primary text-white shadow-lg shadow-primary/20"
+                                                            : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                                            }`}
+                                                    >
+                                                        <ArchiveBoxIcon className="size-4" />
+                                                        {archivedMode ? "Volver" : "Archivados"}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex-1 overflow-y-auto p-8">
+                                                {loading ? (
+                                                    <div className="flex items-center justify-center h-40">
+                                                        <div className="loading loading-spinner text-primary"></div>
+                                                    </div>
+                                                ) : archivedMode ? (
+                                                    <div className="space-y-6">
+                                                        {archivedFolders.length === 0 && archivedFiles.length === 0 ? (
+                                                            <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                                                                <ArchiveBoxIcon className="size-16 mb-4 opacity-20" />
+                                                                <p className="font-bold">No hay elementos archivados</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                                {archivedFolders.map(folder => (
+                                                                    <div
+                                                                        key={folder.id}
+                                                                        className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${selectedItems.some(i => i.id === folder.id && i.type === 'folder')
+                                                                            ? "border-primary bg-primary/5"
+                                                                            : "border-gray-100 bg-white"
+                                                                            }`}
+                                                                        onClick={() => setSelectedItems([{ id: folder.id, type: 'folder' }])}
+                                                                    >
+                                                                        <div className="flex items-center gap-3 truncate">
+                                                                            <FolderIcon className="size-8 text-amber-400 shrink-0" />
+                                                                            <span className="font-bold text-sm truncate">{folder.name}</span>
+                                                                        </div>
+                                                                        {auth.user.roles[0] === 'admin' && (
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
+                                                                                className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
+                                                                                title="Restaurar"
+                                                                            >
+                                                                                <ArrowPathIcon className="size-5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                                {archivedFiles.map(file => (
+                                                                    <div
+                                                                        key={file.id}
+                                                                        className={`p-4 rounded-3xl border-2 transition-all flex items-center justify-between ${selectedItems.some(i => i.id === file.id && i.type === 'file')
+                                                                            ? "border-primary bg-primary/5"
+                                                                            : "border-gray-100 bg-white"
+                                                                            }`}
+                                                                        onClick={() => setSelectedItems([{ id: file.id, type: 'file' }])}
+                                                                    >
+                                                                        <div className="flex items-center gap-3 truncate">
+                                                                            <DocumentTextIcon className="size-8 text-blue-400 shrink-0" />
+                                                                            <span className="font-bold text-sm truncate">{file.name}</span>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: file.id, type: 'file' }]); restoreSelection(); }}
+                                                                            className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
+                                                                            title="Restaurar"
+                                                                        >
+                                                                            <ArrowPathIcon className="size-5" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-24">
+                                                        {folders.filter(f => !f.parent_id && (f.year || !isNaN(f.name))).map((yearFolder) => (
+                                                            <div key={yearFolder.id} className="group relative">
+                                                                <button
+                                                                    onClick={() => openFolder(yearFolder.id, true)}
+                                                                    className="w-full flex flex-col items-center justify-center gap-4 p-10 rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2"
+                                                                >
+                                                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-150 group-hover:rotate-12">
+                                                                        <CalendarIcon className="size-16 text-primary" />
+                                                                    </div>
+                                                                    <div className="size-16 bg-primary/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-500 shadow-inner">
+                                                                        <CalendarIcon className="size-8 text-primary" />
+                                                                    </div>
+                                                                    <div className="text-center">
+                                                                        <span className="block text-2xl font-black text-gray-800 group-hover:text-primary transition-colors tracking-tight">
+                                                                            {yearFolder.name}
+                                                                        </span>
+                                                                        <span className="text-[10px] uppercase font-black text-gray-400 group-hover:text-primary/70 tracking-[0.2em] mt-1 block">
+                                                                            Periodo
+                                                                        </span>
+                                                                    </div>
+                                                                </button>
+
+                                                                {/* Year Actions */}
+                                                                <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setEditingYear(yearFolder);
+                                                                            document.getElementById('editYearModal').showModal();
+                                                                        }}
+                                                                        className="size-8 bg-white shadow-soft rounded-lg flex items-center justify-center text-gray-400 hover:text-primary hover:scale-110 transition-all"
+                                                                        title="Editar Año"
+                                                                    >
+                                                                        <PencilIcon className="size-4" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            deleteSelectionItemsMixed([{ id: yearFolder.id, type: 'folder' }]);
+                                                                        }}
+                                                                        className="size-8 bg-white shadow-soft rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:scale-110 transition-all"
+                                                                        title="Archivar"
+                                                                    >
+                                                                        <TrashIcon className="size-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+
+                                                        {/* Option to create a new year manually */}
+                                                        <button
+                                                            onClick={() => document.getElementById('createYearModal').showModal()}
+                                                            className="group flex flex-col items-center justify-center gap-4 p-10 rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50/30 hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-xl hover:-translate-y-1"
+                                                        >
+                                                            <div className="size-14 flex items-center justify-center rounded-2xl bg-white shadow-soft group-hover:bg-primary/20 transition-all duration-500">
+                                                                <span className="text-3xl text-gray-400 group-hover:text-primary font-light transition-transform duration-500 group-hover:rotate-90">
+                                                                    +
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-sm font-black text-gray-400 group-hover:text-primary transition-colors uppercase tracking-widest">
+                                                                Añadir Año
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+
+                            { /* ====== FOLDER EXPLORER VIEW ====== */}
+                            {currentFolder && !archivedMode && (
+                                <div className="flex flex-col h-full flex-1 p-2 animate-slide-up">
+                                    <div className="hidden md:flex items-center justify-between mb-4 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={handleBackToSheets}
+                                                className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-primary transition-all group"
+                                            >
+                                                <ArrowLeftCircleIcon className="size-5 transition-transform group-hover:-translate-x-1" />
+                                                Panel Selección
+                                            </button>
+                                            <div className="h-4 w-px bg-gray-100"></div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-black text-primary px-2 py-1 bg-primary/5 rounded-lg border border-primary/10">
+                                                    Ficha {sheets.find(s => s.id === activeSheetId)?.number}
+                                                </span>
+                                                {currentFolder && (
+                                                    <>
+                                                        <span className="text-gray-300 text-xs">/</span>
+                                                        <span className="text-xs font-black text-gray-400 truncate max-w-[200px]">
+                                                            {currentFolder.name}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => setArchivedMode(true, activeSheetId)}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest bg-gray-50 text-gray-500 hover:bg-gray-100 transition-all"
+                                            >
+                                                <ArchiveBoxIcon className="size-4" />
+                                                Papelera
+                                            </button>
                                         </div>
                                     </div>
+
+                                    <div className="bg-white rounded-3xl p-1 mb-4 border border-gray-100 shadow-inner ring-4 ring-gray-50/50">
+                                        <InputSearch />
+                                    </div>
+
+                                    <div className="flex-1 min-h-0 bg-white rounded-3xl border border-gray-100 shadow-soft overflow-hidden">
+                                        <ContainerFolders />
+                                    </div>
+
+                                    <dialog id="my_modal_1" className="modal w-full">
+                                        <div className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border-0 ring-1 ring-gray-100 bg-white">
+                                            <form method="dialog">
+                                                <button className="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 z-10 hover:rotate-90 transition-transform">✕</button>
+                                            </form>
+
+                                            <div className="flex items-center justify-center gap-3 mb-6">
+                                                <div className="size-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                                    <DocumentTextIcon className="size-6 text-primary" />
+                                                </div>
+                                                <h2 className="text-xl font-black text-gray-800 tracking-tight">
+                                                    Generar Comunicación
+                                                </h2>
+                                            </div>
+                                            <p className="text-sm text-gray-500 text-center mb-8 font-medium">
+                                                Complete la información necesaria para crear el documento oficial.
+                                            </p>
+
+                                            <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)} />
+
+                                            <div className="modal-action border-t border-gray-50 pt-6 mt-8">
+                                                <form method="dialog">
+                                                    <button className="btn btn-ghost rounded-xl font-bold">Cancelar</button>
+                                                </form>
+                                                <button
+                                                    type="submit"
+                                                    form="pdfForm"
+                                                    className="btn bg-primary hover:bg-primary-focus text-white rounded-xl shadow-lg shadow-primary/20 px-8 border-0"
+                                                >
+                                                    <DocumentArrowDownIcon className="size-5 mr-2" />
+                                                    Generar PDF
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <form method="dialog" className="modal-backdrop bg-black/20 backdrop-blur-sm">
+                                            <button>close</button>
+                                        </form>
+                                    </dialog>
+
+                                    <UploadModal />
+                                    <ModalDetails />
+                                    <InformationDrawer />
+
+                                    <dialog id="confirmDeleteFolder" className="modal">
+                                        <div className="modal-box rounded-3xl p-8 max-w-sm bg-white">
+                                            <div className="size-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                                <ExclamationTriangleIcon className="size-10 text-red-500 animate-pulse" />
+                                            </div>
+                                            <h3 className="font-black text-xl text-gray-800 text-center mb-2 tracking-tight">
+                                                Confirmar Eliminación
+                                            </h3>
+                                            <p className="text-sm text-gray-500 text-center font-medium leading-relaxed">
+                                                ¿Estás seguro de que deseas enviar {selectedItems.length > 1 ? "estos elementos" : "este elemento"} a la papelera?
+                                            </p>
+                                            <div className="modal-action flex flex-col sm:flex-row gap-3 mt-8">
+                                                <form method="dialog" className="w-full">
+                                                    <button className="btn btn-ghost w-full rounded-2xl font-bold">Mantener</button>
+                                                </form>
+                                                <button
+                                                    className="btn bg-red-600 hover:bg-red-700 text-white w-full rounded-2xl border-0 shadow-lg shadow-red-200 font-bold"
+                                                    onClick={deleteSelectionItemsMixed}
+                                                >
+                                                    Mover a papelera
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <form method="dialog" className="modal-backdrop bg-black/20 backdrop-blur-sm">
+                                            <button>close</button>
+                                        </form>
+                                    </dialog>
                                 </div>
                             )}
                         </div>
-                    ) : (
-                        /* ====== FOLDER EXPLORER VIEW ====== */
-                        <>
-                            <div className="hidden md:flex items-center gap-2 mb-2">
-                                <button
-                                    onClick={handleBackToSheets}
-                                    className="flex items-center gap-2 text-sm text-gray-600 hover:text-primary transition-colors cursor-pointer"
-                                >
-                                    <ArrowLeftCircleIcon className="size-5" />
-                                    Volver a fichas
-                                </button>
-                                <span className="text-gray-300">|</span>
-                                <span className="text-sm font-bold text-primary">
-                                    Ficha {sheets.find(s => s.id === activeSheetId)?.number}
-                                </span>
-                            </div>
-
-                            <InputSearch />
-
-                            <ContainerFolders />
-
-                            <dialog id="my_modal_1" className="modal w-full">
-                                <div
-                                    className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto">
-                                    <form method="dialog">
-                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-3 top-3 z-10">✕</button>
-                                    </form>
-
-                                    <div className="flex items-center justify-center gap-2 mb-4">
-                                        <DocumentTextIcon className="w-6 h-6 text-primary" />
-                                        <h2 className="text-xl font-bold text-base-content">
-                                            Generar Comunicación PDF
-                                        </h2>
-                                    </div>
-                                    <p className="text-sm text-gray-500 text-center mb-6">
-                                        Complete los campos para generar el documento de comunicación oficial.
-                                    </p>
-
-                                    <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)} />
-
-                                    <div className="modal-action border-t border-base-300 pt-4 mt-6">
-                                        <form method="dialog">
-                                            <button className="btn btn-ghost">Cancelar</button>
-                                        </form>
-                                        <button
-                                            type="submit"
-                                            form="pdfForm"
-                                            className="btn bg-primary hover:bg-green-700 text-white gap-2"
-                                        >
-                                            <DocumentArrowDownIcon className="w-5 h-5" />
-                                            Generar PDF
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <form method="dialog" className="modal-backdrop">
-                                    <button>close</button>
-                                </form>
-
-                            </dialog>
-
-                            <UploadModal />
-
-                            <ModalDetails />
-
-                            <ModalCreateOrEditFolder />
-
-                            <InformationDrawer />
-
-                            <dialog id="confirmDeleteFolder" className="modal">
-                                <div className="modal-box">
-                                    <h3 className="font-bold text-xl text-red-600  text-center">
-                                        {/* ICON OF ALERT */}
-                                        <ExclamationTriangleIcon className="w-6 h-6 inline-block mr-2" />
-                                        ADVERTENCIA!
-                                    </h3>
-                                    <p className="py-4 font-bold text-center">
-                                        Este segura(o) de eliminar {selectedItems.length > 1 ? "estos elementos" : "este elemento"}
-                                    </p>
-                                    <div className="modal-action">
-                                        <form method="dialog" className="flex justify-center items-center w-full">
-                                            <button className="btn border-gray-500 bg-transparent m-2">Cancelar</button>
-                                            <button className="btn bg-red-600  text-white m-2" onClick={deleteSelectionItemsMixed}>Eliminar</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </dialog>
-                        </>
                     )}
 
-                </div >
+                    {/* STATIC MODALS (Outside conditional for proper DOM mounting) */}
+                    <ModalCreateOrEditFolder />
+                    <ModalCreateYear />
+                    <ModalEditYear yearData={editingYear} />
 
 
+                </div>
 
-            </DashboardLayout >
-
+            </DashboardLayout>
         </>
     );
 }

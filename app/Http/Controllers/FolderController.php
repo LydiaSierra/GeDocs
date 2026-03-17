@@ -16,6 +16,7 @@ use Exception;
  * Provides access to input data, files, headers, etc.
  */
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /**
  * Folder Eloquent model.
@@ -64,87 +65,93 @@ class FolderController extends Controller
      * - That are marked as active
      * - Ordered by newest first
      */
-    public function index(Request $request)
+
+    public function explorer(Request $request)
     {
-        $query = Folder::whereNull('parent_id')
-            ->where("active", true);
+        $folderId = $request->query('folder_id');
+        $sheetId = $request->query('sheet_id');
+        $buscador = $request->query('buscador');
 
-        // Filter by sheet_number_id if provided
-        if ($request->has('sheet_number_id')) {
-            $query->where('sheet_number_id', $request->query('sheet_number_id'));
-        }
+        $foldersQuery = Folder::where("active", true);
+        $allFolders = Folder::where("active", true)->get();
 
-        $folders = $query->orderBy('created_at', 'desc')->get();
+        // Global Search
+        if ($buscador) {
+            $folders = Folder::where('active', true)
+                ->where('name', 'LIKE', "%{$buscador}%")
+                ->get();
 
-        // Returns the folders as a JSON response
-        return response()->json([
-            "success" => true,
-            "folders" => $folders
-        ], 200);
-    }
-
-
-    /**
-     * Show a single folder with its children and files.
-     *
-     * This method:
-     * - Retrieves one active folder
-     * - Loads its active subfolders
-     * - Loads its active files
-     * - Transforms file data for frontend consumption
-     */
-    public function show($id)
-    {
-        // Retrieve the folder or fail if it does not exist or is inactive
-        $folder = Folder::where('id', $id)
-            ->where('active', true)
-            ->firstOrFail();
-
-        /**
-         * Retrieve all active files belonging to the folder
-         * and map them into a frontend-friendly structure.
-         */
-        $files = $folder->files()
-            ->where('active', true)
-            ->get()
-            ->map(function ($file) {
-                return [
+            $files = File::where('active', true)
+                ->where('name', 'LIKE', "%{$buscador}%")
+                ->get()
+                ->map(fn($file) => [
                     "id" => $file->id,
                     "name" => $file->name,
                     "extension" => $file->extension,
-                    "mime_type" => $file->mime_type,
                     "size" => $file->size,
                     "url" => asset("storage/" . $file->path),
-                    "is_pdf" => $file->extension === "pdf",
-                    "created_at" => $file->created_at,
-                    "updated_at" => $file->updated_at,
-                ];
-            });
+                    "folder_id" => $file->folder_id
+                ]);
 
-        // Return folder data, child folders and files
-        return response()->json([
-            "success" => true,
-            "folder" => $folder,
-            "children" => $folder->children()->where('active', true)->get(),
-            "files" => $files
+            return Inertia::render('Explorer', [
+                "folders" => $folders,
+                "files" => $files,
+                "allFolders" => $allFolders,
+                "currentFolder" => null,
+                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
+            ]);
+        }
+
+        if ($sheetId) {
+            $foldersQuery->where('sheet_number_id', $sheetId);
+        }
+
+        if ($folderId) {
+            $folder = Folder::where('id', $folderId)
+                ->where('active', true)
+                ->firstOrFail();
+
+            $folders = $folder->children()
+                ->where("active", true)
+                ->get();
+
+            $files = $folder->files()
+                ->where("active", true)
+                ->get()
+                ->map(function ($file) {
+                    return [
+                        "id" => $file->id,
+                        "name" => $file->name,
+                        "extension" => $file->extension,
+                        "size" => $file->size,
+                        "url" => asset("storage/" . $file->path),
+                        "folder_id" => $file->folder_id
+                    ];
+                });
+
+            return Inertia::render('Explorer', [
+                "folders" => $folders,
+                "files" => $files,
+                "allFolders" => $allFolders,
+                "currentFolder" => $folder,
+                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
+            ]);
+        }
+
+        $folders = $foldersQuery
+            ->whereNull("parent_id")
+            ->get();
+
+        return Inertia::render('Explorer', [
+            "folders" => $folders,
+            "files" => [],
+            "allFolders" => $allFolders,
+            "currentFolder" => null,
+            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
         ]);
     }
 
 
-    /**
-     * Get all folders (without filtering).
-     *
-     * Mainly useful for administrative or internal operations.
-     */
-    public function getAllFolders(Request $request)
-    {
-        $folders = Folder::where("active", true)->get();
-
-        return response()->json([
-            "success" => true,
-            "folders" => $folders
-        ]);
-    }
 
 
     /**
@@ -163,19 +170,48 @@ class FolderController extends Controller
             "sheet_number_id" => "nullable|exists:sheet_numbers,id",
         ]);
 
+        // If it has a parent, inherit the sheet_number_id
+        if ($validated["parent_id"]) {
+            $parent = Folder::find($validated["parent_id"]);
+            if ($parent && !($validated["sheet_number_id"] ?? null)) {
+                $validated["sheet_number_id"] = $parent->sheet_number_id;
+            }
+        }
+
         // Create the folder record
-        $folder = Folder::create([
+        $data = [
             "name" => $validated["name"],
             "parent_id" => $validated["parent_id"] ?? null,
             "folder_code" => $validated["folder_code"] ?? null,
             "department" => $validated["department"],
             "sheet_number_id" => $validated["sheet_number_id"] ?? null,
-        ]);
+        ];
 
-        return response()->json([
-            "success" => true,
-            "folder" => $folder
-        ]);
+        // If it's a root folder for a sheet, it's a Year folder
+        if (!$data["parent_id"] && $data["sheet_number_id"]) {
+            $data["year"] = is_numeric($data["name"]) ? (int) $data["name"] : date('Y');
+            $data["department"] = "Año";
+
+            // Check for duplicates
+            $exists = Folder::where('sheet_number_id', $data["sheet_number_id"])
+                ->where('year', $data["year"])
+                ->whereNull('parent_id')
+                ->where('active', true)
+                ->exists();
+
+            if ($exists) {
+                return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
+            }
+        }
+
+        $folder = Folder::create($data);
+
+        // If it was a Year folder, seed the structure
+        if (!$data["parent_id"] && $data["sheet_number_id"]) {
+            $this->seedYearStructure($data["sheet_number_id"], $folder->id);
+        }
+
+        return back();
     }
 
 
@@ -203,10 +239,7 @@ class FolderController extends Controller
 
             // If no files are provided, return an error
             if (!$request->hasFile('files')) {
-                return response()->json([
-                    "success" => false,
-                    "message" => "No files provided"
-                ], 400);
+                return back()->withErrors(['files' => 'No files provided']);
             }
 
             /**
@@ -253,65 +286,16 @@ class FolderController extends Controller
 
             }
 
-            return response()->json([
-                "success" => true,
-                "files" => $uploadedFiles
-            ], 200);
+            return back();
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                "success" => false,
-                "message" => "Folder not found"
-            ], 404);
+            return back()->withErrors(['error' => 'Folder not found']);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                "success" => false,
-                "message" => "Validation error",
-                "errors" => $e->errors()
-            ], 422);
+            return back()->withErrors($e->errors());
         } catch (Exception $e) {
-            return response()->json([
-                "success" => false,
-                "message" => $e->getMessage()
-            ], 500);
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
-
-    public function globalSearch(Request $request)
-    {
-        $query = $request->query('q');
-
-        if (!$query) {
-            return response()->json([
-                'success' => true,
-                'folders' => [],
-                'files' => []
-            ]);
-        }
-
-        $folders = Folder::where('active', true)
-            ->where('name', 'LIKE', "%{$query}%")
-            ->get();
-
-        $files = File::where('active', true)
-            ->where('name', 'LIKE', "%{$query}%")
-            ->get()
-            ->map(fn($file) => [
-                "id" => $file->id,
-                "name" => $file->name,
-                "extension" => $file->extension,
-                "size" => $file->size,
-                "url" => asset("storage/" . $file->path),
-                "folder_id" => $file->folder_id
-            ]);
-
-        return response()->json([
-            'success' => true,
-            'folders' => $folders,
-            'files' => $files
-        ]);
-    }
-
 
     /**
      * Download a single file.
@@ -323,10 +307,7 @@ class FolderController extends Controller
         $file = File::findOrFail($fileId);
 
         if (!Storage::disk('public')->exists($file->path)) {
-            return response()->json([
-                "success" => false,
-                "message" => "File not found"
-            ], 404);
+            return back()->withErrors(['error' => 'File not found on disk']);
         }
 
         return response()->download(
@@ -369,35 +350,98 @@ class FolderController extends Controller
             $this->deactivateFolderRecursively($folder);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Items sent to trash'
-        ]);
+        return back();
     }
 
 
     /**
      * Recursively deactivate a folder.
-     *
-     * This method:
-     * - Deactivates all files in the folder
-     * - Deactivates all child folders
-     * - Finally deactivates the folder itself
      */
-    private function deactivateFolderRecursively(Folder $folder)
+    private function deactivateFolderRecursively($folder)
     {
-        // Deactivate files inside the folder
-        foreach ($folder->files as $file) {
-            $file->update(['active' => false]);
-        }
-
-        // Recursively deactivate child folders
+        $folder->files()->update(['active' => false]);
         foreach ($folder->children as $child) {
             $this->deactivateFolderRecursively($child);
         }
-
-        // Deactivate the folder
         $folder->update(['active' => false]);
+    }
+
+    /**
+     * Logically restore (send back from trash) files and folders.
+     */
+    public function restoreMixed(Request $request)
+    {
+        $request->validate([
+            'folders' => 'array',
+            'folders.*' => 'integer|exists:folders,id',
+            'files' => 'array',
+            'files.*' => 'integer|exists:files,id',
+        ]);
+
+        $fileIds = $request->input('files', []);
+        $folderIds = $request->input('folders', []);
+
+        if (!empty($fileIds)) {
+            File::whereIn('id', $fileIds)->update(['active' => true]);
+        }
+
+        $folders = Folder::whereIn('id', $folderIds)->get();
+        foreach ($folders as $folder) {
+            $this->activateFolderRecursively($folder);
+        }
+
+        return back();
+    }
+
+    private function activateFolderRecursively($folder)
+    {
+        $folder->files()->update(['active' => true]);
+        foreach ($folder->children as $child) {
+            $this->activateFolderRecursively($child);
+        }
+        $folder->update(['active' => true]);
+    }
+
+    /**
+     * Get archived items (active = false)
+     */
+    public function archived(Request $request)
+    {
+        $sheetId = $request->query('sheet_id');
+
+        // Folders archivados
+        $foldersQuery = Folder::where('active', false);
+
+        if ($sheetId) {
+            $foldersQuery->where('sheet_number_id', $sheetId);
+        }
+
+        // Solo mostrar la raíz del árbol archivado (año o carpeta sin padre activo)
+        $foldersQuery->where(function ($q) {
+            $q->whereNull('parent_id')
+                ->orWhereHas('parent', function ($pq) {
+                    $pq->where('active', true);
+                });
+        });
+
+        $folders = $foldersQuery->orderBy('updated_at', 'desc')->get();
+
+        // Files archivados, filtrando por sheet si aplica
+        $filesQuery = File::where('active', false)
+            ->whereHas('folder', function ($q) use ($sheetId) {
+                $q->where('active', true); // carpeta padre activa
+                if ($sheetId) {
+                    $q->where('sheet_number_id', $sheetId);
+                }
+            });
+
+        $files = $filesQuery->orderBy('updated_at', 'desc')->get();
+
+        return response()->json([
+            "success" => true,
+            "folders" => $folders,
+            "files" => $files
+        ]);
     }
 
 
@@ -411,10 +455,7 @@ class FolderController extends Controller
         $folder = Folder::find($folderId);
 
         if (!$folder) {
-            return response()->json([
-                "message" => "Folder not found",
-                "success" => false,
-            ], 404);
+            return back()->withErrors(['error' => 'Folder not found']);
         }
 
         // Validate fields only if they are present
@@ -422,16 +463,32 @@ class FolderController extends Controller
             "name" => "sometimes|required|string",
             "parent_id" => "sometimes|nullable|exists:folders,id",
             "folder_code" => "sometimes|nullable|string",
-            "department" => "sometimes|required|string"
+            "department" => "sometimes|required|string",
+            "year" => "sometimes|nullable|integer"
         ]);
+
+        // If updating a Year folder, check for duplicates
+        if (!$folder->parent_id && $folder->sheet_number_id && isset($validated['name'])) {
+            $newYear = is_numeric($validated['name']) ? (int) $validated['name'] : null;
+            if ($newYear) {
+                $exists = Folder::where('sheet_number_id', $folder->sheet_number_id)
+                    ->where('year', $newYear)
+                    ->where('id', '!=', $folderId)
+                    ->whereNull('parent_id')
+                    ->where('active', true)
+                    ->exists();
+
+                if ($exists) {
+                    return back()->withErrors(['name' => 'Este año ya existe para esta ficha.']);
+                }
+                $validated['year'] = $newYear;
+            }
+        }
 
         // Apply updates
         $folder->update($validated);
 
-        return response()->json([
-            "success" => true,
-            "folder" => $folder
-        ]);
+        return back();
     }
 
 
@@ -461,10 +518,7 @@ class FolderController extends Controller
             $files = File::whereIn('id', $fileIds)->get();
 
             if ($folders->isEmpty() && $files->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No items to download'
-                ], 400);
+                return back()->withErrors(['error' => 'No items to download']);
             }
 
             // Create temporary directory if it does not exist
@@ -504,26 +558,46 @@ class FolderController extends Controller
             return response()->download($zipPath)->deleteFileAfterSend(true);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $e->errors()
-            ], 422);
+            return back()->withErrors($e->errors());
         } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'ZIP generation error: ' . $e->getMessage()
-            ], 500);
+            return back()->withErrors(['error' => 'ZIP generation error: ' . $e->getMessage()]);
         }
     }
 
 
+   
+    
+
     /**
-     * Recursively adds a folder and its contents to a ZIP archive.
-     *
-     * Preserves folder structure inside the ZIP.
+     * Seeds the default folder structure inside a specific year folder.
      */
-    private function addFolderToZip(ZipArchive $zip, Folder $folder, $zipPath)
+    private function seedYearStructure($sheetId, $yearFolderId)
+    {
+        // Default structure from FoldersSeeder
+        $folders = [
+            // [tempKey, name, parentTempKey|null, folder_code, department]
+            [1, 'ventanilla unica', null, null, 'sección'],
+        ];
+
+        $map = [];
+
+        foreach ($folders as [$tempKey, $name, $parentTempKey, $folderCode, $department]) {
+            $parentId = $parentTempKey ? ($map[$parentTempKey] ?? $yearFolderId) : $yearFolderId;
+
+            $folder = Folder::create([
+                'name' => $name,
+                'parent_id' => $parentId,
+                'folder_code' => $folderCode,
+                'department' => $department,
+                'sheet_number_id' => $sheetId,
+                'active' => true,
+            ]);
+
+            $map[$tempKey] = $folder->id;
+        }
+    }
+
+    private function addFolderToZip(ZipArchive $zip, $folder, $zipPath)
     {
         // Create empty directory inside ZIP
         $zip->addEmptyDir($zipPath);
