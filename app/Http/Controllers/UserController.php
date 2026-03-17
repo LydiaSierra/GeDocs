@@ -28,8 +28,7 @@ class UserController extends Controller
             });
         }
         $users = $query->get();
-        // Cambiar JSON por redirect/back
-        return redirect()->back()->with(['success' => true, 'data' => $users]);
+        return response()->json(['success' => true, 'data' => $users]);
     }
 
 
@@ -59,7 +58,7 @@ class UserController extends Controller
         $user->assignRole($validate["role"]);
         $user->load('roles');
         $user->load('sheetNumbers');
-        return redirect()->back()->with(['success' => true, 'message' => 'Usuario creado correctamente', 'data' => $user]);
+        return response()->json(['success' => true, 'message' => 'Usuario creado correctamente', 'data' => $user]);
     }
 
     /**
@@ -74,9 +73,9 @@ class UserController extends Controller
             $user = User::with('roles', "sheetNumbers")->find($id);
         }
         if (!$user) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
+            return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
         }
-        return redirect()->back()->with(['success' => true, 'data' => $user]);
+        return response()->json(['success' => true, 'data' => $user]);
     }
 
     /**
@@ -126,7 +125,7 @@ class UserController extends Controller
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
         $user->load('roles', 'sheetNumbers', 'dependency');
-        return redirect()->back()->with(['success' => true, 'message' => 'Usuario actualizado correctamente', 'data' => $user]);
+        return response()->json(['success' => true, 'message' => 'Usuario actualizado correctamente', 'data' => $user]);
     }
 
     public function userByFilter(Request $request)
@@ -149,7 +148,7 @@ class UserController extends Controller
             $query->role("Aprendiz");
         }
         $users = $query->get();
-        return redirect()->back()->with(['success' => true, 'data' => $users]);
+        return response()->json(['success' => true, 'data' => $users]);
     }
 
     public function activate(User $user)
@@ -167,13 +166,13 @@ class UserController extends Controller
         return DB::transaction(function () use ($id) {
             $user = User::find($id);
             if (!$user) {
-                return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
+                return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
             }
             auth()->user()->notifications()
                 ->where('data->user->id', $user->id)
                 ->delete();
             $user->delete();
-            return redirect()->back()->with(['success' => true, 'message' => 'Usuario eliminado correctamente']);
+            return response()->json(['success' => true, 'message' => 'Usuario eliminado correctamente']);
         });
     }
 }

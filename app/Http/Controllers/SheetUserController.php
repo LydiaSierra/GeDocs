@@ -17,10 +17,10 @@ class SheetUserController extends Controller
         if($user && $user->hasRole('Instructor')){
             $sheets_id = $user->sheetNumbers;
         }
-        if(!$sheets_id){
-            return redirect()->back()->with(['success'=>false, 'message'=>'El usuario no tiene fichas asignadas']);
+        if (!$sheets_id) {
+            return response()->json(['success' => false, 'message' => 'El usuario no tiene fichas asignadas'], 404);
         }
-        return redirect()->back()->with(['success'=>true, 'message'=>'Fichas encontradas', 'fichas'=>$sheets_id]);
+        return response()->json(['success' => true, 'message' => 'Fichas encontradas', 'fichas' => $sheets_id]);
     }
 
 
