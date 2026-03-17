@@ -63,7 +63,7 @@ const NotificationDropDown = () => {
                     <li className="flex w-full flex-col gap-0 hover:bg-transparent">
                         <div className="w-full border-b border-gray-200 px-4 py-3 text-center">
                             <h2 className="text-base font-semibold text-[#010515] md:text-lg">
-                                Solicitudes de Acceso
+                                Notificaciones
                             </h2>
                         </div>
 
@@ -121,7 +121,7 @@ const NotificationDropDown = () => {
                             </div>
                         ) : (
                             <p className="px-4 py-8 text-center text-sm text-[#848484]">
-                                No hay solicitudes pendientes sin leer
+                                No hay notificaciones pendientes sin leer
                             </p>
                         )}
                         <Link
@@ -131,7 +131,7 @@ const NotificationDropDown = () => {
                             <button
                                 className="btn h-10 w-full rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-[#404142] transition hover:border-primary hover:bg-primary/5"
                             >
-                                Todas las Solicitudes
+                                Todas las Notificaciones
                             </button>
                         </Link>
                     </li>

@@ -103,7 +103,7 @@ export default function SettingsSidebar() {
                         <SidebarItem
                             href={route("notifications.index")}
                             icon={BellIcon}
-                            label="Solicitudes"
+                            label="Notificaciones"
                             active={url === "/notifications"}
                         />
                     </SidebarSection>
