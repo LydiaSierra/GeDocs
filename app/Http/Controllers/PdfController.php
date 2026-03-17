@@ -27,12 +27,15 @@ class PdfController extends Controller
         try {
             // Obtiene todos los datos enviados desde el formulario React
             $data = $request->all();
+            $documentType = $data['document_type'] ?? 'documento';
+            $safeDocumentType = preg_replace('/[^a-z0-9_-]/i', '', $documentType);
+            $fileName = ($safeDocumentType ?: 'documento') . '.pdf';
 
             // Carga la vista 'pdf.template' (Blade) y le pasa la variable $data
             $pdf = Pdf::loadView('pdf.template', ['data' => $data]);
 
             // Retorna el PDF descargable con el nombre "acta.pdf"
-            return $pdf->download('acta.pdf');
+            return $pdf->download($fileName);
 
         } catch (\Exception $e) {
             return response()->json([

@@ -11,6 +11,7 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+    Route::get('/create-pdf', fn() => Inertia::render('CreatePDF'))->name('create-pdf');
 
 
     // Inbox principal

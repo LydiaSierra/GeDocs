@@ -4,9 +4,8 @@ import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
 import UploadModal from "@/Components/ArchiveExplorer/Modals/UploadModal";
 import { ModalDetails } from "@/Components/ArchiveExplorer/Modals/ModalDetails";
-import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import ModalCreateOrEditFolder from "@/Components/ArchiveExplorer/Modals/ModalCreateOrEditFolder";
-import { ArrowLeftCircleIcon, CalendarIcon, DocumentArrowDownIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon, ArchiveBoxIcon, PencilIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftCircleIcon, CalendarIcon, DocumentTextIcon, ExclamationTriangleIcon, FolderIcon, ArchiveBoxIcon, PencilIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import InformationDrawer from "@/Components/ArchiveExplorer/InformationDrawer";
 import { useExplorerData } from "@/Hooks/useExplorer";
 import { usePage, router } from "@inertiajs/react";
@@ -358,46 +357,6 @@ export default function Explorer() {
                             <div className="flex-1 min-h-0 bg-white rounded-3xl border border-gray-100 shadow-soft overflow-hidden">
                                 <ContainerFolders />
                             </div>
-
-                            <dialog id="my_modal_1" className="modal w-full">
-                                <div className="modal-box w-[95vw] sm:w-auto sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl h-auto max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl border-0 ring-1 ring-gray-100 bg-white">
-                                    <form method="dialog">
-                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-4 top-4 z-10 hover:rotate-90 transition-transform">✕</button>
-                                    </form>
-
-                                    <div className="flex items-center justify-center gap-3 mb-6">
-                                        <div className="size-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                                            <DocumentTextIcon className="size-6 text-primary" />
-                                        </div>
-                                        <h2 className="text-xl font-black text-gray-800 tracking-tight">
-                                            Generar Comunicación
-                                        </h2>
-                                    </div>
-                                    <p className="text-sm text-gray-500 text-center mb-8 font-medium">
-                                        Complete la información necesaria para crear el documento oficial.
-                                    </p>
-
-                                    <DependencyScheme onPdfGenerated={() => setShowPdfToast(true)} />
-
-                                    <div className="modal-action border-t border-gray-50 pt-6 mt-8">
-                                        <form method="dialog">
-                                            <button className="btn btn-ghost rounded-xl font-bold">Cancelar</button>
-                                        </form>
-                                        <button
-                                            type="submit"
-                                            form="pdfForm"
-                                            className="btn bg-primary hover:bg-primary-focus text-white rounded-xl shadow-lg shadow-primary/20 px-8 border-0"
-                                        >
-                                            <DocumentArrowDownIcon className="size-5 mr-2" />
-                                            Generar PDF
-                                        </button>
-                                    </div>
-                                </div>
-                                <form method="dialog" className="modal-backdrop bg-black/20 backdrop-blur-sm">
-                                    <button>close</button>
-                                </form>
-                            </dialog>
-
                             <UploadModal />
                             <ModalDetails />
                             <InformationDrawer />
