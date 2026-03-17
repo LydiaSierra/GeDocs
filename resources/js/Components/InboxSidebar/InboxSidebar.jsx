@@ -3,6 +3,7 @@ import {
     FunnelIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
+import { InboxIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
 import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
@@ -17,6 +18,8 @@ export default function InboxSidebar() {
         filters,
         searchTerm,
         setSearchTerm,
+        sideFilter,
+        setSideFilter,
     } = useContext(MailContext);
 
     const categories = [
@@ -50,9 +53,32 @@ export default function InboxSidebar() {
     `}
         >
             <div className="w-full flex flex-col">
-                <h2 className="font-bold text-2xl mb-2 text-center">
+                <h2 className="font-bold text-2xl mb-2 text-center text-gray-800">
                     Bandeja de Entrada
                 </h2>
+
+                <div className="flex bg-gray-100 p-1 rounded-xl mb-4 self-center w-full">
+                    <button
+                        onClick={() => setSideFilter('received')}
+                        className={`flex-1 flex gap-2 items-center justify-center py-2 px-3 rounded-lg text-sm font-medium transition-all ${sideFilter === 'received'
+                                ? 'bg-white shadow text-primary'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                            }`}
+                    >
+                        <InboxIcon className="size-5" />
+                        Recibidos
+                    </button>
+                    <button
+                        onClick={() => setSideFilter('sent')}
+                        className={`flex-1 flex gap-2 items-center justify-center py-2 px-3 rounded-lg text-sm font-medium transition-all ${sideFilter === 'sent'
+                                ? 'bg-white shadow text-primary'
+                                : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+                            }`}
+                    >
+                        <PaperAirplaneIcon className="size-5" />
+                        Enviados
+                    </button>
+                </div>
 
                 <div id="inbox-search" className="flex gap-2 w-full">
                     <div className="flex items-center bg-gray-100 px-2 rounded-md flex-1 min-w-0">

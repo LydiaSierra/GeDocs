@@ -64,6 +64,7 @@ class PQRController extends Controller
         if ($user->hasRole('Admin')) {
         // no additional conditions
         }
+        // Admin sees all, so no extra where clause needed for Admin
 
         $pqrs = $query->get();
 
