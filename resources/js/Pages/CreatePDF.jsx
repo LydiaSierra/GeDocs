@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import { router } from "@inertiajs/react";
-import { DocumentArrowDownIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { DocumentArrowDownIcon, ArrowLeftIcon, PencilIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import api from "@/lib/axios";
 import { toast } from "sonner";
 
@@ -126,6 +126,7 @@ export default function CreatePDF() {
     const [informeObjetivos, setInformeObjetivos] = useState([""]);
     const [informeConclusiones, setInformeConclusiones] = useState([""]);
     const [informeRecomendaciones, setInformeRecomendaciones] = useState([""]);
+    const isUsingCustomLogo = customLogoFile !== null && logoPreviewUrl !== DEFAULT_LOGO_PATH;
 
     const showUploadToast = (type, message) => {
         setUploadToastState({ type, message });
@@ -215,6 +216,10 @@ export default function CreatePDF() {
             logoInputRef.current.value = "";
         }
         showUploadToast("success", "Se restauro el logo predeterminado.");
+    };
+
+    const openLogoPicker = () => {
+        logoInputRef.current?.click();
     };
 
     const syncActaDesarrolloLength = (nextOrdenDia) => {
@@ -341,25 +346,6 @@ export default function CreatePDF() {
                             ))}
                         </select>
 
-                        <label className="btn btn-sm rounded-xl bg-base-200 border-gray-200 text-gray-700 hover:bg-base-300">
-                            Subir logo
-                            <input
-                                ref={logoInputRef}
-                                type="file"
-                                accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
-                                className="hidden"
-                                onChange={handleLogoChange}
-                            />
-                        </label>
-
-                        <button
-                            type="button"
-                            onClick={resetLogo}
-                            className="btn btn-sm rounded-xl bg-base-200 border-gray-200 text-gray-700 hover:bg-base-300"
-                        >
-                            Usar SENA
-                        </button>
-
                         <button
                             type="submit"
                             form="pdfForm"
@@ -389,9 +375,45 @@ export default function CreatePDF() {
                         <input type="hidden" name="informe_objetivos_json" value={JSON.stringify(informeObjetivos)} />
                         <input type="hidden" name="informe_conclusiones_json" value={JSON.stringify(informeConclusiones)} />
                         <input type="hidden" name="informe_recomendaciones_json" value={JSON.stringify(informeRecomendaciones)} />
+                        <input
+                            ref={logoInputRef}
+                            type="file"
+                            accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                            className="hidden"
+                            onChange={handleLogoChange}
+                        />
 
                         <div className="mb-8">
-                            <img src={logoPreviewUrl} alt="Logo institucional" className="h-16 w-auto object-contain" />
+                            <div className="relative inline-block group">
+                                <button
+                                    type="button"
+                                    onClick={openLogoPicker}
+                                    className="relative rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    aria-label="Cambiar logo"
+                                >
+                                    <img src={logoPreviewUrl} alt="Logo institucional" className="h-16 w-auto object-contain" />
+                                    <span className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/30 transition-colors" />
+                                    <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="bg-white/90 rounded-full p-1.5 shadow-md">
+                                            <PencilIcon className="size-4 text-gray-700" />
+                                        </span>
+                                    </span>
+                                </button>
+
+                                {isUsingCustomLogo && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            resetLogo();
+                                        }}
+                                        className="absolute -top-2 -right-2 rounded-full bg-white border border-gray-200 shadow p-1 hover:bg-gray-100"
+                                        aria-label="Restaurar logo predeterminado"
+                                    >
+                                        <XMarkIcon className="size-4 text-gray-600" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {documentType === "carta" && (
