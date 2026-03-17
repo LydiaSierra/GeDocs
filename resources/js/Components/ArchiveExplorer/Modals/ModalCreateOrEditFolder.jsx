@@ -11,7 +11,8 @@ const ModalCreateOrEditFolder = () => {
         updateFolder,
         selectedItems,
         folders,
-        deletedSelection
+        deletedSelection,
+        activeSheetId
     } = useExplorerData();
 
     const [loading, setLoading] = useState(false);
@@ -39,6 +40,7 @@ const ModalCreateOrEditFolder = () => {
                 folder_code: formData.folder_code,
                 parent_id: currentFolder?.id || null,
                 department: formData.department || "sección",
+                sheet_number_id: currentFolder ? null : activeSheetId,
             };
 
             await createFolder({ data });
@@ -164,6 +166,7 @@ const ModalCreateOrEditFolder = () => {
                             <option value="subsección">Subsección</option>
                             <option value="serie">Serie</option>
                             <option value="subserie">Subserie</option>
+                            <option value="Año">Año</option>
                         </select>
                     </div>
 

@@ -10,6 +10,8 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\PQR;
 use App\Models\comunication;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Mail\Mailables\Attachment;
 
 class PQRResponseMail extends Mailable
 {
@@ -71,6 +73,19 @@ class PQRResponseMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $attachments = [];
+        
+        $responseFiles = $this->pqr->attachedSupports->whereIn('origin', ['ENV', 'response']);
+
+        foreach ($responseFiles as $file) {
+            $fullPath = Storage::disk('public')->path($file->path);
+            
+            if (file_exists($fullPath)) {
+                $attachments[] = Attachment::fromPath($fullPath)
+                    ->as($file->name);
+            }
+        }
+
+        return $attachments;
     }
 }

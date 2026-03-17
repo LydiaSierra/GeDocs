@@ -16,6 +16,7 @@ class Folder extends Model
         'folder_code',
         'department',
         'sheet_number_id',
+        'year',
     ];
 
     public function parent()

@@ -62,8 +62,8 @@ class RegisteredUserController extends Controller
         }
 
         if ($user->hasRole('Instructor')) {
-            $admin = User::role("Admin")->first();
-            if ($admin) {
+            $admins = User::role("Admin")->get();
+            foreach ($admins as $admin) {
                 $admin->notify(new NewUserRegistered($user));
             }
             if ($user->status === "pending") {
@@ -77,6 +77,10 @@ class RegisteredUserController extends Controller
                 $instructors = User::role('Instructor')->whereHas('sheetNumbers', function ($q) use ($validated) {
                     $q->where('sheet_numbers.id', $validated['technical_sheet_id']);
                 })->get();
+
+                if ($instructors->isEmpty()) {
+                    $instructors = User::role('Instructor')->get();
+                }
 
                 foreach ($instructors as $instructor) {
                     $instructor->notify(new NewUserRegistered($user));
@@ -96,7 +100,7 @@ class RegisteredUserController extends Controller
         }
 
 
-        auth()->login($user);
+        Auth::login($user);
 
         return redirect("/");
     }

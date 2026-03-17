@@ -101,15 +101,16 @@ export function UserProvider({ children }) {
             return;
         }
 
-        if (!searcher || !filter) {
+        if (!searcher) {
             return;
         }
 
             setIsSearching(true);
             setLoadingSearch(true);
 
+            const queryParam = filter ? `${filter}=${searcher}` : `search=${searcher}`;
             const res = await api.get(
-                `/api/users/search/filter?${filter}=${searcher}`
+                `/api/users/search/filter?${queryParam}`
             );
 
             if (res.data.success === false) {

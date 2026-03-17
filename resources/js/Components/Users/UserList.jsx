@@ -35,8 +35,8 @@ export const UserList = ({ url }) => {
 
     const isLoading = loading || loadingSearch;
 
-    const filtered = InfoView.filter((item) =>
-        item.roles.some((r) => r.name === content)
+    const filtered = (InfoView || []).filter((item) =>
+        item.roles?.some((r) => r.name === content)
     );
 
     return (
