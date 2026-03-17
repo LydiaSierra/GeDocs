@@ -1,12 +1,13 @@
 import { createContext, useEffect, useState } from "react";
-import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import api from "@/lib/axios.js";
 import { toast } from "sonner";
+import { usePage } from "@inertiajs/react";
 
 export const MailContext = createContext(null);
 
 export function MailProvider({ children }) {
+    const { auth } = usePage().props;
     const [mailCards, setMailCards] = useState([]);
     const [selectedMail, setSelectedMail] = useState("");
     const [loading, setLoading] = useState(false);
@@ -72,8 +73,10 @@ export function MailProvider({ children }) {
     });
 
     useEffect(() => {
-        loadMailCards();
-    }, []);
+        if (auth?.user?.id) {
+            loadMailCards();
+        }
+    }, [auth?.user?.id]);
 
     useEffect(() => {
         setSelectedMail("");

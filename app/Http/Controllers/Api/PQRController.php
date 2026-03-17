@@ -180,6 +180,7 @@ class PQRController extends Controller
                     'path' => $path,
                     'type' => $file->getClientOriginalExtension(),
                     'size' => $file->getSize(),
+                    'origin' => 'REC'
                 ]);
             }
         }
@@ -194,6 +195,31 @@ class PQRController extends Controller
             ]),
             'message' => 'PQR creada exitosamente'
         ], 201);
+    }
+    /**
+     * OBTENER EL HILO DE COMUNICACION DE UNA PQR
+     */
+    public function show(string $id): JsonResponse
+    {
+        $pqr = PQR::with([
+            'creator',
+            'responsible',
+            'dependency',
+            'attachedSupports', // Soportes generales
+            'sheetNumber',
+            'comunications' => function($query) {
+                $query->orderBy('created_at', 'asc')->with('attachedSupports');
+            }
+        ])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        return response()->json([
+            'data' => $pqr,
+            'message' => 'Hilo de comunicación de la PQR obtenido con éxito'
+        ], 200);
     }
 
     /**
@@ -320,8 +346,8 @@ class PQRController extends Controller
                 $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
 
                 if ($emailRecipient) {
-                    //Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
-                    //Log::info('Email enviado exitosamente a: ' . $emailRecipient);
+                    Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
+                    Log::info('Email enviado exitosamente a: ' . $emailRecipient);
                 }
                 else {
                     //Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
@@ -333,7 +359,9 @@ class PQRController extends Controller
 
             return response()->json([
                 'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),
-                'message' => 'Respuesta enviada exitosamente'
+                'message' => 'Respuesta enviada exitosamente',
+                'pqr_status' => $pqr->response_status,
+                'response_date' => $pqr->response_date,
             ], 200);
 
         }
