@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Folder;
 use Illuminate\Http\Request;
 use App\Models\Dependency;
 
@@ -10,9 +11,8 @@ class DependencyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
         $dependencies = Dependency::with('sheetNumber')->get();
         if (!$dependencies) {
             return response()->json([
@@ -20,6 +20,8 @@ class DependencyController extends Controller
                 "message" => "No hay dependencias",
             ], 404);
         }
+        $dependencies = $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [];
+
         return response()->json([
             "message" => "Dependencias obtenidas exitosamente",
             "dependencies" => $dependencies
@@ -43,7 +45,8 @@ class DependencyController extends Controller
 
         $validate = $request->validate([
             "name" => "required|string|max:255|unique:dependencies,name",
-            "sheet_number_id" => "nullable|exists:sheet_numbers,id"
+            "sheet_number_id" => "nullable|exists:sheet_numbers,id",
+            "folder_code" => "nullable|string|max:255"
         ]);
 
         //Obtener la ficha del suuario
@@ -65,6 +68,31 @@ class DependencyController extends Controller
         $dependency = Dependency::create([
             'name' => $validate['name'],
             'sheet_number_id' => $sheetId,
+        ]);
+
+        // Find or create the current year folder for the sheet
+        $yearFolder = Folder::firstOrCreate(
+            [
+                'sheet_number_id' => $sheetId,
+                'year' => date('Y'),
+                'parent_id' => null,
+            ],
+            [
+                'name' => date('Y'),
+                'active' => true,
+                'department' => 'Año',
+                'folder_code' => date('Y'),
+            ]
+        );
+
+        // Create the folder for the dependency inside the year folder
+      Folder::create([
+            'name' => $dependency->name,
+            'parent_id' => $yearFolder->id,
+            'folder_code' => $validate['folder_code'] ?? null,
+            'department' => 'sección',
+            'sheet_number_id' => $sheetId,
+            'active' => true,
         ]);
 
         return response()->json([
