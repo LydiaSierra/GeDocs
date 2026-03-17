@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\PQR;
 use App\Models\comunication;
 use App\Models\AttachedSupport;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PQRResponseMail;
 
@@ -106,8 +105,12 @@ class PdfController extends Controller
             $pdf = Pdf::loadView('pdf.comunicacion', ['data' => $validated]);
             $pdf->setPaper('letter', 'portrait');
 
-            // Nombre único para el archivo
-            $fileName = 'comunicacion_' . $validated['pqr_id'] . '_' . Str::uuid() . '.pdf';
+            // Formato solicitado: dependenciaId-mes-anio-codigoPqr
+            $dependencyId = $pqr->dependency_id ?? 0;
+            $month = now()->month;
+            $year = now()->year;
+            $pqrCode = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $fileName = $dependencyId . '-' . $month . '-' . $year . '-' . $pqrCode . '.pdf';
             $storagePath = 'pdf_responses/' . $fileName;
 
             // Guardar el PDF en storage/app/public/
