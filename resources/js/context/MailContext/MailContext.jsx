@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import api from "@/lib/axios.js";
 import { toast } from "sonner";
@@ -12,6 +13,10 @@ export function MailProvider({ children }) {
     const [filters, setFilters] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeScopeFilter, setActiveScopeFilter] = useState(null);
+    const [sideFilter, setSideFilter] = useState("received"); // 'received' or 'sent'
+
+    const { props } = usePage();
+    const user = props?.auth?.user;
 
     const loadMailCards = async () => {
         try {
@@ -61,12 +66,18 @@ export function MailProvider({ children }) {
             }
         }
 
-        return matchesFilter && matchesSearch && matchesScope;
+        const matchesSide = sideFilter === 'sent' ? false : true;
+
+        return matchesSide && matchesFilter && matchesSearch && matchesScope;
     });
 
     useEffect(() => {
         loadMailCards();
     }, []);
+
+    useEffect(() => {
+        setSelectedMail("");
+    }, [sideFilter]);
 
     return (
         <MailContext.Provider
@@ -83,6 +94,8 @@ export function MailProvider({ children }) {
                 setSearchTerm,
                 activeScopeFilter,
                 setActiveScopeFilter,
+                sideFilter,
+                setSideFilter,
                 reloadMailCards: loadMailCards,
             }}
         >
