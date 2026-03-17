@@ -17,9 +17,7 @@ export const InputSearch = ({ handleSearch }) => {
             {/* Search field */}
             <form onSubmit={(e) => {
                 e.preventDefault();
-                if (url === "/explorer") {
-                    globalSearch(inputSearchTerm);
-                }
+                globalSearch(inputSearchTerm);
             }} className="flex flex-1 md:flex-none items-center bg-base-200 px-2 rounded-md">
                 <input
                     placeholder="Buscar"
@@ -28,12 +26,9 @@ export const InputSearch = ({ handleSearch }) => {
                     value={inputSearchTerm}
                     onChange={(e) => {
                         setInputSearchTerm(e.target.value);
-                        if (e.target.value.trim() == "") {
-                            if (url === "/explorer") {
-                                globalSearch("");
-                            }
+                        if (e.target.value.trim() === "") {
+                            globalSearch("");
                         }
-
                     }}
                 />
 
