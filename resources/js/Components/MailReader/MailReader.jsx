@@ -17,54 +17,72 @@ import {
 import { usePage } from "@inertiajs/react";
 
 export function MailReader() {
+    // ─── Context ───────────────────────────────────────────────────────────────
     const {
         mailCards,
         selectedMail,
         setSelectedMail,
         setMailCards,
-        isArchiveView, // boolean you pass from Inbox / Archive
+        isArchiveView,
     } = useContext(MailContext);
 
+    // ─── Page props (hooks must be before any early return) ────────────────────
+    const { auth, dependencies = [] } = usePage().props;
+    const userRole = auth?.user?.roles?.[0]?.name;
+    const isInstructor = userRole === "Instructor";
+    const isAdmin = userRole === "Admin";
+
+    // ─── Derived state ─────────────────────────────────────────────────────────
     const currentMail = mailCards.find((mail) => mail.id === selectedMail);
 
+    const relevantDependencies = useMemo(() => {
+        if (!currentMail) return [];
+        return dependencies.filter(
+            (dep) => dep.sheet_number_id === currentMail.sheet_number_id
+        );
+    }, [dependencies, currentMail]);
+
+    // ─── Local state ───────────────────────────────────────────────────────────
     const [responseText, setResponseText] = useState("");
     const [sending, setSending] = useState(false);
     const [responseUrl, setResponseUrl] = useState("");
-
-    // Estado para subir PDF desde archivo
     const [uploadedPdfFile, setUploadedPdfFile] = useState(null);
-    const pdfFileInputRef = useRef(null);
-
-    // Estado para el modal de generar PDF
     const [pdfModalOpen, setPdfModalOpen] = useState(false);
-
-    // Toast interno para éxito de PDF generado
     const [pdfSuccessUrl, setPdfSuccessUrl] = useState(null);
 
+    const pdfFileInputRef = useRef(null);
+
+    // ─── Helpers ───────────────────────────────────────────────────────────────
+    const getDeadlineColor = (createdDateStr, responseDateStr) => {
+        if (!createdDateStr || !responseDateStr) return "text-gray-700";
+        const now = new Date();
+        const created = new Date(createdDateStr);
+        const deadline = new Date(responseDateStr);
+        const totalDuration = deadline.getTime() - created.getTime();
+        const timeRemaining = deadline.getTime() - now.getTime();
+        const remainingPct = totalDuration > 0 ? (timeRemaining / totalDuration) * 100 : 0;
+        if (remainingPct > 80) return "text-primary";
+        if (remainingPct > 40) return "text-[#F0DA30]";
+        return "text-red-600";
+    };
+
+    // ─── Handlers ──────────────────────────────────────────────────────────────
     const handleRespond = async () => {
         if (!responseText.trim()) return;
-
         try {
             setSending(true);
-
-            // Construir payload como FormData para enviar texto y archivo en una sola petición
             const formData = new FormData();
             formData.append("message", responseText);
-            formData.append("requires_response", "0"); // false
-
+            formData.append("requires_response", "0");
             if (uploadedPdfFile) {
                 formData.append("attachments[]", uploadedPdfFile);
             }
-
             const commResponse = await api.post(
                 `/api/pqr/${currentMail.id}/comunicaciones`,
                 formData,
                 { headers: { "Content-Type": "multipart/form-data" } }
             );
-
             setResponseUrl(commResponse.data.response_url);
-
-            // Actualizar el estado local de la PQR a responded
             setMailCards((prev) =>
                 prev.map((mail) =>
                     mail.id === currentMail.id
@@ -76,26 +94,21 @@ export function MailReader() {
                         : mail
                 )
             );
-
             alert("Respuesta enviada correctamente");
             setUploadedPdfFile(null);
-
         } catch (error) {
             console.error("Respond error:", error);
-
-            if (error.response) {
-                const errorMessage = error.response.data.error || error.response.data.message || "Error al enviar la respuesta";
-                alert(errorMessage);
-            } else {
-                alert("Error de conexión. Por favor, intente nuevamente.");
-            }
+            const msg =
+                error.response?.data?.error ||
+                error.response?.data?.message ||
+                "Error al enviar la respuesta";
+            alert(msg);
         } finally {
             setSending(false);
             setResponseText("");
         }
     };
 
-    /** Maneja la selección del archivo PDF desde el disco */
     const handlePdfFileChange = (e) => {
         const file = e.target.files?.[0];
         if (file && file.type === "application/pdf") {
@@ -106,11 +119,8 @@ export function MailReader() {
         }
     };
 
-    /** Callback cuando el PDF generado se guarda exitosamente */
     const handlePdfGenerated = (data) => {
         setPdfSuccessUrl(data.url);
-        
-        // Actualizar el estado local de la PQR a responded
         setMailCards((prev) =>
             prev.map((mail) =>
                 mail.id === currentMail.id
@@ -122,60 +132,88 @@ export function MailReader() {
                     : mail
             )
         );
-
-        // Ocultar el banner después de 8 segundos
         setTimeout(() => setPdfSuccessUrl(null), 8000);
     };
-
-    if (!currentMail) {
-        return (
-            <div className="h-full w-full hidden lg:flex items-center justify-center text-gray-500">
-                <img
-                    className="h-110 opacity-60"
-                    src="/images/OBJECTS.svg"
-                    alt=""
-                />
-            </div>
-        );
-    }
 
     const handleArchiveToggle = async () => {
         try {
             await axios.patch(`/api/pqrs/${currentMail.id}`, {
                 archived: !isArchiveView,
             });
-
-            setMailCards((prev) =>
-                prev.filter((mail) => mail.id !== currentMail.id),
-            );
-
-            setSelectedMail(null); // triggers clean UI reset
+            setMailCards((prev) => prev.filter((mail) => mail.id !== currentMail.id));
+            setSelectedMail(null);
         } catch (error) {
-            console.error("Archive error FULL:", error);
-
-            if (error.response) {
-                console.error("Status:", error.response.status);
-                console.error("Data:", error.response.data);
-            } else if (error.request) {
-                console.error("No response received:", error.request);
-            } else {
-                console.error("Request setup error:", error.message);
-            }
+            console.error("Archive error:", error);
         }
     };
 
+    const handleAssignDate = async (days) => {
+        try {
+            const response = await axios.patch(`/api/pqrs/${currentMail.id}`, {
+                response_days: days,
+            });
+            setMailCards((prev) =>
+                prev.map((mail) =>
+                    mail.id === currentMail.id
+                        ? { ...mail, response_time: response.data.data.response_time }
+                        : mail
+                )
+            );
+            const elem = document.activeElement;
+            if (elem) elem.blur();
+        } catch (error) {
+            console.error("Assign date error:", error);
+            const msg =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Error al asignar fecha";
+            alert(msg);
+        }
+    };
+
+    const handleAssignDependency = async (dependencyId) => {
+        try {
+            const response = await axios.patch(`/api/pqrs/${currentMail.id}`, {
+                dependency_id: dependencyId,
+            });
+            setMailCards((prev) =>
+                prev.map((mail) =>
+                    mail.id === currentMail.id
+                        ? {
+                              ...mail,
+                              dependency: response.data.data.dependency,
+                              dependency_id: response.data.data.dependency_id,
+                          }
+                        : mail
+                )
+            );
+            const elem = document.activeElement;
+            if (elem) elem.blur();
+        } catch (error) {
+            console.error("Assign dependency error:", error);
+            const msg =
+                error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Error al asignar dependencia";
+            alert(msg);
+        }
+    };
+
+    // ─── Early return (AFTER all hooks) ────────────────────────────────────────
+    if (!currentMail) {
+        return (
+            <div className="h-full w-full hidden lg:flex items-center justify-center text-gray-500">
+                <img className="h-110 opacity-60" src="/images/OBJECTS.svg" alt="" />
+            </div>
+        );
+    }
+
+    // ─── Render ────────────────────────────────────────────────────────────────
     return (
         <div
-            className={`
-                h-full w-full lg:flex-1 lg:min-w-0
-                rounded-lg
-                overflow-y-auto
-                bg-white
-                transition-all duration-300 ease-in-out
-                flex flex-col
-                ${selectedMail ? "flex" : "hidden"}
-                lg:flex
-            `}
+            className={`h-full w-full lg:flex-1 lg:min-w-0 rounded-lg overflow-y-auto bg-white transition-all duration-300 ease-in-out flex flex-col ${
+                selectedMail ? "flex" : "hidden"
+            } lg:flex`}
         >
             {/* Sticky top bar */}
             <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between shrink-0">
@@ -204,25 +242,107 @@ export function MailReader() {
                     )}
                 </button>
             </div>
+            
 
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto p-6 pb-[50px] md:pb-6 space-y-5">
+
                 {/* Header: tag + metadata */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap justify-between items-center gap-3">
+                    <div className="flex items-center gap-2 ">
+
                     <span className="px-3 py-1 bg-primary text-white text-xs font-bold rounded-full uppercase tracking-wide">
                         {currentMail.request_type}
                     </span>
                     <span className="text-sm text-gray-400 font-medium">
                         ID: {currentMail.id}
                     </span>
-                    {(currentMail.response_status === 'responded' || currentMail.response_status === 'closed') && (
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase">
+                    
+                    {(currentMail.response_status === "responded" ||
+                        currentMail.response_status === "closed") && (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase">
                             Respondida
                         </span>
                     )}
                     <span className="text-sm text-gray-400">
                         {new Date(currentMail.created_at).toLocaleDateString()}
                     </span>
+                            </div>
+
+                    <div className="flex items-center gap-3 flex-wrap">
+                    {/* Assign dependency (Instructor / Admin only) */}
+                    {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
+                        <div className="dropdown dropdown-end">
+                            <div
+                                tabIndex={0}
+                                role="button"
+                                className="btn btn-sm btn-outline border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary"
+                            >
+                                
+                                {currentMail.dependency
+                                    ? currentMail.dependency.name
+                                    : "Asignar Dependencia"}
+                            </div>
+                            <ul
+                                tabIndex={0}
+                                className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-64 max-h-60 overflow-y-auto"
+                            >
+                                <li className="menu-title">Seleccionar Dependencia</li>
+                                {relevantDependencies.map((dep) => (
+                                    <li key={dep.id}>
+                                        <a
+                                            className={
+                                                currentMail.dependency_id === dep.id
+                                                    ? "bg-primary/10 text-primary font-medium"
+                                                    : ""
+                                            }
+                                            onClick={() => handleAssignDependency(dep.id)}
+                                        >
+                                            {dep.name}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* Deadline */}
+                    {currentMail.response_time ? (
+                        <span
+                            className={`text-sm font-medium ${getDeadlineColor(
+                                currentMail.created_at,
+                                currentMail.response_time
+                            )}`}
+                        >
+                            Fecha límite:{" "}
+                            {new Date(currentMail.response_time).toLocaleDateString()}
+                        </span>
+                    ) : (
+                        <div className="dropdown dropdown-end">
+                            <div
+                                tabIndex={0}
+                                role="button"
+                                className="btn btn-sm btn-primary text-white"
+                            >
+                                Asignar fecha límite
+                            </div>
+                            <ul
+                                tabIndex={0}
+                                className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+                            >
+                                <li>
+                                    <a onClick={() => handleAssignDate(10)}>10 días</a>
+                                </li>
+                                <li>
+                                    <a onClick={() => handleAssignDate(15)}>15 días</a>
+                                </li>
+                                <li>
+                                    <a onClick={() => handleAssignDate(30)}>30 días</a>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
+                </div>
                 </div>
 
                 {/* Subject */}
@@ -243,39 +363,57 @@ export function MailReader() {
                     </p>
                 </div>
 
-                {/* Attachments Section */}
+                {/* Actions row: assign dependency + deadline */}
+                
+
+                {/* Attachments */}
                 <div className="space-y-6">
-                    {/* Soportes Originales (PQR) */}
+                    {/* Original PQR files */}
                     <div>
                         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                            <span className="w-2 h-2 rounded-full bg-blue-400" />
                             Soportes de la PQR
                         </h3>
-                        
-                        {currentMail.attached_supports?.filter(f => f.origin === 'REC' || f.origin === 'pqr' || !f.origin).length === 0 ? (
+                        {currentMail.attached_supports?.filter(
+                            (f) => f.origin === "REC" || f.origin === "pqr" || !f.origin
+                        ).length === 0 ? (
                             <p className="text-gray-400 text-xs italic ml-4">
                                 No hay archivos originales
                             </p>
                         ) : (
                             <div className="flex flex-wrap gap-3">
-                                {currentMail.attached_supports?.filter(f => f.origin === 'REC' || f.origin === 'pqr' || !f.origin).map((file) => (
-                                    <FileCard key={file.id} file={file} />
-                                ))}
+                                {currentMail.attached_supports
+                                    ?.filter(
+                                        (f) =>
+                                            f.origin === "REC" ||
+                                            f.origin === "pqr" ||
+                                            !f.origin
+                                    )
+                                    .map((file) => (
+                                        <FileCard key={file.id} file={file} />
+                                    ))}
                             </div>
                         )}
                     </div>
 
-                    {/* Soportes de Respuesta */}
-                    {currentMail.attached_supports?.filter(f => f.origin === 'ENV' || f.origin === 'response').length > 0 && (
+                    {/* Response files */}
+                    {currentMail.attached_supports?.filter(
+                        (f) => f.origin === "ENV" || f.origin === "response"
+                    ).length > 0 && (
                         <div>
                             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                <span className="w-2 h-2 rounded-full bg-green-500" />
                                 Soportes de Respuesta
                             </h3>
                             <div className="flex flex-wrap gap-3">
-                                {currentMail.attached_supports?.filter(f => f.origin === 'ENV' || f.origin === 'response').map((file) => (
-                                    <FileCard key={file.id} file={file} />
-                                ))}
+                                {currentMail.attached_supports
+                                    ?.filter(
+                                        (f) =>
+                                            f.origin === "ENV" || f.origin === "response"
+                                    )
+                                    .map((file) => (
+                                        <FileCard key={file.id} file={file} />
+                                    ))}
                             </div>
                         </div>
                     )}
@@ -287,22 +425,26 @@ export function MailReader() {
                         Responder
                     </h3>
 
-                    {currentMail.response_status === 'responded' || currentMail.response_status === 'closed' ? (
+                    {currentMail.response_status === "responded" ||
+                    currentMail.response_status === "closed" ? (
                         <div className="bg-gray-50 border border-gray-100 rounded-xl p-6 text-center space-y-2">
                             <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full text-green-600 mb-2">
                                 <CheckCircleIcon className="w-6 h-6" />
                             </div>
                             <h4 className="text-sm font-bold text-gray-800">PQR Respondida</h4>
                             <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                                Esta solicitud ya ha sido atendida y no permite más respuestas oficiales. 
+                                Esta solicitud ya ha sido atendida y no permite más respuestas
+                                oficiales.
                                 {currentMail.response_date && (
-                                    <span className="block mt-1">Fecha: {new Date(currentMail.response_date).toLocaleString()}</span>
+                                    <span className="block mt-1">
+                                        Fecha:{" "}
+                                        {new Date(currentMail.response_date).toLocaleString()}
+                                    </span>
                                 )}
                             </p>
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {/* Textarea de respuesta */}
                             <textarea
                                 className="textarea w-full bg-gray-50 border border-gray-200 rounded-lg focus:border-primary focus:outline-none resize-none min-h-[100px] text-sm"
                                 placeholder="Escribe tu respuesta final aquí..."
@@ -310,7 +452,7 @@ export function MailReader() {
                                 onChange={(e) => setResponseText(e.target.value)}
                             />
 
-                            {/* Botones de adjuntar PDF */}
+                            {/* PDF buttons */}
                             <div className="flex items-center gap-2 flex-wrap">
                                 <input
                                     ref={pdfFileInputRef}
@@ -320,7 +462,6 @@ export function MailReader() {
                                     onChange={handlePdfFileChange}
                                     id="pdf-upload-input"
                                 />
-
                                 <button
                                     type="button"
                                     onClick={() => pdfFileInputRef.current?.click()}
@@ -329,7 +470,6 @@ export function MailReader() {
                                     <ArrowUpTrayIcon className="w-4 h-4" />
                                     Subir Archivo
                                 </button>
-
                                 <button
                                     type="button"
                                     onClick={() => setPdfModalOpen(true)}
@@ -347,7 +487,8 @@ export function MailReader() {
                                             className="ml-1 text-gray-400 hover:text-red-500"
                                             onClick={() => {
                                                 setUploadedPdfFile(null);
-                                                if (pdfFileInputRef.current) pdfFileInputRef.current.value = null;
+                                                if (pdfFileInputRef.current)
+                                                    pdfFileInputRef.current.value = null;
                                             }}
                                         >
                                             ✕
@@ -360,7 +501,12 @@ export function MailReader() {
                                 <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">
                                     <CheckCircleIcon className="w-4 h-4 shrink-0" />
                                     <span>PDF generado y guardado.</span>
-                                    <a href={pdfSuccessUrl} target="_blank" rel="noopener noreferrer" className="underline font-semibold hover:text-green-900">
+                                    <a
+                                        href={pdfSuccessUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="underline font-semibold hover:text-green-900"
+                                    >
                                         Ver PDF
                                     </a>
                                 </div>
@@ -368,7 +514,12 @@ export function MailReader() {
 
                             <div className="flex justify-end items-center gap-3">
                                 {responseUrl && (
-                                    <a target="_blank" href={responseUrl} className="text-xs text-primary underline" rel="noopener noreferrer">
+                                    <a
+                                        target="_blank"
+                                        href={responseUrl}
+                                        className="text-xs text-primary underline"
+                                        rel="noopener noreferrer"
+                                    >
                                         Enlace de respuesta
                                     </a>
                                 )}
@@ -385,7 +536,7 @@ export function MailReader() {
                     )}
                 </div>
 
-                {/* Modal de generar PDF */}
+                {/* PDF generation modal */}
                 <PdfCommunicationModal
                     isOpen={pdfModalOpen}
                     onClose={() => setPdfModalOpen(false)}
@@ -397,7 +548,7 @@ export function MailReader() {
     );
 }
 
-/** Componente interno para mostrar la tarjeta de cada archivo */
+/** Internal component — file attachment card */
 function FileCard({ file }) {
     return (
         <a
