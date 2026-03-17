@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'roleCheck' => \App\Http\Middleware\RedirectIfNotPermission::class,
+            'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
