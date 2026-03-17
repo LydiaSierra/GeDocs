@@ -15,29 +15,16 @@
             padding: 0;
         }
 
-        .top-bar {
-            width: 100%;
-            height: 15px;
-            margin-bottom: 40px;
+        .logo-wrapper {
+            margin-bottom: 22px;
         }
 
-        .bar-SenaGreen { width: 30%; height: 100%; background-color: #0FB849; float: left; }
-        .bar-blue { width: 40%; height: 100%; background-color: #2c3e50; float: left; }
-        .bar-SenaGreen-right { width: 30%; height: 100%; background-color: #0FB849; float: left; }
-
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-
-        .main-title {
-            text-align: center;
-            text-decoration: underline;
-            font-weight: bold;
-            font-size: 14pt;
-            margin-bottom: 30px;
-            clear: both;
+        .document-logo {
+            height: 56px;
+            width: auto;
+            max-width: 220px;
+            display: block;
+            object-fit: contain;
         }
 
         .centered { text-align: center; }
@@ -112,16 +99,11 @@
     $informeRecomendaciones = $decodeList('informe_recomendaciones_json');
 @endphp
 
-<div class="top-bar clearfix">
-    <div class="bar-SenaGreen"></div>
-    <div class="bar-blue"></div>
-    <div class="bar-SenaGreen-right"></div>
-</div>
-
-<div class="main-title">
-    SENA - Centro de comercio y servicios - Regional Pereira<br>
-    {{ ucfirst($documentType) }}
-</div>
+@if(!empty($logoDataUri))
+    <div class="logo-wrapper">
+        <img src="{{ $logoDataUri }}" alt="Logo institucional" class="document-logo">
+    </div>
+@endif
 
 @if($documentType === 'carta')
     <div class="section">

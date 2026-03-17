@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useRef, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import { router } from "@inertiajs/react";
 import { DocumentArrowDownIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
@@ -12,6 +12,13 @@ const DOCUMENT_TYPES = [
     { value: "informe", label: "Informe" },
     { value: "constancia", label: "Constancia" },
 ];
+
+const DEFAULT_LOGO_PATH = "/SENA-LOGO.png";
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
+const MIN_LOGO_FILE_BYTES = 10 * 1024;
+const MAX_LOGO_FILE_BYTES = 2 * 1024 * 1024;
+const MIN_LOGO_DIMENSION = 64;
+const MAX_LOGO_DIMENSION = 2000;
 
 const DocInput = ({ name, placeholder, className = "", type = "text", ...props }) => (
     <input
@@ -104,6 +111,10 @@ const EditableList = ({ title, items, setItems, placeholder, numbered = false, m
 export default function CreatePDF() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [documentType, setDocumentType] = useState("carta");
+    const [logoPreviewUrl, setLogoPreviewUrl] = useState(DEFAULT_LOGO_PATH);
+    const [customLogoFile, setCustomLogoFile] = useState(null);
+    const [uploadToastState, setUploadToastState] = useState(null);
+    const logoInputRef = useRef(null);
 
     const [actaAsistentes, setActaAsistentes] = useState([""]);
     const [actaInvitados, setActaInvitados] = useState([""]);
@@ -116,10 +127,95 @@ export default function CreatePDF() {
     const [informeConclusiones, setInformeConclusiones] = useState([""]);
     const [informeRecomendaciones, setInformeRecomendaciones] = useState([""]);
 
-    const selectedTypeLabel = useMemo(
-        () => DOCUMENT_TYPES.find((type) => type.value === documentType)?.label || "Documento",
-        [documentType]
-    );
+    const showUploadToast = (type, message) => {
+        setUploadToastState({ type, message });
+        window.setTimeout(() => {
+            setUploadToastState(null);
+        }, 4000);
+    };
+
+    const getImageDimensions = (file) => new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+
+        image.onload = () => {
+            const width = image.naturalWidth;
+            const height = image.naturalHeight;
+            URL.revokeObjectURL(objectUrl);
+            resolve({ width, height });
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("No se pudo leer la imagen"));
+        };
+
+        image.src = objectUrl;
+    });
+
+    const handleLogoChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+            showUploadToast("error", "Tipo de archivo no permitido. Solo PNG, JPG o SVG.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size < MIN_LOGO_FILE_BYTES) {
+            showUploadToast("error", "El logo es demasiado pequeno. Minimo: 10 KB.");
+            event.target.value = "";
+            return;
+        }
+
+        if (file.size > MAX_LOGO_FILE_BYTES) {
+            showUploadToast("error", "El logo es demasiado pesado. Maximo: 2 MB.");
+            event.target.value = "";
+            return;
+        }
+
+        try {
+            const { width, height } = await getImageDimensions(file);
+            if (
+                width < MIN_LOGO_DIMENSION ||
+                height < MIN_LOGO_DIMENSION ||
+                width > MAX_LOGO_DIMENSION ||
+                height > MAX_LOGO_DIMENSION
+            ) {
+                showUploadToast(
+                    "error",
+                    "Dimensiones invalidas. Use una imagen entre 64x64 y 2000x2000 px."
+                );
+                event.target.value = "";
+                return;
+            }
+        } catch {
+            showUploadToast("error", "No se pudo procesar la imagen seleccionada.");
+            event.target.value = "";
+            return;
+        }
+
+        if (logoPreviewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(logoPreviewUrl);
+        }
+
+        setCustomLogoFile(file);
+        setLogoPreviewUrl(URL.createObjectURL(file));
+        showUploadToast("success", "Logo cargado correctamente.");
+    };
+
+    const resetLogo = () => {
+        if (logoPreviewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(logoPreviewUrl);
+        }
+        setCustomLogoFile(null);
+        setLogoPreviewUrl(DEFAULT_LOGO_PATH);
+        if (logoInputRef.current) {
+            logoInputRef.current.value = "";
+        }
+        showUploadToast("success", "Se restauro el logo predeterminado.");
+    };
 
     const syncActaDesarrolloLength = (nextOrdenDia) => {
         setActaDesarrollo((prev) => {
@@ -164,9 +260,11 @@ export default function CreatePDF() {
 
         try {
             const form = new FormData(e.target);
-            const data = Object.fromEntries(form.entries());
+            if (customLogoFile) {
+                form.set("logo_file", customLogoFile);
+            }
 
-            const response = await api.post("/generate-pdf", data, {
+            const response = await api.post("/generate-pdf", form, {
                 responseType: "blob",
             });
 
@@ -210,6 +308,14 @@ export default function CreatePDF() {
     return (
         <DashboardLayout>
             <div className="h-full overflow-y-auto bg-gray-100 flex flex-col">
+                {uploadToastState && (
+                    <div className="toast toast-top toast-end z-80 mt-16">
+                        <div className={`alert ${uploadToastState.type === "error" ? "alert-error" : "alert-success"} shadow-lg`}>
+                            <span>{uploadToastState.message}</span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-6 py-3">
                     <button
                         type="button"
@@ -234,6 +340,26 @@ export default function CreatePDF() {
                                 <option key={type.value} value={type.value}>{type.label}</option>
                             ))}
                         </select>
+
+                        <label className="btn btn-sm rounded-xl bg-base-200 border-gray-200 text-gray-700 hover:bg-base-300">
+                            Subir logo
+                            <input
+                                ref={logoInputRef}
+                                type="file"
+                                accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                                className="hidden"
+                                onChange={handleLogoChange}
+                            />
+                        </label>
+
+                        <button
+                            type="button"
+                            onClick={resetLogo}
+                            className="btn btn-sm rounded-xl bg-base-200 border-gray-200 text-gray-700 hover:bg-base-300"
+                        >
+                            Usar SENA
+                        </button>
+
                         <button
                             type="submit"
                             form="pdfForm"
@@ -264,16 +390,8 @@ export default function CreatePDF() {
                         <input type="hidden" name="informe_conclusiones_json" value={JSON.stringify(informeConclusiones)} />
                         <input type="hidden" name="informe_recomendaciones_json" value={JSON.stringify(informeRecomendaciones)} />
 
-                        <div className="flex w-full h-3.5 mb-10">
-                            <div className="w-[30%] h-full bg-[#0FB849]" />
-                            <div className="w-[40%] h-full bg-[#2c3e50]" />
-                            <div className="w-[30%] h-full bg-[#0FB849]" />
-                        </div>
-
-                        <div className="text-center underline font-bold text-[14pt] mb-12 text-gray-800 leading-snug">
-                            SENA - Centro de comercio y servicios - Regional Pereira
-                            <br />
-                            {selectedTypeLabel}
+                        <div className="mb-8">
+                            <img src={logoPreviewUrl} alt="Logo institucional" className="h-16 w-auto object-contain" />
                         </div>
 
                         {documentType === "carta" && (
