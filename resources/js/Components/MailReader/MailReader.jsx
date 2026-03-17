@@ -98,6 +98,33 @@ export function MailReader() {
         }
     };
 
+    const handleAssignDate = async (days) => {
+        try {
+            const response = await axios.patch(`/api/pqrs/${currentMail.id}`, {
+                response_days: days,
+            });
+
+            setMailCards((prev) =>
+                prev.map((mail) =>
+                    mail.id === currentMail.id
+                        ? { ...mail, response_time: response.data.data.response_time }
+                        : mail
+                )
+            );
+
+            // Cerrar el menú desplegable al hacer clic
+            const elem = document.activeElement;
+            if (elem) {
+                elem.blur();
+            }
+        } catch (error) {
+            console.error("Assign date error:", error);
+            if (error.response) {
+                alert(error.response.data.message || error.response.data.error || "Error al asignar fecha");
+            }
+        }
+    };
+
     return (
         <div
             className={`
@@ -165,9 +192,9 @@ export function MailReader() {
                                 Asignar fecha límite 
                             </div>
                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li><a>10 días </a></li>
-                                <li><a>15 días </a></li>
-                                <li><a>30 días </a></li>
+                                <li><a onClick={() => handleAssignDate(10)}>10 días </a></li>
+                                <li><a onClick={() => handleAssignDate(15)}>15 días </a></li>
+                                <li><a onClick={() => handleAssignDate(30)}>30 días </a></li>
                             </ul>
                         </div>
                     )}
