@@ -426,6 +426,29 @@ export default function CreatePDF() {
         }
     };
 
+    const handleResetFooter = async () => {
+        setIsSavingFooter(true);
+        try {
+            const response = await api.post("/pdf/footer-preference", {
+                footer_text: defaultFooterText,
+            });
+
+            if (response.data?.footer_text) {
+                setFooterText(response.data.footer_text);
+            } else {
+                setFooterText(defaultFooterText);
+            }
+
+            showUploadToast("success", "Pie de pagina restablecido correctamente.");
+            closeFooterModal();
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.response?.data?.error || "No se pudo restablecer el pie de pagina.";
+            showUploadToast("error", errorMessage);
+        } finally {
+            setIsSavingFooter(false);
+        }
+    };
+
     return (
         <DashboardLayout>
             <div className="h-full overflow-y-auto bg-gray-100 flex flex-col">
@@ -963,7 +986,17 @@ export default function CreatePDF() {
 
             <dialog ref={footerModalRef} className="modal">
                 <div className="modal-box max-w-xl">
-                    <h3 className="font-bold text-lg mb-4">Personalizar pie de pagina</h3>
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                        <h3 className="font-bold text-lg">Personalizar pie de pagina</h3>
+                        <button
+                            type="button"
+                            onClick={handleResetFooter}
+                            disabled={isSavingFooter}
+                            className="btn btn-sm btn-outline border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                        >
+                            Reestablecer
+                        </button>
+                    </div>
                     <p className="text-sm text-gray-500 mb-3">
                         Este pie se guarda por cuenta y se reutiliza al volver al creador de PDF.
                     </p>
