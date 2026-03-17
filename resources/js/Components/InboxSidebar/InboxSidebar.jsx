@@ -114,13 +114,13 @@ export default function InboxSidebar() {
                     </div>
                 </div>
                 <div className="flex justify-between p-2 items-center">
-                    <h3
+                    <h5
                         id="inbox-date"
                         className="text-start px-2 my-4 font-bold capitalize"
                     >
                         {currentMonthYear}
-                    </h3>
-
+                    </h5>
+                    
                     <SelectDependecyOrNumberSheet />
                 </div>
             </div>
