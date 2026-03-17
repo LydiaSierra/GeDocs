@@ -17,25 +17,25 @@ class NotificationController extends Controller
             ->notifications()
             ->latest()
             ->get();
-        return redirect()->back()->with(['success' => true, 'notifications' => $notifications]);
+        return response()->json(['success' => true, 'notifications' => $notifications]);
     }
 
     public function unread(Request $request)
     {
-        return redirect()->back()->with(['success' => true, 'notifications' => $request->user()->unreadNotifications]);
+        return response()->json(['success' => true, 'notifications' => $request->user()->unreadNotifications]);
     }
 
     public function read(Request $request)
     {
-        return redirect()->back()->with(['success' => true, 'notifications' => $request->user()->readNotifications]);
+        return response()->json(['success' => true, 'notifications' => $request->user()->readNotifications]);
     }
     public function show(Request $request, $id)
     {
         $notification = $request->user()->notifications()->find($id);
         if (!$notification) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Notification not found']);
+            return response()->json(['success' => false, 'message' => 'Notification not found'], 404);
         }
-        return redirect()->back()->with(['success' => true, 'notification' => $notification]);
+        return response()->json(['success' => true, 'notification' => $notification]);
     }
 
     public function markAsRead(Request $request, $id)
@@ -45,10 +45,10 @@ class NotificationController extends Controller
             ->where('id', $id)
             ->first();
         if (!$notification) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Notificación no encontrada']);
+            return response()->json(['success' => false, 'message' => 'Notificación no encontrada'], 404);
         }
         $notification->markAsRead();
-        return redirect()->back()->with(['success' => true, 'notifications' => $notification]);
+        return response()->json(['success' => true, 'notification' => $notification]);
     }
 
     public function updateUserOfNotification(Request $request, $id, $state)
@@ -58,15 +58,16 @@ class NotificationController extends Controller
             ->where('id', $id)
             ->first();
         if (!$notification) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Notificación no encontrada']);
+            return response()->json(['success' => false, 'message' => 'Notificación no encontrada'], 404);
         }
-        $user = User::find($notification->data["user"]["id"]);
+        $userSummary = $notification->data["user"];
+        $user = User::find($userSummary["id"]);
         if (!$user) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
+            return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
         }
         $stateAllowed = ["active", "pending", "rejected"];
         if (!in_array($state, $stateAllowed)) {
-            return redirect()->back()->with(['success' => false, 'message' => 'Estado no permitido']);
+            return response()->json(['success' => false, 'message' => 'Estado no permitido'], 400);
         }
         $user->update([
             'status' => $state,
@@ -76,6 +77,6 @@ class NotificationController extends Controller
         $notification->update([
             'data' => $data,
         ]);
-        return redirect()->back()->with(['success' => true, 'message' => 'Estado de usuario actualizado correctamente', 'notification' => $notification]);
+        return response()->json(['success' => true, 'message' => 'Estado de usuario actualizado correctamente', 'notification' => $notification]);
     }
 }

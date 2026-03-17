@@ -17,6 +17,9 @@ class NewUserRegistered extends Notification
      */
     public function __construct($newUser)
     {
+        if (!$newUser->relationLoaded('roles')) {
+            $newUser->load('roles');
+        }
         $this->newUser = $newUser;
     }
 
@@ -36,9 +39,13 @@ class NewUserRegistered extends Notification
     public function toDatabase($notifiable): array
     {
         $user = $this->newUser;
+        $userData = $user->toArray();
+        // Asegurarse de que los roles estén incluidos para el filtro del frontend
+        $userData['roles'] = $user->roles->toArray();
+
         return [
-            'role' => "Instructor",
-            'user' => $user,
+            'role' => $user->roles->first() ? $user->roles->first()->name : 'Usuario',
+            'user' => $userData,
         ];
     }
 
