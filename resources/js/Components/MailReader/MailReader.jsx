@@ -125,6 +125,31 @@ export function MailReader() {
         }
     };
 
+    // Calculate time remaining to response
+    const getDeadlineColor = (createdDateStr, responseDateStr) => {
+        if (!createdDateStr || !responseDateStr) return "text-gray-700";
+
+        const now = new Date();
+        const created = new Date(createdDateStr);
+        const deadline = new Date(responseDateStr);
+
+        // Calculate total time assigned and time left
+        const totalDuration = deadline.getTime() - created.getTime();
+        const timeRemaining = deadline.getTime() - now.getTime();
+
+        // If the deadline is already passed, it's 0% time left
+        const remainingPercentage = totalDuration > 0
+            ? (timeRemaining / totalDuration) * 100
+            : 0;
+
+        // More than 80% left
+        if (remainingPercentage > 80) return "text-primary";
+        // Between 40% and 80% left
+        if (remainingPercentage > 40) return "text-[#F0DA30]";
+        // Below 40% (or overdue)
+        return "text-red-600";
+    };
+
     return (
         <div
             className={`
@@ -183,7 +208,7 @@ export function MailReader() {
                     {/* -------------Button to assing a limit date----------------*/}
                     {""}
                     {currentMail.response_time ? (
-                        <span className="text-sm font-medium text-gray-700 ml-auto">
+                        <span className={`text-sm font-medium ml-auto ${getDeadlineColor(currentMail.created_at, currentMail.response_time)}`}>
                             Fecha límite: {new Date(currentMail.response_time).toLocaleDateString()}
                         </span>
                     ) : (
