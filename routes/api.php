@@ -83,6 +83,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
             //Get sheets related with specific user
             Route::get("/sheetsNumber", [SheetUserController::class, 'index']);
+
+            //Export an excel file with the report from the PQRS received and send
+            Route::get("/export", [\App\Http\Controllers\ExcelEspreadSheetsReports::class, 'export']);
         }
     );
 
