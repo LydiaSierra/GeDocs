@@ -2,7 +2,7 @@ import SenderInformationCard from "@/Components/SenderInformationCard/SenderInfo
 import PdfThumbnail from "@/Components/PdfThumbnail/PdfThumbnail";
 import { PdfCommunicationModal } from "@/Components/PdfCommunicationModal/PdfCommunicationModal";
 import { MailContext } from "@/context/MailContext/MailContext";
-import { useContext, useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import api from "@/lib/axios.js";
@@ -14,6 +14,7 @@ import {
     DocumentPlusIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { usePage } from "@inertiajs/react";
 
 export function MailReader() {
     const {

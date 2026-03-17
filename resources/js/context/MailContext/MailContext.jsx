@@ -1,5 +1,4 @@
 import { createContext, useEffect, useState } from "react";
-import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import api from "@/lib/axios.js";
 import { toast } from "sonner";
