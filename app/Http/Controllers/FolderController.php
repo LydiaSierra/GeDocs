@@ -565,8 +565,8 @@ class FolderController extends Controller
     }
 
 
-   
-    
+
+
 
     /**
      * Seeds the default folder structure inside a specific year folder.
