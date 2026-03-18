@@ -7,7 +7,7 @@ import { MailContext } from '@/context/MailContext/MailContext.jsx';
 const SelectDependecyOrNumberSheet = ({
     activeScopeFilter = null,
     setActiveScopeFilter = null,
-    showOnRoutes = ['inbox', 'archive'],
+    showOnRoutes = ['inbox', 'archive', 'outbox'],
 }) => {
     const { sheets = [], auth } = usePage().props;
     const mailContext = useContext(MailContext);

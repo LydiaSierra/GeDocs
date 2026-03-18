@@ -14,7 +14,7 @@ import {
     DocumentPlusIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 
 export function MailReader() {
     // ─── Context ───────────────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ export function MailReader() {
             );
             alert("Respuesta enviada correctamente");
             setUploadedPdfFile(null);
+            router.visit(route('outbox'));
         } catch (error) {
             console.error("Respond error:", error);
             const msg =

@@ -27,6 +27,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
+        
+    Route::get('/outbox', fn() => Inertia::render('Outbox'))
+        ->name('outbox');
 
 
     //Vista de notificaciones pasando el id

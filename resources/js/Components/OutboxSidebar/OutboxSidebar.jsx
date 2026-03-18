@@ -1,15 +1,13 @@
 import {
-    BarsArrowUpIcon,
     FunnelIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
-import { InboxIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
 import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
-export default function InboxSidebar() {
+export default function OutboxSidebar() {
     const {
         filteredMailCards,
         selectedMail,
@@ -35,7 +33,7 @@ export default function InboxSidebar() {
     }).format(new Date());
 
     useEffect(() => {
-        setSideFilter('received');
+        setSideFilter('sent');
     }, [setSideFilter]);
 
     return (
@@ -57,7 +55,7 @@ export default function InboxSidebar() {
         >
             <div className="w-full flex flex-col">
                 <h2 className="font-bold text-2xl mb-4 text-center text-gray-800">
-                    Bandeja de Entrada
+                    Bandeja de Salida
                 </h2>
 
                 <div id="inbox-search" className="flex gap-2 w-full">
