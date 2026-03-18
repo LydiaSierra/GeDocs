@@ -3,7 +3,7 @@ import { ArrowDownTrayIcon, EllipsisVerticalIcon, InformationCircleIcon, PencilS
 import { usePage } from '@inertiajs/react'
 import React from 'react'
 import { toast } from 'sonner'
-import { DeleteButtonOption, DetailsButtonOption, EditButtonOption } from './OptionsButtons'
+import { DeleteButtonOption, DetailsButtonOption, EditButtonOption, MoveButtonOption } from './OptionsButtons'
 import { getSelectedItem, useExplorerData } from '@/Hooks/useExplorer'
 
 const MenuOptions = () => {
@@ -46,6 +46,7 @@ const MenuOptions = () => {
                             {!selectedItem?.extension &&
                                 <EditButtonOption />
                             }
+                            <MoveButtonOption />
 
                             <DeleteButtonOption />
                         </>
