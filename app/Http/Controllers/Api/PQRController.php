@@ -176,8 +176,8 @@ class PQRController extends Controller
                 $path = $file->store('pqr_attachments', 'public');
                 $hash = hash('adler32',time());
                 $pqrID = $pqr->id;
-                if($pqrID<99){
-                    if($pqrID<9){
+                if($pqrID<=99){
+                    if($pqrID<=9){
                         $pqrID = "00$pqrID";
                     }
                     $pqrID = "0$pqrID";
