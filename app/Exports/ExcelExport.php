@@ -133,38 +133,37 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function headings(): array
     {
         return [
-            //row 1
+            // Rows 1–2 (top band)
             [
-                'logo','',
-                'nombre empresa','','','','','','','','','','','','','','','','',
-                'fecha elaboracion','',''
-            ],
-
-            [
-                '','','','','','','','','','','','','','','','','','','','','',''
-            ],
-            [
-                'Registro radicacion','','','','','','','','','','','','','','','','','','','','',''
+                'LOGO','',
+                "ALCALDÍA MUNICIPAL SOPÓ - CUNDINAMARCA\nNIT 899999468-2",'','','','','','','','','','','','','','','','',
+                'Fecha de elaboración','',''
             ],
 
             [
                 '','','','','','','','','','','','','','','','','','','','','',''
             ],
 
-
-            //row 2
+            // Rows 3–4 (main title band)
             [
-                'Unidad administrtiva','','','','','','','','','','','','','','','','','','','','','',
+                'Registro de Radicación de Comunicaciones Recibidas','','','','','','','','','','','','','','','','','','','','',''
             ],
 
-            //row 3
+            [
+                '','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            // Row 5 (secondary captions)
+            [
+                'Unidad Administrativa','','','','','','','','','','','','','','','','','','','','','',
+            ],
+
+            // Row 6 (secondary captions)
             [
                 'Oficina productora','','','','','','','','','','','','','','','','','','','','','',
             ],
 
-
-
-            //row 4
+            // Row 7 (table header, first line)
             [
                 'Numero Radicado',
                 'Fecha(dd/mm/aa)',
@@ -181,7 +180,7 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
                 'Respuesta',''
             ],
 
-            //row 5
+            // Row 8 (table header, second line)
             [
                 '','','','',
                 'Codigo de la Dependencia',
@@ -198,12 +197,7 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
                 'Numero Consecutivo',
                 'Fecha (dd/mm/aa)'
             ]
-
-
-
-
-
-            ];
+        ];
     }
 
     /**
@@ -255,20 +249,45 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
      */
     public function styles(Worksheet $sheet)
     {
-        // Header row style
-        $headerRange = 'A1:V8';
-        $sheet->getStyle($headerRange)->getFont()->setBold(true);
-        $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFE5F1FB'); // light blue
-        $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        // Header alignment and wrapping (rows 1–8)
+        $sheet->getStyle('A1:V8')
+            ->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
 
-        // Apply thin borders to used range
+        // Base font for header
+        $sheet->getStyle('A1:V8')->getFont()
+            ->setName('Times New Roman')
+            ->setBold(true)
+            ->setSize(11);
+
+        // Specific font sizes per template
+        $sheet->getStyle('C1:S2')->getFont()->setSize(24); // main title and NIT
+        $sheet->getStyle('A3:V4')->getFont()->setSize(18); // secondary title
+
+        // Light fills (subtle so text is readable)
+        $sheet->getStyle('A1:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
+        $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF9FAFB');
+        $sheet->getStyle('A7:V8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
+
+        // Row heights to visually match template proportions
+        $sheet->getRowDimension(1)->setRowHeight(28);
+        $sheet->getRowDimension(2)->setRowHeight(28);
+        $sheet->getRowDimension(3)->setRowHeight(24);
+        $sheet->getRowDimension(4)->setRowHeight(24);
+        $sheet->getRowDimension(5)->setRowHeight(18);
+        $sheet->getRowDimension(6)->setRowHeight(18);
+        $sheet->getRowDimension(7)->setRowHeight(22);
+        $sheet->getRowDimension(8)->setRowHeight(22);
+
+        // Apply thin borders to entire used range
         $highestRow = $sheet->getHighestRow();
         $highestCol = $sheet->getHighestColumn();
         $sheet->getStyle("A1:{$highestCol}{$highestRow}")
             ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-        // Zebra stripes for data rows
+        // Zebra stripes for data rows only (from row 9 onward)
         for ($row = 9; $row <= $highestRow; $row++) {
             if ($row % 9 === 0) {
                 $sheet->getStyle("A{$row}:{$highestCol}{$row}")
