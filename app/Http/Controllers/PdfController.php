@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\PQR;
 use App\Models\AttachedSupport;
+use App\Models\Folder;
+use App\Models\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PQRResponseMail;
@@ -63,6 +65,77 @@ class PdfController extends Controller
             return response()->json([
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function generateToExplorer(Request $request)
+    {
+        $validated = $request->validate([
+            'folder_id' => 'required|exists:folders,id',
+            'sheet_id' => 'nullable|integer',
+            'document_type' => 'nullable|string|max:100',
+            'footer_text' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $folder = Folder::where('id', $validated['folder_id'])
+                ->where('active', true)
+                ->firstOrFail();
+
+            $data = $request->all();
+            $documentType = $data['document_type'] ?? 'documento';
+            $safeDocumentType = preg_replace('/[^a-z0-9_-]/i', '', $documentType);
+            $logoDataUri = $this->resolveLogoDataUri($request);
+            $signatureDataUri = $this->resolveSignatureDataUri($request);
+
+            $defaultFooter = "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.";
+            $requestedFooter = trim((string) ($data['footer_text'] ?? ''));
+            $savedFooter = trim((string) ($request->user()?->pdf_footer_text ?? ''));
+            $resolvedFooter = $requestedFooter !== '' ? $requestedFooter : ($savedFooter !== '' ? $savedFooter : $defaultFooter);
+            $data['footer_text'] = $resolvedFooter;
+
+            if ($request->user() && $requestedFooter !== '' && $request->user()->pdf_footer_text !== $requestedFooter) {
+                $request->user()->update(['pdf_footer_text' => $requestedFooter]);
+            }
+
+            $pdf = Pdf::loadView('pdf.template', [
+                'data' => $data,
+                'logoDataUri' => $logoDataUri,
+                'signatureDataUri' => $signatureDataUri,
+            ]);
+
+            $fileYear = date('Y');
+            $folderCode = $folder->folder_code ?? '000';
+            $baseName = ($safeDocumentType ?: 'documento') . '_' . now()->format('Ymd_His');
+            $newName = "{$fileYear}-Ex-{$folderCode}-{$baseName}.pdf";
+            $path = "folders/{$folder->id}/{$newName}";
+
+            Storage::disk('public')->put($path, $pdf->output());
+
+            $newFile = File::create([
+                'name' => $newName,
+                'path' => $path,
+                'extension' => 'pdf',
+                'mime_type' => 'application/pdf',
+                'size' => Storage::disk('public')->size($path),
+                'folder_id' => $folder->id,
+                'active' => true,
+            ]);
+
+            return response()->json([
+                'message' => 'PDF generado y guardado correctamente.',
+                'folder_id' => $folder->id,
+                'sheet_id' => $validated['sheet_id'] ?? null,
+                'file' => [
+                    'id' => $newFile->id,
+                    'name' => $newFile->name,
+                    'url' => asset('storage/' . $newFile->path),
+                ],
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 

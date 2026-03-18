@@ -12,10 +12,16 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+    Route::post('/generate-pdf-to-explorer', [PdfController::class, 'generateToExplorer'])->name('pdf.generateToExplorer');
     Route::post('/pdf/footer-preference', [PdfController::class, 'saveFooterPreference'])->name('pdf.footer-preference');
     Route::post('/pdf/logo-preference', [PdfController::class, 'saveLogoPreference'])->name('pdf.logo-preference');
     Route::delete('/pdf/logo-preference', [PdfController::class, 'resetLogoPreference'])->name('pdf.logo-preference.reset');
-    Route::get('/create-pdf', fn() => Inertia::render('CreatePDF'))->name('create-pdf');
+    Route::get('/create-pdf', function (\Illuminate\Http\Request $request) {
+        return Inertia::render('CreatePDF', [
+            'targetFolderId' => $request->query('folder_id') ? (int) $request->query('folder_id') : null,
+            'targetSheetId' => $request->query('sheet_id') ? (int) $request->query('sheet_id') : null,
+        ]);
+    })->name('create-pdf');
 
 
     // Inbox principal

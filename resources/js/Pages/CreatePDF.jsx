@@ -117,6 +117,7 @@ const EditableList = ({ title, items, setItems, placeholder, numbered = false, m
 
 export default function CreatePDF() {
     const { auth } = usePage().props;
+    const { targetFolderId, targetSheetId } = usePage().props;
     const initialUserLogoUrl = auth?.user?.pdf_logo_path ? `/storage/${auth.user.pdf_logo_path}` : DEFAULT_LOGO_PATH;
     const defaultFooterText = `SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs ${new Date().getFullYear()} Todos los derechos reservados.`;
     const [isGenerating, setIsGenerating] = useState(false);
@@ -384,8 +385,16 @@ export default function CreatePDF() {
         const toastId = toast.loading("Generando PDF...");
 
         try {
+            if (!targetFolderId) {
+                throw new Error("No se encontro la carpeta destino para guardar el PDF.");
+            }
+
             const form = new FormData(e.target);
             form.set("footer_text", footerText);
+            form.set("folder_id", targetFolderId);
+            if (targetSheetId) {
+                form.set("sheet_id", targetSheetId);
+            }
             if (customLogoFile) {
                 form.set("logo_file", customLogoFile);
             }
@@ -393,40 +402,22 @@ export default function CreatePDF() {
                 form.set("signature_file", customSignatureFile);
             }
 
-            const response = await api.post("/generate-pdf", form, {
-                responseType: "blob",
-            });
-
-            if (response.data.type === "application/json") {
-                const text = await response.data.text();
-                const errorData = JSON.parse(text);
-                throw new Error(errorData.error || "Error desconocido en el servidor");
-            }
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${documentType}.pdf`;
-            a.click();
-            window.URL.revokeObjectURL(url);
+            const response = await api.post("/generate-pdf-to-explorer", form);
 
             toast.dismiss(toastId);
-            toast.success("PDF generado correctamente");
+            toast.success("PDF generado y guardado correctamente");
+
+            const redirectFolderId = response.data?.folder_id || targetFolderId;
+            const redirectSheetId = response.data?.sheet_id || targetSheetId || undefined;
+            router.visit(route('explorer', {
+                folder_id: redirectFolderId,
+                sheet_id: redirectSheetId,
+            }));
         } catch (error) {
             toast.dismiss(toastId);
 
             let errorMessage = "No se pudo generar el PDF";
-            if (error.response?.data instanceof Blob) {
-                const text = await error.response.data.text();
-                try {
-                    const json = JSON.parse(text);
-                    errorMessage = json.error || errorMessage;
-                } catch {
-                    errorMessage = text || errorMessage;
-                }
-            } else {
-                errorMessage = error.message || errorMessage;
-            }
+            errorMessage = error?.response?.data?.error || error?.message || errorMessage;
 
             toast.error(errorMessage);
         } finally {
