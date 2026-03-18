@@ -3,7 +3,6 @@ import {
   InboxIcon,
   PlusCircleIcon,
   InboxArrowDownIcon,
-  PaperAirplaneIcon,
   ArchiveBoxIcon
 } from "@heroicons/react/24/solid";
 import NavLink from "../NavLink";
@@ -19,7 +18,7 @@ export default function Sidebar() {
 
     const links = [
         { id: "inbox", href: "inbox", icon: InboxIcon},
-        { id: "outbox", href: "outbox", icon: PaperAirplaneIcon },
+        { id: "outbox", href: "outbox", icon: InboxArrowDownIcon },
         { id: "archive", href: "archive", icon: ArchiveBoxIcon },
         { id: "explorer", href: "explorer", icon: FolderIcon },
     ];
