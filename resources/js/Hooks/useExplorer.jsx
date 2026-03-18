@@ -8,10 +8,10 @@ let store = {
     currentFolder: null,
     selectedItems: [],
     isMultipleSelection: false,
-    pendingDelete: null,
     files: [],
     loading: false,
     loadingAllFolders: false,
+    pendingMoveItems: [],
     historyStack: [],
     activeSheetId: null,
     folders: [],
@@ -343,6 +343,44 @@ export const useExplorer = () => {
         });
     };
 
+    const startMoveItems = () => {
+        if (store.selectedItems.length === 0) return;
+        setStore({ pendingMoveItems: [...store.selectedItems], selectedItems: [] });
+    };
+
+    const cancelMoveItems = () => {
+        setStore({ pendingMoveItems: [] });
+    };
+
+    const performMoveItems = () => {
+        if (!store.currentFolder || store.pendingMoveItems.length === 0) {
+            toast.error("No puedes mover archivos a la carpeta raíz o no hay elementos para mover.");
+            return;
+        }
+
+        const foldersToMove = store.pendingMoveItems.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToMove = store.pendingMoveItems.filter(i => i.type === 'file').map(i => i.id);
+
+        let toastId = toast.loading("Moviendo elementos...");
+        router.post(route('folders.moveMixed'), {
+            folders: foldersToMove,
+            files: filesToMove,
+            target_folder_id: store.currentFolder.id
+        }, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Elementos movidos correctamente");
+                setStore({ pendingMoveItems: [] });
+                fetchFolders(store.currentFolder.id, store.activeSheetId);
+                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+            },
+            onError: () => {
+                toast.dismiss(toastId);
+                toast.error("Error al mover elementos");
+            }
+        });
+    };
+
     const globalSearch = (term) => {
     setStore({ inputSearchTerm: term });
 
@@ -472,7 +510,10 @@ export const useExplorer = () => {
         setSelectedItems,
         setArchivedMode,
         fetchArchived,
-        restoreSelection
+        restoreSelection,
+        startMoveItems,
+        cancelMoveItems,
+        performMoveItems
     };
 };
 

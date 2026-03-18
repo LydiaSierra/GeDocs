@@ -9,7 +9,6 @@ export const DashboardLayout = ({children}) => {
             <Header/>
             <div className='flex gap-[5px] h-screen'>
                 <Sidebar/>
-                <DropdownFolders/>
                 <div className='pt-14 pb-2 flex-1 min-w-0 h-full'>
                     {children}
                 </div>

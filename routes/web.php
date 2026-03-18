@@ -98,6 +98,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/folders/archived', [FolderController::class, 'archived'])
         ->name('folders.archived');
 
+    Route::post('/folders/move-mixed', [FolderController::class, 'moveMixed'])
+        ->name('folders.moveMixed');
+
     Route::post('/folders/restore-mixed', [FolderController::class, 'restoreMixed'])
         ->name('folders.restoreMixed');
 

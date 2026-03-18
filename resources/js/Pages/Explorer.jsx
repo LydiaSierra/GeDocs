@@ -12,6 +12,7 @@ import { usePage, router } from "@inertiajs/react";
 import ModalCreateYear from "@/Components/ArchiveExplorer/Modals/ModalCreateYear";
 import ModalEditYear from "@/Components/ArchiveExplorer/Modals/ModalEditYear";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
+import DropdownFolders from "@/Components/ArchiveExplorer/DropdownFolders";
 
 export default function Explorer() {
     const {
@@ -314,6 +315,8 @@ export default function Explorer() {
                                     )}
                                 </div>
                             )}
+                <DropdownFolders/>
+
 
 
                             { /* ====== FOLDER EXPLORER VIEW ====== */}
