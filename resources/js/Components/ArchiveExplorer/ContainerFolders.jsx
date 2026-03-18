@@ -23,6 +23,7 @@ export default function ContainerFolders() {
 
    const {
         folders,
+       allFolders,
         loading,
         goBack,
         historyStack,
@@ -40,10 +41,48 @@ export default function ContainerFolders() {
         inputSearchTerm
     } = useExplorerUI();
 
+    const extractYearFromFolder = (folder) => {
+        if (!folder) return null;
+
+        if (folder?.year && !Number.isNaN(Number(folder.year))) {
+            return Number(folder.year);
+        }
+
+        if (/^\d{4}$/.test(String(folder?.name || ""))) {
+            return Number(folder.name);
+        }
+
+        return null;
+    };
+
+    const findYearFromCurrentPath = () => {
+        if (!currentFolder || !Array.isArray(allFolders) || allFolders.length === 0) {
+            return null;
+        }
+
+        const folderById = new Map(allFolders.map((folder) => [folder.id, folder]));
+        let cursor = currentFolder;
+
+        while (cursor) {
+            const year = extractYearFromFolder(cursor);
+            if (year) return year;
+
+            cursor = cursor.parent_id ? folderById.get(cursor.parent_id) : null;
+        }
+
+        return null;
+    };
+
     const activeSheet = sheets.find((sheet) => sheet.id === activeSheetId);
+
+    const currentYear = findYearFromCurrentPath()
+        || Number(localStorage.getItem("active_sheet_year"))
+        || new Date().getFullYear();
+
     const electronicIndexHref = route("electronic-index", {
         sheet_id: activeSheetId || undefined,
         sheet_number: activeSheet?.number || undefined,
+        year: currentYear || undefined,
     });
 
 
@@ -97,6 +136,10 @@ export default function ContainerFolders() {
 
                                 if (activeSheet?.number) {
                                     localStorage.setItem("active_sheet_number", String(activeSheet.number));
+                                }
+
+                                if (currentYear) {
+                                    localStorage.setItem("active_sheet_year", String(currentYear));
                                 }
                             }}
                         >
