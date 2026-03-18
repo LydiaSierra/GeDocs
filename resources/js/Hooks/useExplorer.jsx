@@ -171,7 +171,10 @@ export const useExplorer = () => {
             forceFormData: true,
             onStart: () => setStore({ loading: true }),
             onFinish: () => setStore({ loading: false }),
-            onSuccess: () => toast.success("Archivos subidos con éxito"),
+            onSuccess: () => {
+                toast.success("Archivos subidos con éxito");
+                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+            },
             onError: () => toast.error("Error al subir archivos"),
         });
     };
@@ -329,6 +332,7 @@ export const useExplorer = () => {
 
                 // Recargar datos desde el servidor
                 fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
 
                 if (store.archivedMode) fetchArchived(store.activeSheetId);
             },

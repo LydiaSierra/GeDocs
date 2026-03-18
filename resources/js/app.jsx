@@ -13,6 +13,7 @@ import { UserProvider } from "./context/UserContext/UserContext";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
 import { Toaster } from "sonner";
+import { ElectronicIndexProvider } from "./context/ElectronicIndexContext/ElectronicIndexContext";
 
 const appName = "GeDocs"
 
@@ -27,14 +28,24 @@ createInertiaApp({
 
     setup({ el, App, props }) {
         const root = createRoot(el);
+        const authUserId = props?.initialPage?.props?.auth?.user?.id ?? null;
+        const authUserRole = props?.initialPage?.props?.auth?.user?.roles?.[0]?.name ?? null;
+        const inertiaVersion = props?.initialPage?.version ?? null;
 
         root.render(
             <NotificationsProvider>
                 <UserProvider>
                     <SheetsProvider>
                         <DependenciesProvider>
-                            <Toaster position="top-center" richColors closeButton expand={false} />
-                            <App {...props} />
+                            <ElectronicIndexProvider
+                                authUserId={authUserId}
+                                authUserRole={authUserRole}
+                                inertiaVersion={inertiaVersion}
+                            >
+                                <Toaster position="top-center" richColors closeButton expand={false} />
+
+                                <App {...props} />
+                            </ElectronicIndexProvider>
                         </DependenciesProvider>
                     </SheetsProvider>
                 </UserProvider>

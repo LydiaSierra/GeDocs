@@ -128,6 +128,8 @@ class PdfController extends Controller
                 'size'             => $fileSize,
                 'pqr_id'           => $validated['pqr_id'],
                 'comunication_id'  => $validated['communication_id'] ?? null,
+                'hash'             => hash('sha256', uniqid((string) $pqr->id, true)),
+                'no_radicado'      => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
             ]);
 
             // Marcar la PQR como respondida
