@@ -446,6 +446,8 @@ class PQRController extends Controller
                         'type' => $file->getClientOriginalExtension(),
                         'size' => $file->getSize(),
                         'pqr_id' => $pqr->id,
+                        'hash' => hash('sha256', uniqid((string) $pqr->id, true)),
+                        'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
                     ]);
                 }
             }
