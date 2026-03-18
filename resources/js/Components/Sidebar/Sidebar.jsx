@@ -1,11 +1,14 @@
 import {
-  ArchiveBoxIcon,
   FolderIcon,
   InboxIcon,
-  PlusCircleIcon
+  PlusCircleIcon,
+  InboxArrowDownIcon,
+  ArchiveBoxIcon
 } from "@heroicons/react/24/solid";
 import NavLink from "../NavLink";
 import { Link, usePage } from "@inertiajs/react";
+
+
 
 export default function Sidebar() {
     const { props } = usePage();
@@ -15,6 +18,7 @@ export default function Sidebar() {
 
     const links = [
         { id: "inbox", href: "inbox", icon: InboxIcon},
+        { id: "outbox", href: "outbox", icon: InboxArrowDownIcon },
         { id: "archive", href: "archive", icon: ArchiveBoxIcon },
         { id: "explorer", href: "explorer", icon: FolderIcon },
     ];
