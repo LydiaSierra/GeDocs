@@ -15,29 +15,16 @@
             padding: 0;
         }
 
-        .top-bar {
-            width: 100%;
-            height: 15px;
-            margin-bottom: 40px;
+        .logo-wrapper {
+            margin-bottom: 22px;
         }
 
-        .bar-SenaGreen { width: 30%; height: 100%; background-color: #0FB849; float: left; }
-        .bar-blue { width: 40%; height: 100%; background-color: #2c3e50; float: left; }
-        .bar-SenaGreen-right { width: 30%; height: 100%; background-color: #0FB849; float: left; }
-
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
-        }
-
-        .main-title {
-            text-align: center;
-            text-decoration: underline;
-            font-weight: bold;
-            font-size: 14pt;
-            margin-bottom: 30px;
-            clear: both;
+        .document-logo {
+            height: 56px;
+            width: auto;
+            max-width: 220px;
+            display: block;
+            object-fit: contain;
         }
 
         .centered { text-align: center; }
@@ -55,6 +42,20 @@
             width: 250px;
             border-top: 1px solid #000;
             padding-top: 6px;
+        }
+
+        .signature-stamp {
+            height: 48px;
+            width: auto;
+            max-width: 220px;
+            display: block;
+            object-fit: contain;
+            margin-bottom: 6px;
+        }
+
+        .signature-blank {
+            height: 48px;
+            margin-bottom: 6px;
         }
 
         .footer {
@@ -112,16 +113,15 @@
     $informeRecomendaciones = $decodeList('informe_recomendaciones_json');
 @endphp
 
-<div class="top-bar clearfix">
-    <div class="bar-SenaGreen"></div>
-    <div class="bar-blue"></div>
-    <div class="bar-SenaGreen-right"></div>
-</div>
+@php
+    $footerText = $data['footer_text'] ?? ("SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.");
+@endphp
 
-<div class="main-title">
-    SENA - Centro de comercio y servicios - Regional Pereira<br>
-    {{ ucfirst($documentType) }}
-</div>
+@if(!empty($logoDataUri))
+    <div class="logo-wrapper">
+        <img src="{{ $logoDataUri }}" alt="Logo institucional" class="document-logo">
+    </div>
+@endif
 
 @if($documentType === 'carta')
     <div class="section">
@@ -148,6 +148,11 @@
     <div class="section"><div class="line">{{ $data['despedida1'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -180,6 +185,11 @@
     <div class="section"><div class="line">{{ $data['despedida1'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -259,6 +269,11 @@
     <div class="section"><div class="line">{{ $data['convocatoria'] ?? '' }}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -330,6 +345,11 @@
     @endif
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
             <div class="line">{{ $data['firma_cargo'] ?? '' }}</div>
@@ -356,6 +376,11 @@
     <div class="section"><div class="large-text">{!! nl2br(e($data['constancia_cuerpo'] ?? '')) !!}</div></div>
 
     <div class="signature-container">
+        @if(!empty($signatureDataUri))
+            <img src="{{ $signatureDataUri }}" alt="Firma" class="signature-stamp">
+        @else
+            <div class="signature-blank"></div>
+        @endif
         <div class="signature-line">
             <div class="line bold">{{ $data['firma_nombres'] ?? '' }}</div>
         </div>
@@ -368,8 +393,7 @@
 @endif
 
 <div class="footer">
-    SENA - Centro de comercio y servicios - Area de gestion documental<br>
-    &copy; Gedocs {{ date('Y') }} Todos los derechos reservados.
+    {!! nl2br(e($footerText)) !!}
 </div>
 
 </body>
