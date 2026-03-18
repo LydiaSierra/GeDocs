@@ -18,6 +18,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithEvents;
+
 
 /**
  * PQRs Excel Export (template)
@@ -31,7 +33,7 @@ use Maatwebsite\Excel\Events\AfterSheet;
  * - Flexible filters: trimester, year, date range, archived, dependency, responsible, response_status
  * - Placeholders for direction/environment once fields exist
  */
-class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, Responsable
+class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, Responsable,WithEvents
 {
     use Exportable;
 
@@ -131,33 +133,77 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function headings(): array
     {
         return [
-             // Fila 1 (headers)
-        [
-            'Numero Radicado',
-            'Fecha(dd/mm/aa)',
-            'Hora',
-            'Cod. Barras',
-            'Codigo de la Dependencia',
-            'Nombre de la Dependencia',
-            'Nombre y Apellidos',
-            'Cargo',
-            'Empresa',
-            'Direccion',
-            'Correo Electronico',
-            'Telefono',
-            'Tipo de Comunicacion',
-            'Asunto',
-            'Anexos',
-            'Fecha Limite Respuesta(dd/mm/aa)',
-            'Firma de Recibido',
-            'Observaciones',
-            'Numero Consecutivo',
-            'Fecha (dd/mm/aa)'
-        ],
+            //row 1
+            [
+                'logo','',
+                'nombre empresa','','','','','','','','','','','','','','','','',
+                'fecha elaboracion','',''
+            ],
 
-        // 👇 Fila 2 VACÍA (clave)
-        array_fill(0, 20, '')
-        ];
+            [
+                '','','','','','','','','','','','','','','','','','','','','',''
+            ],
+            [
+                'Registro radicacion','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            [
+                '','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+
+            //row 2
+            [
+                'Unidad administrtiva','','','','','','','','','','','','','','','','','','','','','',
+            ],
+
+            //row 3
+            [
+                'Oficina productora','','','','','','','','','','','','','','','','','','','','','',
+            ],
+
+
+
+            //row 4
+            [
+                'Numero Radicado',
+                'Fecha(dd/mm/aa)',
+                'Hora',
+                'Cod. Barras',
+                'Datos destinatario','','','',
+                'Datos del remitente','','','','','',
+                'Tipo de Comunicacion',
+                'Asunto',
+                'Anexos',
+                'Fecha Limite Respuesta(dd/mm/aa)',
+                'Firma de Recibido',
+                'Observaciones',
+                'Respuesta',''
+            ],
+
+            //row 5
+            [
+                '','','','',
+                'Codigo de la Dependencia',
+                'Nombre de la Dependencia',
+                'Nombre y Apellidos',
+                'Cargo',
+                'Nombre y Apellidos',
+                'Cargo',
+                'Empresa',
+                'Direccion',
+                'Correo Electronico',
+                'Telefono',
+                '','','','','','',
+                'Numero Consecutivo',
+                'Fecha (dd/mm/aa)'
+            ]
+
+
+
+
+
+            ];
     }
 
     /**
@@ -169,19 +215,24 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function map($p): array
     {
         return [
-            $p->id,
-            optional($p->created_at)->format('Y-m-d'),
-            optional($p->created_at)->format('H:i'),
-            $p->sender_name,
-            $p->email,
-            $p->affair,
-            $p->request_type,
-            $p->response_status,
-            optional($p->response_date)->format('Y-m-d H:i'),
-            optional($p->dependency)->name,
-            optional($p->responsible)->name,
-            $p->archived ? 'Sí' : 'No',
-            optional($p->sheetNumber)->number,
+            $p->id, // A
+            optional($p->created_at)->format('Y-m-d'), // B
+            optional($p->created_at)->format('H:i'), // C
+            $p->sender_name, // D
+
+            '', '', '', '', // E-H
+
+            '', '', '', '', '', '', // I-N
+
+            $p->request_type, // O
+            $p->affair, // P
+            '', // Q
+            optional($p->response_date)->format('Y-m-d'), // R
+            '', // S Firma
+            '', // T
+
+            optional($p->sheetNumber)->number, // U
+            optional($p->created_at)->format('Y-m-d'), // V
         ];
     }
 
@@ -205,7 +256,7 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function styles(Worksheet $sheet)
     {
         // Header row style
-        $headerRange = 'A1:T2';
+        $headerRange = 'A1:V8';
         $sheet->getStyle($headerRange)->getFont()->setBold(true);
         $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FFE5F1FB'); // light blue
@@ -218,8 +269,8 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
             ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         // Zebra stripes for data rows
-        for ($row = 2; $row <= $highestRow; $row++) {
-            if ($row % 2 === 0) {
+        for ($row = 9; $row <= $highestRow; $row++) {
+            if ($row % 9 === 0) {
                 $sheet->getStyle("A{$row}:{$highestCol}{$row}")
                     ->getFill()->setFillType(Fill::FILL_SOLID)
                     ->getStartColor()->setARGB('FFF8FBFF'); // very light blue
@@ -238,9 +289,29 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
         AfterSheet::class => function($event) {
 
             // Total de columnas = 20 (A → T)
-            foreach (range('A', 'T') as $col) {
-                $event->sheet->mergeCells($col . '1:' . $col . '2');
-            }
+            //Fila 1
+            $event->sheet->mergeCells('A1:B2');
+            $event->sheet->mergeCells('C1:S2');
+            $event->sheet->mergeCells('T1:V2');
+            $event->sheet->mergeCells('A3:V4');
+            $event->sheet->mergeCells('A5:B5');
+            $event->sheet->mergeCells('A6:B6');
+            $event->sheet->mergeCells('C5:V5');
+            $event->sheet->mergeCells('C6:V6');
+            $event->sheet->mergeCells('E7:H7');
+            $event->sheet->mergeCells('I7:N7');
+            $event->sheet->mergeCells('U7:V7');
+            $event->sheet->mergeCells('A7:A8');
+            $event->sheet->mergeCells('B7:B8');
+            $event->sheet->mergeCells('C7:C8');
+            $event->sheet->mergeCells('D7:D8');
+            $event->sheet->mergeCells('O7:O8');
+            $event->sheet->mergeCells('P7:P8');
+            $event->sheet->mergeCells('Q7:Q8');
+            $event->sheet->mergeCells('R7:R8');
+            $event->sheet->mergeCells('S7:S8');
+            $event->sheet->mergeCells('T7:T8');
+
 
             // Centrar vertical y horizontal
             $event->sheet->getStyle('A1:T2')
