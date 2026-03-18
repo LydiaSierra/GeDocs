@@ -28,13 +28,20 @@ createInertiaApp({
 
     setup({ el, App, props }) {
         const root = createRoot(el);
+        const authUserId = props?.initialPage?.props?.auth?.user?.id ?? null;
+        const authUserRole = props?.initialPage?.props?.auth?.user?.roles?.[0]?.name ?? null;
+        const inertiaVersion = props?.initialPage?.version ?? null;
 
         root.render(
             <NotificationsProvider>
                 <UserProvider>
                     <SheetsProvider>
                         <DependenciesProvider>
-                            <ElectronicIndexProvider>
+                            <ElectronicIndexProvider
+                                authUserId={authUserId}
+                                authUserRole={authUserRole}
+                                inertiaVersion={inertiaVersion}
+                            >
                                 <Toaster position="top-center" richColors closeButton expand={false} />
 
                                 <App {...props} />
