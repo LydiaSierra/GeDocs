@@ -17,10 +17,10 @@ export default function Sidebar() {
     const isAprendiz = user.roles?.some(role => role.name === "Aprendiz");
 
     const links = [
-        { id: "inbox", href: "inbox", icon: InboxIcon},
-        { id: "outbox", href: "outbox", icon: InboxArrowDownIcon },
-        { id: "archive", href: "archive", icon: ArchiveBoxIcon },
-        { id: "explorer", href: "explorer", icon: FolderIcon },
+        { id: "inbox", href: "inbox", icon: InboxIcon, name: "Bandeja de Entrada"},
+        { id: "outbox", href: "outbox", icon: InboxArrowDownIcon, name: "Enviados" },
+        { id: "archive", href: "archive", icon: ArchiveBoxIcon, name: "Archivados" },
+        { id: "explorer", href: "explorer", icon: FolderIcon, name: "Explorador" },
     ];
 
     const filteredLinks = links.filter(link => {
@@ -34,7 +34,7 @@ export default function Sidebar() {
             <aside className="hidden md:flex h-screen px-2 bg-primary flex-col justify-between items-center pt-16 pb-4">
                 <div className="flex flex-col items-center gap-3">
                     {filteredLinks.map(link => (
-                        <div className="tooltip tooltip-right" data-tip={link.id}>
+                        <div className="tooltip tooltip-right" data-tip={link.name}>
 
                         <NavLink
                             key={link.id}
