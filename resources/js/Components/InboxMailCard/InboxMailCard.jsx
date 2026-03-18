@@ -70,14 +70,21 @@ export default function InboxMailCard({ card }) {
                     </div>
                     <div className="text-right text-sm shrink-0">
                         <div>Límite</div>
-                        <div className={card.response_time ? `font-medium ${getDeadlineColor(card.created_at, card.response_time)}` : "text-gray-500"}>
-                            {" "}
-                            {card.response_time
-                                ? new Date(
-                                      card.response_time
-                                  ).toLocaleDateString()
-                                : "Sin asignar"}
-                        </div>
+                        {card.response_date ? (
+                            <div className="font-medium text-[#34A853]">Respondida</div>
+                        ) : card.response_time ? (
+                            new Date() > new Date(card.response_time) ? (
+                                <div className="font-medium text-red-600">Vencida</div>
+                            ) : (
+                                <div className={`font-medium ${getDeadlineColor(card.created_at, card.response_time)}`}>
+                                    {new Date(card.response_time).toLocaleDateString()}
+                                </div>
+                            )
+                        ) : (
+                            <div className="font-medium text-gray-500">
+                                Sin asignar
+                            </div>
+                        )}
                     </div>
                 </div>
 
