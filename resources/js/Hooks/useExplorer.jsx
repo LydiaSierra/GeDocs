@@ -194,7 +194,7 @@ export const useExplorer = () => {
             onError: () => {
                 toast.dismiss(toastId);
                 toast.error("Error al crear carpeta", {
-                    description: "Verifica que no exista es mismo año"
+                    description: "Verifica que no exista el mismo año"
                 });
             }
         });
@@ -210,7 +210,7 @@ export const useExplorer = () => {
             onError: () => {
                 toast.dismiss(toastId);
                 toast.error("Error al editar carpeta", {
-                    description: "Verifica que no exista es mismo año"
+                    description: "Verifica que no exista el mismo año"
                 });
             }
         });

@@ -354,7 +354,7 @@ export default function Explorer() {
                                         </div>
                                     </div>
 
-                                    <div className="bg-white rounded-3xl p-1 mb-4 border border-gray-100 shadow-inner ring-4 ring-gray-50/50">
+                                    <div className=" mb-4">
                                         <InputSearch />
                                     </div>
 

@@ -73,6 +73,34 @@ export default function ContainerFolders() {
         return null;
     };
 
+    const handleHomeClick = () => {
+        if (!currentFolder || !Array.isArray(allFolders) || allFolders.length === 0) {
+            localStorage.removeItem("folder_id");
+            fetchFolders(null, activeSheetId);
+            setHistoryStack([]);
+            return;
+        }
+
+        const folderById = new Map(allFolders.map(f => [f.id, f]));
+        let rootFolder = currentFolder;
+        
+        while (rootFolder && rootFolder.parent_id) {
+            const parent = folderById.get(rootFolder.parent_id);
+            if (!parent) break;
+            rootFolder = parent;
+        }
+
+        if (rootFolder) {
+            localStorage.setItem("folder_id", JSON.stringify([rootFolder.id]));
+            fetchFolders(rootFolder.id, activeSheetId);
+            setHistoryStack([rootFolder.id]);
+        } else {
+            localStorage.removeItem("folder_id");
+            fetchFolders(null, activeSheetId);
+            setHistoryStack([]);
+        }
+    };
+
     const activeSheet = sheets.find((sheet) => sheet.id === activeSheetId);
 
     const currentYear = findYearFromCurrentPath()
@@ -156,11 +184,7 @@ export default function ContainerFolders() {
                         <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
                             <ArrowLeftIcon className={"w-5 h-5 text-white"} />
                         </div>
-                        <div className="cursor-pointer" onClick={() => {
-                            localStorage.removeItem("folder_id")
-                            fetchFolders(null, activeSheetId);
-                            setHistoryStack([]);
-                        }}>
+                        <div className="cursor-pointer" onClick={handleHomeClick}>
                             Inicio
                         </div>
                     </div>
