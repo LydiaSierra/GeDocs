@@ -90,7 +90,9 @@ class FolderController extends Controller
                     "extension" => $file->extension,
                     "size" => $file->size,
                     "url" => asset("storage/" . $file->path),
-                    "folder_id" => $file->folder_id
+                    "folder_id" => $file->folder_id,
+                    "created_at" => $file->created_at,
+                    "updated_at" => $file->updated_at,
                 ]);
 
             return Inertia::render('Explorer', [
@@ -125,7 +127,9 @@ class FolderController extends Controller
                         "extension" => $file->extension,
                         "size" => $file->size,
                         "url" => asset("storage/" . $file->path),
-                        "folder_id" => $file->folder_id
+                        "folder_id" => $file->folder_id,
+                        "created_at" => $file->created_at,
+                        "updated_at" => $file->updated_at,
                     ];
                 });
 
@@ -565,8 +569,8 @@ class FolderController extends Controller
     }
 
 
-   
-    
+
+
 
     /**
      * Seeds the default folder structure inside a specific year folder.
