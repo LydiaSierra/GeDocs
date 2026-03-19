@@ -2,6 +2,7 @@ import { useExplorerData } from '@/Hooks/useExplorer';
 import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner';
 import { CalendarIcon, PencilIcon } from "@heroicons/react/24/outline";
+import InputError from '@/Components/InputError';
 
 const ModalEditYear = ({ yearData }) => {
     const {
@@ -10,6 +11,8 @@ const ModalEditYear = ({ yearData }) => {
 
     const [loading, setLoading] = useState(false);
     const [year, setYear] = useState("");
+    const [error, setError] = useState(null);
+
 
     useEffect(() => {
         if (yearData) {
@@ -20,6 +23,12 @@ const ModalEditYear = ({ yearData }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        if (year < 2000 || year > new Date().getFullYear()) {
+            setLoading(false);
+            setError("El año debe estar entre 2000 y el año actual");
+            return;
+        }
 
         try {
             const data = {
@@ -54,7 +63,7 @@ const ModalEditYear = ({ yearData }) => {
                     <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center">
                         <PencilIcon className="size-8 text-primary" />
                     </div>
-                    
+
                     <div className="text-center">
                         <h2 className='text-xl font-black text-gray-800 tracking-tight'>Editar Año</h2>
                         <p className="text-xs text-gray-500 mt-1 font-medium italic">
@@ -73,8 +82,13 @@ const ModalEditYear = ({ yearData }) => {
                             max="2100"
                             className='w-full border-2 border-gray-100 rounded-2xl p-4 text-center text-3xl font-black text-primary focus:border-primary focus:ring-0 transition-all shadow-inner'
                             value={year}
-                            onChange={(e) => setYear(e.target.value)}
+                            onChange={(e) => {
+                                setYear(e.target.value);
+                                setError(null);
+                            }}
                         />
+                        {error && <InputError message={error} />}
+
                     </div>
 
                     <div className='flex gap-3 mt-2'>

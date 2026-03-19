@@ -175,7 +175,7 @@ export default function Explorer() {
                                                             }`}
                                                     >
                                                         <ArchiveBoxIcon className="size-4" />
-                                                        {archivedMode ? "Volver" : "Archivados"}
+                                                        {archivedMode ? "Volver" : "Papelera"}
                                                     </button>
                                                 </div>
                                             </div>
