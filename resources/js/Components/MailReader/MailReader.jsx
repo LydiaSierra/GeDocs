@@ -70,6 +70,30 @@ export function MailReader() {
         if (!responseText.trim()) return;
         try {
             setSending(true);
+
+            const respondRes = await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
+                response_message: responseText,
+            });
+
+            // Actualizar el estado de la PQR
+            setMailCards((prev) =>
+                prev.map((mail) =>
+                    mail.id === currentMail.id
+                        ? { ...mail, ...respondRes.data.data }
+                        : mail
+                )
+            );
+
+            await axios
+                .post(`/api/pqr/${currentMail.id}/comunicaciones`, {
+                    message: responseText,
+                    requires_response: true,
+                })
+                .then((response) => {
+                    setResponseUrl(response.data.response_url);
+                });
+            // Optional UX improvements 👇
+
             const formData = new FormData();
             formData.append("message", responseText);
             formData.append("requires_response", "0");
@@ -283,16 +307,26 @@ export function MailReader() {
                         )}
 
                         {/* Deadline */}
-                        {currentMail.response_time ? (
-                            <span
+                        {currentMail.response_date ? (
+                            <span className="text-sm font-medium text-[#34A853]">
+                                ¡PQR respondida con éxito!
+                            </span>
+                        ) : currentMail.response_time ? (
+                            new Date() > new Date(currentMail.response_time) ? (
+                                <span className="text-sm font-medium text-red-600">
+                                    Vencida
+                                </span>
+                            ) : (
+                                <span
                             className={`text-sm font-medium ${getDeadlineColor(
                                     currentMail.created_at,
                                     currentMail.response_time
                                 )}`}
                             >
-                                Fecha límite:{" "}
+                                    Fecha límite:{" "}
                                 {new Date(currentMail.response_time).toLocaleDateString()}
-                            </span>
+                                </span>
+                            )
                         ) : (
                             <div className="dropdown dropdown-end">
                                 <div
@@ -396,6 +430,51 @@ export function MailReader() {
                 </div>
 
                 {/* Response area */}
+                <div className="border-t border-gray-100 pt-4">
+                    {currentMail.response_time && !currentMail.response_date && new Date() > new Date(currentMail.response_time) ? (
+                        <div className="p-4 bg-white border border-red-200 rounded-lg flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0">
+                                <span className="text-red-500 text-xl">⚠️</span>
+                            </div>
+                            <div>
+                                <h3 className="text-red-700 font-medium mb-0.5">¡Tiempo de Respuesta Excedido!</h3>
+                                <p className="text-sm font-medium">Esta PQR excedió el tiempo de respuesta y ya no puede ser respondida.</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                                Responder
+                            </h3>
+                            <textarea
+                                className="textarea w-full bg-gray-50 border border-gray-200 rounded-lg focus:border-primary focus:outline-none resize-none min-h-[100px]"
+                                placeholder="Escribe tu respuesta..."
+                                value={responseText}
+                                onChange={(e) => setResponseText(e.target.value)}
+                            />
+                            <div className="flex justify-end mt-2">
+                                {responseUrl ? (
+                                    <a
+                                        target="_blank"
+                                        href={responseUrl}
+                                        className="mr-5"
+                                    >
+                                        Enlace de respuestas
+                                    </a>
+                                ) : (
+                                    ""
+                                )}
+                                <button
+                                    onClick={handleRespond}
+                                    disabled={sending}
+                                    className="btn btn-sm bg-primary text-white hover:bg-primary/90 border-none rounded-lg gap-1.5 disabled:opacity-50"
+                                >
+                                    <PaperAirplaneIcon className="w-4" />
+                                    {sending ? "Enviando..." : "Enviar respuesta"}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 <div className="border-t border-gray-100 pt-4 space-y-4">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                         Responder
@@ -467,6 +546,7 @@ export function MailReader() {
         </div>
     );
 }
+
 
 /** Internal component — file attachment card */
 function FileCard({ file }) {
