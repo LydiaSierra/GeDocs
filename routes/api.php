@@ -18,7 +18,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode; //Import for the QR codes
 Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
-
+    Route::get("/folders-by-sheet", [FolderController::class, "getFoldersBySheet"]);
 
     // Upload one or more files to a specific folder
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);

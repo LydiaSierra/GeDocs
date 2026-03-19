@@ -25,5 +25,6 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
+        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
     }
 }
