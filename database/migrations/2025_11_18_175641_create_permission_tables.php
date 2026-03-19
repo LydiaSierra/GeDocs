@@ -23,8 +23,8 @@ return new class extends Migration
         Schema::create($tableNames['permissions'], static function (Blueprint $table) {
             // $table->engine('InnoDB');
             $table->bigIncrements('id'); // permission id
-            $table->string('name', 100);       // Reduce length for MySQL index
-            $table->string('guard_name', 100); // Reduce length for MySQL index
+            $table->string('name')->unique();       // Reduce length for MySQL index
+            $table->string('guard_name'); // Reduce length for MySQL index
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
@@ -37,8 +37,8 @@ return new class extends Migration
                 $table->unsignedBigInteger($columnNames['team_foreign_key'])->nullable();
                 $table->index($columnNames['team_foreign_key'], 'roles_team_foreign_key_index');
             }
-            $table->string('name', 100);       // Reduce length for MySQL index
-            $table->string('guard_name', 100); // Reduce length for MySQL index
+            $table->string('name')->unique();       // Reduce length for MySQL index
+            $table->string('guard_name'); // Reduce length for MySQL index
             $table->timestamps();
             if ($teams || config('permission.testing')) {
                 $table->unique([$columnNames['team_foreign_key'], 'name', 'guard_name']);
