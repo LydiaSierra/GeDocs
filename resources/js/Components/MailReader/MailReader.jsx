@@ -257,7 +257,7 @@ export function MailReader() {
                     {/* -------------Button to assing a limit date----------------*/}
                     {""}
                     <div className="flex items-center gap-2 ml-auto">
-                        {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
+                        {(isInstructor || isAdmin) && relevantDependencies.length > 0 && !currentMail.response_date && (
                             <div className="dropdown dropdown-end">
                                 <div tabIndex={0} role="button" className="btn btn-sm btn-outline border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary">
                                     {currentMail.dependency ? currentMail.dependency.name : "Asignar Dependencia"}
