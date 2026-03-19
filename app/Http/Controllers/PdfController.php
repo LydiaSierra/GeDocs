@@ -392,7 +392,8 @@ class PdfController extends Controller
             'logo_file' => 'nullable|image|max:2048',
             'signature_file' => 'nullable|image|max:2048',
             'support_files' => 'nullable|array',
-            'support_files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+            'support_files.*' => 'file|mimes:pdf|max:10240',
+            'folder_id' => 'nullable|integer|exists:folders,id',
         ]);
 
         try {
@@ -423,46 +424,69 @@ class PdfController extends Controller
             $data['footer_text'] = $finalFooter;
             $data['pie_pagina'] = $finalFooter;
 
-            // Generar el PDF
+            // 1. Generar la CARTA (PDF Principal)
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
                 'logoDataUri' => $logoDataUri,
                 'signatureDataUri' => $signatureDataUri,
             ]);
             $pdf->setPaper('letter', 'portrait');
+            $mainPdfContent = $pdf->output();
 
-            // Nombre de archivo: dependenciaId-mes-anio-codigoPqr
+            // Guardar temporalmente la carta para la fusión
+            $tempMainPath = storage_path('app/temp_main_' . uniqid() . '.pdf');
+            file_put_contents($tempMainPath, $mainPdfContent);
+
+            // 2. Inicializar el Fusionador (PDFMerger)
+            $oMerger = \Webklex\PDFMerger\Facades\PDFMergerFacade::init();
+            $oMerger->addPDF($tempMainPath, 'all');
+
+            // 3. Añadir archivos de soporte si existen
+            if ($request->hasFile('support_files')) {
+                foreach ($request->file('support_files') as $file) {
+                    $oMerger->addPDF($file->getRealPath(), 'all');
+                }
+            }
+
+            // 4. Ejecutar la fusión y guardar el archivo final
+            $oMerger->merge();
+            
             $fileName = ($pqr->dependency_id ?? 0) . '-' . now()->month . '-' . now()->year . '-' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
             $storagePath = 'pdf_responses/' . $fileName;
+            $absolutePath = storage_path('app/public/' . $storagePath);
 
-            // Guardar el PDF en storage/app/public/
-            Storage::disk('public')->put($storagePath, $pdf->output());
+            // Asegurar que el directorio existe
+            if (!file_exists(dirname($absolutePath))) {
+                mkdir(dirname($absolutePath), 0755, true);
+            }
 
-            // Registrar PDF como AttachedSupport con origin 'ENV'
+            $oMerger->save($absolutePath);
+
+            // Limpiar archivo temporal
+            if (file_exists($tempMainPath)) unlink($tempMainPath);
+
+            // 5. Registrar el PDF FUSIONADO como único AttachedSupport con origin 'ENV'
             $pqr->attachedSupports()->create([
-                'name' => $fileName,
+                'name' => 'Respuesta Radicado ' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
                 'path' => $storagePath,
                 'type' => 'pdf',
                 'origin' => 'ENV',
-                'size' => Storage::disk('public')->size($storagePath),
-                'hash' => hash('sha256', $pdf->output()),
+                'size' => filesize($absolutePath),
+                'hash' => hash_file('sha256', $absolutePath),
                 'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
             ]);
 
-            // Procesar otros archivos de soporte
-            if ($request->hasFile('support_files')) {
-                foreach ($request->file('support_files') as $file) {
-                    $path = $file->store('pqr_responses/supports', 'public');
-                    $pqr->attachedSupports()->create([
-                        'name' => $file->getClientOriginalName(),
-                        'path' => $path,
-                        'type' => $file->getClientOriginalExtension(),
-                        'size' => $file->getSize(),
-                        'origin' => 'ENV',
-                        'hash' => hash_file('sha256', $file->getRealPath()),
-                        'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
-                    ]);
-                }
+            // Si se seleccionó una carpeta en el modal, registrar el archivo en el explorador (Files)
+            if (!empty($validated['folder_id'])) {
+                \App\Models\File::create([
+                    'name' => 'Radicado-' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . ' - ' . now()->format('Y-m-d'),
+                    'path' => $storagePath,
+                    'extension' => 'pdf',
+                    'mime_type' => 'application/pdf',
+                    'size' => filesize($absolutePath),
+                    'active' => true,
+                    'folder_id' => $validated['folder_id']
+                ]);
             }
 
             // Actualizar PQR
@@ -472,7 +496,7 @@ class PdfController extends Controller
                 'state' => true
             ]);
 
-            // Cargar adjuntos para el correo
+            // Cargar adjuntos para el correo (el PDF fusionado)
             $pqr->load('attachedSupports');
 
             // Enviar notificación por correo
@@ -482,7 +506,7 @@ class PdfController extends Controller
             }
 
             return response()->json([
-                'message' => 'Respuesta enviada y PDF generado exitosamente.',
+                'message' => 'Respuesta enviada y PDFs fusionados exitosamente.',
                 'pdf_url' => Storage::url($storagePath),
                 'pqr_status' => 'responded'
             ]);

@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useEffect, useState, useRef } from "react";
+import { Fragment, useEffect, useState, useRef } from "react";
 import { Head, Link, usePage } from "@inertiajs/react";
+import { Dialog, Transition } from "@headlessui/react";
 import {
     CheckCircleIcon,
     PaperClipIcon,
@@ -8,7 +9,9 @@ import {
     ChatBubbleLeftRightIcon,
     ArrowLeftIcon,
     DocumentArrowDownIcon,
-    XMarkIcon
+    XMarkIcon,
+    FolderIcon,
+    BuildingOffice2Icon
 } from "@heroicons/react/24/solid";
 import { toast } from "sonner";
 
@@ -55,40 +58,84 @@ export default function Comunication({ pqrID }) {
     const [signaturePreviewUrl, setSignaturePreviewUrl] = useState(null);
     const [customSignatureFile, setCustomSignatureFile] = useState(null);
 
+    // Modal de Carpeta Recursivo
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [allSheetFolders, setAllSheetFolders] = useState([]);
+    const [navigationPath, setNavigationPath] = useState([]); // [{ options: [], selectedId: "" }]
+    const [tempFormData, setTempFormData] = useState(null);
+
     const logoInputRef = useRef(null);
     const signatureInputRef = useRef(null);
 
     useEffect(() => {
-        async function fetchComunication() {
+        async function fetchInitialData() {
             try {
-                // Detectamos si es respuesta pública (UUID alfanumérico) o interna (ID numérico)
                 const isInternalId = !isNaN(pqrID);
                 const endpoint = isInternalId 
                     ? `/api/pqr/response-details/${pqrID}` 
                     : `/api/pqr/responder/${pqrID}`;
 
                 const res = await axios.get(endpoint);
-                
-                // Normalizamos la respuesta (ambos endpoints devuelven { data: { communication, pqr, dependency } })
                 const data = res.data.data;
                 setComunication(data.communication || {});
                 setPqr(data.pqr || {});
                 setDependency(data.dependency || {});
+                
+                // Cargar todas las carpetas de la ficha ligada a la PQR
+                if (data.dependency?.sheet_number_id) {
+                    const foldersRes = await axios.get(`/api/folders-by-sheet?sheet_id=${data.dependency.sheet_number_id}`);
+                    const folderList = foldersRes.data || [];
+                    setAllSheetFolders(folderList);
+
+                    // Inicializar jerarquía con el primer nivel: Años (parent_id = null)
+                    const rootYears = folderList.filter(f => f.parent_id === null);
+                    const initialPath = [{ options: rootYears, selectedId: "" }];
+                    
+                    // Pre-seleccionar año actual si existe
+                    const currentYearStr = new Date().getFullYear().toString();
+                    const currentYearNode = rootYears.find(y => y.name === currentYearStr);
+                    
+                    if (currentYearNode) {
+                        initialPath[0].selectedId = currentYearNode.id.toString();
+                        // Si el año tiene hijos, añadir el siguiente nivel automáticamente
+                        const children = folderList.filter(f => f.parent_id === currentYearNode.id);
+                        if (children.length > 0) {
+                            initialPath.push({ options: children, selectedId: "" });
+                        }
+                    }
+                    setNavigationPath(initialPath);
+                }
             } catch (e) {
                 console.error(e);
-                toast.error("No se pudo cargar la información o el enlace ha expirado.");
+                toast.error("Error al cargar datos.");
             } finally {
                 setIsLoading(false);
             }
         }
-        fetchComunication();
+        fetchInitialData();
     }, [pqrID]);
+
+    const handlePathSelect = (index, folderId) => {
+        let newPath = [...navigationPath];
+        newPath[index].selectedId = folderId;
+        
+        // Truncar cualquier nivel posterior al actual
+        newPath = newPath.slice(0, index + 1);
+
+        if (folderId) {
+            // Buscar si la carpeta seleccionada tiene hijos
+            const children = allSheetFolders.filter(f => f.parent_id === parseInt(folderId));
+            if (children.length > 0) {
+                newPath.push({ options: children, selectedId: "" });
+            }
+        }
+        setNavigationPath(newPath);
+    };
 
     const handleLogoChange = (event) => {
         const file = event.target.files?.[0];
-        if (!file) return;
-        if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
-            toast.error("Solo se permiten imagenes PNG, JPG o SVG.");
+        if (!file || !ALLOWED_LOGO_TYPES.includes(file.type)) {
+            toast.error("Imagen no válida.");
             return;
         }
         setCustomLogoFile(file);
@@ -102,37 +149,56 @@ export default function Comunication({ pqrID }) {
         setSignaturePreviewUrl(URL.createObjectURL(file));
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        const data = new FormData(e.target);
+        setTempFormData(data);
+        setIsModalOpen(true);
+    };
+
+    const handleConfirmSave = async () => {
+        // Obtenemos el ID de la última carpeta seleccionada en el camino
+        const finalFolderId = [...navigationPath].reverse().find(p => p.selectedId)?.selectedId;
+
+        if (!finalFolderId) {
+            toast.error("Por favor seleccione al menos una carpeta de destino (Año o superior).");
+            return;
+        }
+
+        setIsModalOpen(false);
         setIsSubmitting(true);
-        const toastId = toast.loading("Generando PDF de respuesta...");
+        const toastId = toast.loading("Fusionando PDFs y archivando...");
 
         try {
-            const data = new FormData(e.target);
+            const data = tempFormData;
             data.append("pqr_id", pqrID);
-            data.append("document_type", "carta"); // Force Carta
+            data.append("folder_id", finalFolderId);
             
             if (customLogoFile) data.append("logo_file", customLogoFile);
             if (customSignatureFile) data.append("signature_file", customSignatureFile);
 
-            // Archivos de soporte (opcional)
             attachments.forEach((file) => {
+                const isPdf = file.name.toLowerCase().endsWith(".pdf");
+                if (!isPdf) {
+                    toast.error(`El archivo ${file.name} no es PDF.`);
+                    throw new Error("Invalid format");
+                }
                 data.append("support_files[]", file);
             });
 
-            // Usamos el PdfController para generar y guardar el registro
             await axios.post(`/api/pdf/generate-response`, data, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
             
             toast.dismiss(toastId);
-            toast.success("Respuesta enviada exitosamente.");
+            toast.success("Respuesta enviada y PDF archivado correctamente.");
             setSubmitted(true);
         } catch (error) {
             console.error(error);
             toast.dismiss(toastId);
-            toast.error(error.response?.data?.error || "Error al enviar la respuesta.");
-        } finally {
+            if (error.message !== "Invalid format") {
+                toast.error(error.response?.data?.error || "Error al procesar.");
+            }
             setIsSubmitting(false);
         }
     };
@@ -366,6 +432,107 @@ export default function Comunication({ pqrID }) {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Selección de Ubicación */}
+            <Transition.Root show={isModalOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-50" onClose={setIsModalOpen}>
+                    <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0"
+                        enterTo="opacity-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100"
+                        leaveTo="opacity-0"
+                    >
+                        <div className="fixed inset-0 bg-gray-500/75 transition-opacity" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 overflow-y-auto">
+                        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            >
+                                <Dialog.Panel className="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg font-outfit">
+                                    <div className="bg-white px-4 pb-4 pt-5 sm:p-8 sm:pb-6">
+                                        <div className="sm:flex sm:items-start">
+                                            <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 sm:mx-0 sm:h-12 sm:w-12">
+                                                <FolderIcon className="h-6 w-6 text-primary" aria-hidden="true" />
+                                            </div>
+                                            <div className="mt-3 text-center sm:ml-6 sm:mt-0 sm:text-left w-full">
+                                                <Dialog.Title as="h3" className="text-xl font-bold leading-6 text-gray-900">
+                                                    Ubicación de guardado
+                                                </Dialog.Title>
+                                                <div className="mt-2 text-sm text-gray-500">
+                                                    Navegue por la jerarquía para elegir dónde archivar este documento.
+                                                </div>
+
+                                                <div className="mt-8 space-y-5 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                                                    {navigationPath.map((level, idx) => (
+                                                        <div key={idx} className="space-y-2 group animate-in slide-in-from-top-2 duration-300">
+                                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 group-hover:text-primary transition-colors">
+                                                                <div className="size-4 rounded-full bg-gray-100 flex items-center justify-center text-[8px] text-gray-400 group-hover:bg-primary/20 group-hover:text-primary">
+                                                                    {idx + 1}
+                                                                </div>
+                                                                {idx === 0 ? "Año / Raíz" : `Subnivel ${idx}`}
+                                                            </label>
+                                                            <div className="relative">
+                                                                <select 
+                                                                    value={level.selectedId} 
+                                                                    onChange={(e) => handlePathSelect(idx, e.target.value)}
+                                                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer hover:bg-white"
+                                                                >
+                                                                    <option value="">Seleccione una opción...</option>
+                                                                    {level.options.map(opt => (
+                                                                        <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                                    <ArrowPathIcon className="size-3 animate-spin hidden" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+
+                                                    {navigationPath.length > 0 && navigationPath[navigationPath.length - 1].selectedId && (
+                                                        <div className="p-4 bg-primary/5 rounded-2xl border border-dashed border-primary/20 animate-pulse">
+                                                            <p className="text-[10px] text-primary font-bold text-center uppercase tracking-widest">
+                                                                ✓ Ubicación Seleccionada
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 px-6 py-5 sm:flex sm:flex-row-reverse sm:px-8 gap-3 border-t border-gray-100">
+                                        <button
+                                            type="button"
+                                            className="inline-flex w-full justify-center rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 sm:ml-3 sm:w-auto transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:scale-100"
+                                            onClick={handleConfirmSave}
+                                        >
+                                            Guardar en esta ubicación
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="mt-3 inline-flex w-full justify-center rounded-2xl bg-white px-6 py-3 text-sm font-bold text-gray-600 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 sm:mt-0 sm:w-auto transition-all"
+                                            onClick={() => setIsModalOpen(false)}
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
+                    </div>
+                </Dialog>
+            </Transition.Root>
         </div>
     );
 }

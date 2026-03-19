@@ -688,4 +688,20 @@ class FolderController extends Controller
             );
         }
     }
+    /**
+     * Retorna todas las carpetas activas de una ficha (Sheet) específica.
+     * GET /api/folders-by-sheet?sheet_id=X
+     */
+    public function getFoldersBySheet(Request $request)
+    {
+        $sheetId = $request->query('sheet_id');
+        if (!$sheetId) return response()->json([], 200);
+
+        $folders = Folder::where('sheet_number_id', $sheetId)
+            ->where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json($folders);
+    }
 }
