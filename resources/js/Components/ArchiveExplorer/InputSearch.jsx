@@ -18,7 +18,7 @@ export const InputSearch = ({ handleSearch }) => {
             <form onSubmit={(e) => {
                 e.preventDefault();
                 globalSearch(inputSearchTerm);
-            }} className="flex flex-1 md:flex-none items-center bg-base-200 px-2 rounded-md">
+            }} className="flex flex-1 lg:flex-none items-center bg-base-200 px-2 rounded-md">
                 <input
                     placeholder="Buscar"
                     type="text"
@@ -49,7 +49,7 @@ export const InputSearch = ({ handleSearch }) => {
 
 
             {url.startsWith("/explorer") &&
-                <div className="w-full md:w-auto md:flex-1 flex items-center justify-between">
+                <div className="w-full lg:w-auto lg:flex-1 flex items-center justify-between">
                     <div className="flex  gap-2">
                         {/* Filter button */}
                         <button
@@ -71,8 +71,8 @@ export const InputSearch = ({ handleSearch }) => {
                         <button
                             className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
                             ${gridView
-                                    ? "bg-primary text-white active:bg-primary/50 md:hover:bg-primary"
-                                    : "bg-base-200  active:bg-gray-300 md:hover:bg-gray-300"
+                                    ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
+                                    : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
                                 }`}
                             onClick={toggleGridView}
                         >
@@ -85,7 +85,7 @@ export const InputSearch = ({ handleSearch }) => {
                         </button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 justify-end  md:w-max ">
+                    <div className="flex flex-wrap items-center gap-2 justify-end  lg:w-max ">
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn bg-primary text-white">Acciones</div>
                             <ul tabIndex="-1" className="dropdown-content bg-base-200 p-2 rounded-box z-50 w-52 shadow-sm">

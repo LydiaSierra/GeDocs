@@ -105,16 +105,16 @@ const DropdownFolders = () => {
         <>
             {url.startsWith("/explorer") && (
                 <div
-                    className={`${showDropFolders ? "left-0 w-screen md:w-full" : "-left-full md:w-0 overflow-hidden"
-                        } transition-all origin-left md:pt-16 pb-2 md:max-w-[400px] z-10 duration-300 h-screen inline-block absolute md:static  w-full top-0 background-[url(/gedocs-logo.svg)]  bg-transparent`}
+                    className={`${showDropFolders ? "left-0 w-screen lg:w-full" : "-left-full lg:w-0 overflow-hidden"
+                        } transition-all origin-left lg:pt-16 pb-2 lg:max-w-[400px] z-10 duration-300 h-screen fixed z-50 lg:static w-full top-0 background-[url(/gedocs-logo.svg)]  bg-transparent`}
                 >
                     <div
                         className={`bg-white p-2  rounded-lg w-full h-full mb-2  ${showDropFolders ? "overflow-auto " : "overflow-hidden"
                             }`}
                     >
-                        <div className="flex gap-5 items-center md:justify-between border-b border-base-300 my-3 p-2">
+                        <div className="flex gap-5 items-center lg:justify-between border-b border-base-300 my-3 p-2">
 
-                            <span className="md:order-1 md:cursor-pointer active:bg-primary/30 rounded-full" onClick={() => {
+                            <span className="lg:order-1 lg:cursor-pointer active:bg-primary/30 rounded-full" onClick={() => {
                                 toggleDropFolders()
                             }}>
                                 <ArrowLeftCircleIcon className="size-8" />
