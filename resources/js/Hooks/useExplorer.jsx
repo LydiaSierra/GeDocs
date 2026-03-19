@@ -291,7 +291,15 @@ export const useExplorer = () => {
         setStore({ selectedItems: [], isMultipleSelection: false });
     };
 
-    const deleteSelectionItemsMixed = (manualItems = null) => {
+    const deleteSelectionItemsMixed = (manualItems = null, options = {}) => {
+        const {
+            skipExplorerRefresh = false,
+            onOptimisticDelete,
+            onSuccess,
+            onError,
+            onUndo
+        } = options;
+
         // Handle case where manualItems might be a React event object
         const itemsToProcess = Array.isArray(manualItems) ? manualItems : store.selectedItems;
 
@@ -310,36 +318,50 @@ export const useExplorer = () => {
             selectedItems: [],
             isMultipleSelection: false
         });
+        onOptimisticDelete?.({ folders: foldersToDelete, files: filesToDelete });
 
         document.getElementById("drawer-information")?.close();
         document.getElementById("confirmDeleteFolder")?.close();
 
-        router.post(route('folders.deleteMixed'), {
-            folders: foldersToDelete,
-            files: filesToDelete
-        }, {
-            onSuccess: () => {
-                toast.success("Elementos archivados", {
-                    action: {
-                        label: "Deshacer",
-                        onClick: () => restoreSelection({
-                            folders: foldersToDelete,
-                            files: filesToDelete
-                        })
-                    },
-                    duration: 5000
-                });
+        return new Promise((resolve, reject) => {
+            router.post(route('folders.deleteMixed'), {
+                folders: foldersToDelete,
+                files: filesToDelete
+            }, {
+                onSuccess: () => {
+                    toast.success("Elementos archivados", {
+                        action: {
+                            label: "Deshacer",
+                            onClick: () => {
+                                onUndo?.({ folders: foldersToDelete, files: filesToDelete });
+                                restoreSelection({
+                                    folders: foldersToDelete,
+                                    files: filesToDelete
+                                });
+                            }
+                        },
+                        duration: 5000
+                    });
 
-                // Recargar datos desde el servidor
-                fetchFolders(store.currentFolder?.id, store.activeSheetId);
-                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+                    // Recargar datos desde el servidor solo dentro del Explorer
+                    if (!skipExplorerRefresh) {
+                        fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                    }
+                    window.dispatchEvent(new CustomEvent("explorer:files-updated"));
 
-                if (store.archivedMode) fetchArchived(store.activeSheetId);
-            },
-            onError: () => {
-                toast.error("Error al archivar");
-                fetchFolders(store.currentFolder?.id, store.activeSheetId);
-            }
+                    if (!skipExplorerRefresh && store.archivedMode) fetchArchived(store.activeSheetId);
+                    onSuccess?.({ folders: foldersToDelete, files: filesToDelete });
+                    resolve({ folders: foldersToDelete, files: filesToDelete });
+                },
+                onError: (errors) => {
+                    toast.error("Error al archivar");
+                    if (!skipExplorerRefresh) {
+                        fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                    }
+                    onError?.(errors);
+                    reject(errors);
+                }
+            });
         });
     };
 

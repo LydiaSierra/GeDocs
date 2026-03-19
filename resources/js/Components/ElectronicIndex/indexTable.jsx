@@ -1,25 +1,23 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
-    ArrowDownTrayIcon,
     EllipsisVerticalIcon,
     ExclamationTriangleIcon,
-    TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ElectronicIndexContext } from "@/context/ElectronicIndexContext/ElectronicIndexContext";
+import { useExplorer } from "@/Hooks/useExplorer";
 
 export default function IndexTable() {
     const {
         scopedFiles,
         loading,
         error,
-        canEdit,
-        downloadFileById,
-        moveFileToTrashById,
         openFileInExplorerById,
     } = useContext(ElectronicIndexContext);
+    const { deleteSelectionItemsMixed, setSelectedItems, downloadZip } = useExplorer();
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
     const [selectedFileId, setSelectedFileId] = useState(null);
+    const [optimisticHiddenFileIds, setOptimisticHiddenFileIds] = useState([]);
 
     const formatDate = (dateValue) => {
         if (!dateValue) return "-";
@@ -43,6 +41,16 @@ export default function IndexTable() {
             dependency: file.root_dependency_name || "Sin dependencia",
             hash: file.path || "-",
         }));
+    }, [scopedFiles]);
+
+    const visibleRows = useMemo(
+        () => rows.filter((row) => !optimisticHiddenFileIds.includes(row.id)),
+        [rows, optimisticHiddenFileIds],
+    );
+
+    useEffect(() => {
+        const currentFileIds = new Set((scopedFiles || []).map((file) => Number(file.id)));
+        setOptimisticHiddenFileIds((prev) => prev.filter((id) => currentFileIds.has(Number(id))));
     }, [scopedFiles]);
 
     const toggleMenu = (event) => {
@@ -76,7 +84,8 @@ export default function IndexTable() {
 
     const handleDownload = async () => {
         if (!selectedFileId) return;
-        await downloadFileById(selectedFileId);
+        setSelectedItems([{ id: selectedFileId, type: "file" }]);
+        await downloadZip();
         setMenuOpen(false);
     };
 
@@ -95,9 +104,31 @@ export default function IndexTable() {
         setMenuOpen(false);
     };
 
-    const confirmMoveToTrash = () => {
+    const confirmMoveToTrash = async () => {
         if (!selectedFileId) return;
-        moveFileToTrashById(selectedFileId);
+        const fileIdToDelete = selectedFileId;
+
+        setOptimisticHiddenFileIds((prev) => (
+            prev.includes(fileIdToDelete) ? prev : [...prev, fileIdToDelete]
+        ));
+
+        try {
+            await deleteSelectionItemsMixed(
+                [{ id: fileIdToDelete, type: "file" }],
+                {
+                    skipExplorerRefresh: true,
+                    onUndo: () => {
+                        setOptimisticHiddenFileIds((prev) => prev.filter((id) => id !== fileIdToDelete));
+                    },
+                    onError: () => {
+                        setOptimisticHiddenFileIds((prev) => prev.filter((id) => id !== fileIdToDelete));
+                    },
+                },
+            );
+        } catch {
+            // The rollback is handled in onError.
+        }
+
         document.getElementById("confirmDeleteIndexFile")?.close();
     };
 
@@ -146,7 +177,7 @@ export default function IndexTable() {
                         </tr>
                     )}
 
-                    {!loading && !error && rows.length === 0 && (
+                    {!loading && !error && visibleRows.length === 0 && (
                         <tr>
                             <td colSpan={7} className="py-8 text-center text-gray-500">
                                 No hay archivos para la ficha y año seleccionados.
@@ -154,7 +185,7 @@ export default function IndexTable() {
                         </tr>
                     )}
 
-                    {!loading && !error && rows.map((row) => (
+                    {!loading && !error && visibleRows.map((row) => (
                         <tr key={row.id} className="cursor-pointer border-b border-gray-100 transition-colors bg-white hover:bg-primary/5 select-none">
                             <td className="py-4 px-2 md:px-4">
                                 <div className="flex items-center text-sm gap-2 font-semibold md:gap-3">
@@ -223,16 +254,14 @@ export default function IndexTable() {
                                 Descargar
                             </button>
                         </li>
-                        {canEdit && (
-                            <li>
-                                <button
-                                    className="text-sm text-red-600 flex items-center gap-2"
-                                    onClick={handleMoveToTrash}
-                                >
-                                    Mover a la papelera
-                                </button>
-                            </li>
-                        )}
+                        <li>
+                            <button
+                                className="text-sm text-red-600 flex items-center gap-2"
+                                onClick={handleMoveToTrash}
+                            >
+                                Mover a la papelera
+                            </button>
+                        </li>
                     </ul>
                 </>
             )}
