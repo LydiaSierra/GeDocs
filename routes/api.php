@@ -18,7 +18,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode; //Import for the QR codes
 Route::middleware('auth:sanctum')->group(function () {
 
     // --------- FOLDERS ---------
-
+    Route::get("/folders-by-sheet", [FolderController::class, "getFoldersBySheet"]);
 
     // Upload one or more files to a specific folder
     Route::post("/folders/{id}/upload", [FolderController::class, "upload"]);
@@ -165,6 +165,9 @@ Route::prefix('pqr')->group(function () {
     //Ruta para archivar y desarchivar comunicaciones
     Route::patch('comunicaciones/{communicationId}/archive', [CommunicationController::class, 'archiveCommunication'])
         ->middleware('auth:sanctum');
+
+    //Ruta para obtener detalles para respuesta interna (Admin/Instructor)
+    Route::get('response-details/{id}', [PQRController::class, 'getResponseData']);
 });
 
 // ----------- LOGIN -------------

@@ -8,10 +8,10 @@ let store = {
     currentFolder: null,
     selectedItems: [],
     isMultipleSelection: false,
-    pendingDelete: null,
     files: [],
     loading: false,
     loadingAllFolders: false,
+    pendingMoveItems: [],
     historyStack: [],
     activeSheetId: null,
     folders: [],
@@ -194,7 +194,7 @@ export const useExplorer = () => {
             onError: () => {
                 toast.dismiss(toastId);
                 toast.error("Error al crear carpeta", {
-                    description: "Verifica que no exista es mismo año"
+                    description: "Verifica que no exista el mismo año"
                 });
             }
         });
@@ -210,7 +210,7 @@ export const useExplorer = () => {
             onError: () => {
                 toast.dismiss(toastId);
                 toast.error("Error al editar carpeta", {
-                    description: "Verifica que no exista es mismo año"
+                    description: "Verifica que no exista el mismo año"
                 });
             }
         });
@@ -291,7 +291,15 @@ export const useExplorer = () => {
         setStore({ selectedItems: [], isMultipleSelection: false });
     };
 
-    const deleteSelectionItemsMixed = (manualItems = null) => {
+    const deleteSelectionItemsMixed = (manualItems = null, options = {}) => {
+        const {
+            skipExplorerRefresh = false,
+            onOptimisticDelete,
+            onSuccess,
+            onError,
+            onUndo
+        } = options;
+
         // Handle case where manualItems might be a React event object
         const itemsToProcess = Array.isArray(manualItems) ? manualItems : store.selectedItems;
 
@@ -310,35 +318,87 @@ export const useExplorer = () => {
             selectedItems: [],
             isMultipleSelection: false
         });
+        onOptimisticDelete?.({ folders: foldersToDelete, files: filesToDelete });
 
         document.getElementById("drawer-information")?.close();
         document.getElementById("confirmDeleteFolder")?.close();
 
-        router.post(route('folders.deleteMixed'), {
-            folders: foldersToDelete,
-            files: filesToDelete
+        return new Promise((resolve, reject) => {
+            router.post(route('folders.deleteMixed'), {
+                folders: foldersToDelete,
+                files: filesToDelete
+            }, {
+                onSuccess: () => {
+                    toast.success("Elementos archivados", {
+                        action: {
+                            label: "Deshacer",
+                            onClick: () => {
+                                onUndo?.({ folders: foldersToDelete, files: filesToDelete });
+                                restoreSelection({
+                                    folders: foldersToDelete,
+                                    files: filesToDelete
+                                });
+                            }
+                        },
+                        duration: 5000
+                    });
+
+                    // Recargar datos desde el servidor solo dentro del Explorer
+                    if (!skipExplorerRefresh) {
+                        fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                    }
+                    window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+
+                    if (!skipExplorerRefresh && store.archivedMode) fetchArchived(store.activeSheetId);
+                    onSuccess?.({ folders: foldersToDelete, files: filesToDelete });
+                    resolve({ folders: foldersToDelete, files: filesToDelete });
+                },
+                onError: (errors) => {
+                    toast.error("Error al archivar");
+                    if (!skipExplorerRefresh) {
+                        fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                    }
+                    onError?.(errors);
+                    reject(errors);
+                }
+            });
+        });
+    };
+
+    const startMoveItems = () => {
+        if (store.selectedItems.length === 0) return;
+        setStore({ pendingMoveItems: [...store.selectedItems], selectedItems: [] });
+    };
+
+    const cancelMoveItems = () => {
+        setStore({ pendingMoveItems: [] });
+    };
+
+    const performMoveItems = () => {
+        if (!store.currentFolder || store.pendingMoveItems.length === 0) {
+            toast.error("No puedes mover archivos a la carpeta raíz o no hay elementos para mover.");
+            return;
+        }
+
+        const foldersToMove = store.pendingMoveItems.filter(i => i.type === 'folder').map(i => i.id);
+        const filesToMove = store.pendingMoveItems.filter(i => i.type === 'file').map(i => i.id);
+
+        let toastId = toast.loading("Moviendo elementos...");
+        router.post(route('folders.moveMixed'), {
+            folders: foldersToMove,
+            files: filesToMove,
+            target_folder_id: store.currentFolder.id
         }, {
             onSuccess: () => {
-                toast.success("Elementos archivados", {
-                    action: {
-                        label: "Deshacer",
-                        onClick: () => restoreSelection({
-                            folders: foldersToDelete,
-                            files: filesToDelete
-                        })
-                    },
-                    duration: 5000
-                });
-
-                // Recargar datos desde el servidor
-                fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                toast.dismiss(toastId);
+                toast.success("Elementos movidos correctamente");
+                setStore({ pendingMoveItems: [] });
+                fetchFolders(store.currentFolder.id, store.activeSheetId);
                 window.dispatchEvent(new CustomEvent("explorer:files-updated"));
-
-                if (store.archivedMode) fetchArchived(store.activeSheetId);
             },
             onError: () => {
-                toast.error("Error al archivar");
-                fetchFolders(store.currentFolder?.id, store.activeSheetId);
+                toast.dismiss(toastId);
+                toast.error("Error al mover elementos");
             }
         });
     };
@@ -472,7 +532,10 @@ export const useExplorer = () => {
         setSelectedItems,
         setArchivedMode,
         fetchArchived,
-        restoreSelection
+        restoreSelection,
+        startMoveItems,
+        cancelMoveItems,
+        performMoveItems
     };
 };
 

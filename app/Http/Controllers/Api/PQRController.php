@@ -474,4 +474,28 @@ class PQRController extends Controller
         }
 
     }
+
+    /**
+     * Retorna datos específicos para construir el formulario de respuesta interna (Carta/Acta)
+     * GET /api/pqr/response-details/{id}
+     */
+    public function getResponseData(string $id): JsonResponse
+    {
+        $pqr = PQR::with(['dependency', 'comunications' => function($q) {
+            $q->orderBy('created_at', 'desc');
+        }])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'communication' => $pqr->comunications->first() ?? (object)[],
+                'pqr' => $pqr,
+                'dependency' => $pqr->dependency,
+            ],
+            'message' => 'Detalles de respuesta obtenidos'
+        ]);
+    }
 }

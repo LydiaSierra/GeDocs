@@ -371,6 +371,65 @@ class FolderController extends Controller
     }
 
     /**
+     * Move files and folders to a new target folder.
+     */
+    public function moveMixed(Request $request)
+    {
+        $request->validate([
+            'folders' => 'array',
+            'folders.*' => 'integer|exists:folders,id',
+            'files' => 'array',
+            'files.*' => 'integer|exists:files,id',
+            'target_folder_id' => 'required|integer|exists:folders,id',
+        ]);
+
+        $folderIds = $request->input('folders', []);
+        $fileIds = $request->input('files', []);
+        $targetFolderId = $request->input('target_folder_id');
+        
+        $targetFolder = Folder::findOrFail($targetFolderId);
+        $targetFolderCode = $targetFolder->folder_code ?? "000";
+
+        if (!empty($folderIds)) {
+            Folder::whereIn('id', $folderIds)
+                ->update([
+                    'parent_id' => $targetFolderId, 
+                    'sheet_number_id' => $targetFolder->sheet_number_id
+                ]);
+        }
+
+        if (!empty($fileIds)) {
+            $files = File::whereIn('id', $fileIds)->get();
+            foreach ($files as $file) {
+                $parts = explode('-', $file->name, 4);
+                if (count($parts) >= 4 && is_numeric($parts[0]) && $parts[1] === 'Ex') {
+                    $originalName = $parts[3];
+                } else {
+                    $originalName = $file->name;
+                }
+
+                $fileYear = $file->created_at->format('Y');
+                $newName = "{$fileYear}-Ex-{$targetFolderCode}-{$originalName}";
+
+                $oldPath = $file->path;
+                $newPath = "folders/{$targetFolderId}/{$newName}";
+                
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->move($oldPath, $newPath);
+                }
+
+                $file->update([
+                    'folder_id' => $targetFolderId,
+                    'name' => $newName,
+                    'path' => $newPath
+                ]);
+            }
+        }
+
+        return back();
+    }
+
+    /**
      * Logically restore (send back from trash) files and folders.
      */
     public function restoreMixed(Request $request)
@@ -628,5 +687,21 @@ class FolderController extends Controller
                 $zipPath . '/' . $child->name
             );
         }
+    }
+    /**
+     * Retorna todas las carpetas activas de una ficha (Sheet) específica.
+     * GET /api/folders-by-sheet?sheet_id=X
+     */
+    public function getFoldersBySheet(Request $request)
+    {
+        $sheetId = $request->query('sheet_id');
+        if (!$sheetId) return response()->json([], 200);
+
+        $folders = Folder::where('sheet_number_id', $sheetId)
+            ->where('active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return response()->json($folders);
     }
 }

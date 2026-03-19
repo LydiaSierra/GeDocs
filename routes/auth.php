@@ -34,11 +34,11 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
-    
-    // Comunicaciones
-    Route::get('/pqr/responder/{id}',fn($id) => Inertia::render('Comunication',["pqrID" => $id]))
-        ->name('Comunication');
 });
+
+// Ruta para generación de PDF de respuesta (Carta) accesible para todos
+Route::get('/pqr/responder/{id}', fn($id) => Inertia::render('Comunication', ["pqrID" => $id]))
+    ->name('Comunication');
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)

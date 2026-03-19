@@ -199,6 +199,7 @@ export default function ArchiveTable() {
                     onClose={() => setSelectedMail(null)}
                     onUnarchive={unarchiveMail}
                 />
+                
             )}
         </>
     );

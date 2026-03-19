@@ -47,7 +47,7 @@ const NotificationsSettingsSection = () => {
                     <div className="flex items-center gap-2">
                         <BellIcon className="size-5 text-slate-500" />
                         <h2 className="text-base font-semibold text-slate-800">
-                            Notificaciones de Acceso
+                            Notificaciones
                         </h2>
                         {filteredNotifications.length > 0 && (
                             <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">

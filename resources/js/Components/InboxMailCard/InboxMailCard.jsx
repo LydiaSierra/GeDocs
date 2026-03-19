@@ -5,6 +5,25 @@ import { MailContext } from "@/context/MailContext/MailContext";
 export default function InboxMailCard({ card }) {
     const { selectedMail, setSelectedMail } = useContext(MailContext);
 
+    const getDeadlineColor = (createdDateStr, responseDateStr) => {
+        if (!createdDateStr || !responseDateStr) return "text-gray-500";
+
+        const now = new Date();
+        const created = new Date(createdDateStr);
+        const deadline = new Date(responseDateStr);
+
+        const totalDuration = deadline.getTime() - created.getTime();
+        const timeRemaining = deadline.getTime() - now.getTime();
+
+        const remainingPercentage = totalDuration > 0
+            ? (timeRemaining / totalDuration) * 100
+            : 0;
+
+        if (remainingPercentage > 80) return "text-primary";
+        if (remainingPercentage > 40) return "text-[#F0DA30]";
+        return "text-red-600";
+    };
+
     return (
         <div
             className={`w-full p-4 border border-senaWashedBlue bg-white rounded-lg flex items-center gap-3 mb-3 overflow-hidden cursor-pointer
@@ -51,14 +70,21 @@ export default function InboxMailCard({ card }) {
                     </div>
                     <div className="text-right text-sm shrink-0">
                         <div>Límite</div>
-                        <div>
-                            {" "}
-                            {card.response_time
-                                ? new Date(
-                                      card.response_time
-                                  ).toLocaleDateString()
-                                : "Sin asignar"}
-                        </div>
+                        {card.response_date ? (
+                            <div className="font-medium text-[#34A853]">Respondida</div>
+                        ) : card.response_time ? (
+                            new Date() > new Date(card.response_time) ? (
+                                <div className="font-medium text-red-600">Vencida</div>
+                            ) : (
+                                <div className={`font-medium ${getDeadlineColor(card.created_at, card.response_time)}`}>
+                                    {new Date(card.response_time).toLocaleDateString()}
+                                </div>
+                            )
+                        ) : (
+                            <div className="font-medium text-gray-500">
+                                Sin asignar
+                            </div>
+                        )}
                     </div>
                 </div>
 
