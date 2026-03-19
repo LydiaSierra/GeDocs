@@ -54,7 +54,7 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
     public function query()
     {
         $q = PQR::query()
-            ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
+            ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
             ->orderByDesc('created_at');
 
         // Year filter (by created_at)
@@ -208,25 +208,76 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
      */
     public function map($p): array
     {
+        // Helper placeholders
+        $PH = '—';
+
+        // Dates and times formatted as requested in headers
+        $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/y') : $PH; // dd/mm/aa
+        $horaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('H:i') : $PH;    // HH:mm
+        $fechaLimite = $p->response_time ? Carbon::parse($p->response_time)->format('d/m/y') : $PH; // dd/mm/aa
+        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/y') : $PH; // dd/mm/aa
+
+        // Dependency info (recipient area)
+        $dep = $p->dependency;
+        $depCodigo = method_exists($dep, 'getAttribute') ? ($dep->code ?? $PH) : $PH; // placeholder, no code field in model
+        $depNombre = $dep->name ?? $PH;
+
+        // Recipient person: use responsible user if present
+        $resp = $p->responsible;
+        $destNombre = $resp->name ?? $PH;
+        $destCargo = $PH; // User doesn't expose cargo/position field
+
+        // Sender (remitente)
+        $remNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
+        $remCargo = $PH; // No field available
+        $remEmpresa = $PH; // No field available
+        $remDireccion = $PH; // No field available
+        $remCorreo = $p->email ?: $PH;
+        $remTelefono = $PH; // No field available
+
+        // Other fields
+        $tipoCom = $p->request_type ?? $PH;
+        $asunto = $p->affair ?? $PH;
+        $anexos = $p->attachedSupports ? $p->attachedSupports->count() : 0; // numeric count
+        $firmaRecibido = $PH; // not tracked
+        $observaciones = $p->description ?? $PH;
+        $numConsecutivo = optional($p->sheetNumber)->number ?? $PH;
+
+        // Barcode not stored yet
+        $codigoBarras = $PH;
+
         return [
-            $p->id, // A
-            optional($p->created_at)->format('Y-m-d'), // B
-            optional($p->created_at)->format('H:i'), // C
-            $p->sender_name, // D
+            // A–D
+            $p->id,                 // A Numero Radicado (fallback to ID)
+            $fechaCreacion,         // B Fecha (dd/mm/aa)
+            $horaCreacion,          // C Hora
+            $codigoBarras,          // D Cod. Barras
 
-            '', '', '', '', // E-H
+            // E–H Datos destinatario
+            $depCodigo,             // E Codigo de la Dependencia
+            $depNombre,             // F Nombre de la Dependencia
+            $destNombre,            // G Nombre y Apellidos (destinatario)
+            $destCargo,             // H Cargo (destinatario)
 
-            '', '', '', '', '', '', // I-N
+            // I–N Datos del remitente
+            $remNombre,             // I Nombre y Apellidos (remitente)
+            $remCargo,              // J Cargo (remitente)
+            $remEmpresa,            // K Empresa
+            $remDireccion,          // L Direccion
+            $remCorreo,             // M Correo Electronico
+            $remTelefono,           // N Telefono
 
-            $p->request_type, // O
-            $p->affair, // P
-            '', // Q
-            optional($p->response_date)->format('Y-m-d'), // R
-            '', // S Firma
-            '', // T
+            // O–T Otros
+            $tipoCom,               // O Tipo de Comunicacion
+            $asunto,                // P Asunto
+            $anexos,                // Q Anexos (count)
+            $fechaLimite,           // R Fecha Limite Respuesta (dd/mm/aa)
+            $firmaRecibido,         // S Firma de Recibido
+            $observaciones,         // T Observaciones
 
-            optional($p->sheetNumber)->number, // U
-            optional($p->created_at)->format('Y-m-d'), // V
+            // U–V Respuesta
+            $numConsecutivo,        // U Numero Consecutivo
+            $fechaRespuesta,        // V Fecha (dd/mm/aa)
         ];
     }
 
