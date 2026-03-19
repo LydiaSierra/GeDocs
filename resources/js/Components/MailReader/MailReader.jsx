@@ -6,6 +6,7 @@ import { useContext, useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import api from "@/lib/axios.js";
+import { toast } from "sonner";
 import {
     ArchiveBoxIcon,
     ArrowUturnLeftIcon,
@@ -38,7 +39,7 @@ export function MailReader() {
     const relevantDependencies = useMemo(() => {
         if (!currentMail) return [];
         return dependencies.filter(
-            (dep) => dep.sheet_number_id === currentMail.sheet_number_id
+            (dep) => String(dep.sheet_number_id) === String(currentMail.sheet_number_id)
         );
     }, [dependencies, currentMail]);
 
@@ -115,7 +116,12 @@ export function MailReader() {
                         : mail
                 )
             );
-            alert("Respuesta enviada correctamente");
+            toast.custom((t) => (
+                <div className="w-[var(--width)] flex items-center gap-2 px-4 py-3 bg-green-100 text-green-700 font-bold rounded-xl border border-green-200 shadow-sm pointer-events-auto">
+                    <CheckCircleIcon className="w-5 h-5 text-green-600 shrink-0" />
+                    <span>Respuesta enviada correctamente</span>
+                </div>
+            ));
             router.visit(route('outbox'));
         } catch (error) {
             console.error("Respond error:", error);
@@ -123,7 +129,7 @@ export function MailReader() {
                 error.response?.data?.error ||
                 error.response?.data?.message ||
                 "Error al enviar la respuesta";
-            alert(msg);
+            toast.error(msg);
         } finally {
             setSending(false);
             setResponseText("");
@@ -163,7 +169,7 @@ export function MailReader() {
                 error.response?.data?.message ||
                 error.response?.data?.error ||
                 "Error al asignar fecha";
-            alert(msg);
+            toast.error(msg);
         }
     };
 
@@ -191,7 +197,7 @@ export function MailReader() {
                 error.response?.data?.message ||
                 error.response?.data?.error ||
                 "Error al asignar dependencia";
-            alert(msg);
+            toast.error(msg);
         }
     };
 
@@ -261,7 +267,7 @@ export function MailReader() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                         {/* Assign dependency (Instructor / Admin only) */}
-                        {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
+                        {(isInstructor || isAdmin) && (
                             (() => {
                                 const isArchivedOrExpired = currentMail.response_date || (currentMail.response_time && new Date() > new Date(currentMail.response_time));
                                 return isArchivedOrExpired ? (
@@ -295,20 +301,26 @@ export function MailReader() {
                                             className="dropdown-content z-[20] menu p-2 shadow-lg bg-base-100 rounded-box w-full sm:w-64 max-h-60 overflow-y-auto border border-gray-100"
                                         >
                                             <li className="menu-title">Seleccionar Dependencia</li>
-                                            {relevantDependencies.map((dep) => (
-                                                <li key={dep.id}>
-                                                    <a
-                                                        className={
-                                                            currentMail.dependency_id === dep.id
-                                                                ? "bg-primary/10 text-primary font-medium"
-                                                                : ""
-                                                        }
-                                                        onClick={() => handleAssignDependency(dep.id)}
-                                                    >
-                                                        {dep.name}
-                                                    </a>
+                                            {relevantDependencies.length > 0 ? (
+                                                relevantDependencies.map((dep) => (
+                                                    <li key={dep.id}>
+                                                        <a
+                                                            className={
+                                                                String(currentMail.dependency_id) === String(dep.id)
+                                                                    ? "bg-primary/10 text-primary font-medium"
+                                                                    : ""
+                                                            }
+                                                            onClick={() => handleAssignDependency(dep.id)}
+                                                        >
+                                                            {dep.name}
+                                                        </a>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="p-2 text-xs text-center text-gray-400">
+                                                    No hay dependencias para esta ficha
                                                 </li>
-                                            ))}
+                                            )}
                                         </ul>
                                     </div>
                                 );
