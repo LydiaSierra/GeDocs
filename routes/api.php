@@ -165,6 +165,9 @@ Route::prefix('pqr')->group(function () {
     //Ruta para archivar y desarchivar comunicaciones
     Route::patch('comunicaciones/{communicationId}/archive', [CommunicationController::class, 'archiveCommunication'])
         ->middleware('auth:sanctum');
+
+    //Ruta para obtener detalles para respuesta interna (Admin/Instructor)
+    Route::get('response-details/{id}', [PQRController::class, 'getResponseData']);
 });
 
 // ----------- LOGIN -------------

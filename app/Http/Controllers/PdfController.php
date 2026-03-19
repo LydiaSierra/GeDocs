@@ -358,117 +358,138 @@ class PdfController extends Controller
      */
     public function generateAndStore(Request $request)
     {
+        // Reglas de validación para el formato CARTA (único permitido para respuestas PQR)
         $validated = $request->validate([
-            'pqr_id'              => 'required|exists:p_q_r_s,id',
-            'communication_id'    => 'nullable|exists:comunications,id',
-            // Encabezado institucional
-            'logo_url'            => 'nullable|string',
-            'institucion_nombre'  => 'nullable|string|max:255',
-            'institucion_nit'     => 'nullable|string|max:100',
-            // Documento
-            'codigo'              => 'nullable|string|max:100',
-            'fecha'               => 'nullable|string|max:100',
-            'lugar'               => 'nullable|string|max:255',
+            'pqr_id' => 'required|exists:p_q_r_s,id',
+            // Datos del documento
+            'codigo' => 'nullable|string',
+            'fecha' => 'nullable|string',
+            'lugar' => 'nullable|string',
             // Destinatario
-            'tratamiento'         => 'nullable|string|max:100',
-            'nombres'             => 'nullable|string|max:255',
-            'cargo'               => 'nullable|string|max:255',
-            'empresa'             => 'nullable|string|max:255',
-            'direccion'           => 'nullable|string|max:255',
-            'ciudad'              => 'nullable|string|max:255',
+            'tratamiento' => 'nullable|string',
+            'nombres' => 'nullable|string',
+            'cargo' => 'nullable|string',
+            'empresa' => 'nullable|string',
+            'direccion' => 'nullable|string',
+            'ciudad' => 'nullable|string',
             // Contenido
-            'asunto'              => 'nullable|string|max:500',
-            'saludo'              => 'nullable|string|max:500',
-            'texto'               => 'nullable|string',
-            // Despedida
-            'despedida1'          => 'nullable|string|max:255',
-            'despedida2'          => 'nullable|string|max:255',
-            'despedida3'          => 'nullable|string|max:255',
-            // Firma
-            'firma_nombres'       => 'nullable|string|max:255',
-            'firma_cargo'         => 'nullable|string|max:255',
-            // Información adicional (opcionales)
-            'anexo'               => 'nullable|string|max:500',
-            'copia'               => 'nullable|string|max:500',
-            'redactor'            => 'nullable|string|max:255',
-            'transcriptor'        => 'nullable|string|max:255',
-            // Pie de página
-            'pie_pagina'          => 'nullable|string|max:500',
+            'asunto' => 'nullable|string',
+            'saludo' => 'nullable|string',
+            'texto' => 'nullable|string',
+            // Despedida y Firma
+            'despedida1' => 'nullable|string',
+            'despedida2' => 'nullable|string',
+            'despedida3' => 'nullable|string',
+            'firma_nombres' => 'nullable|string',
+            'firma_cargo' => 'nullable|string',
+            'anexo' => 'nullable|string',
+            'copia' => 'nullable|string',
+            'redactor' => 'nullable|string',
+            'transcriptor' => 'nullable|string',
+            'footer_text' => 'nullable|string',
+            'pie_pagina' => 'nullable|string',
+            // Archivos adjuntos y personalización
+            'logo_file' => 'nullable|image|max:2048',
+            'signature_file' => 'nullable|image|max:2048',
+            'support_files' => 'nullable|array',
+            'support_files.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
         try {
-            // Verificar que la PQR existe
+            // Verificar existencia y estado de la PQR
             $pqr = PQR::find($validated['pqr_id']);
             if (!$pqr) {
                 return response()->json(['error' => 'PQR no encontrada'], 404);
             }
 
-            // Verificar si ya ha sido respondida
             if ($pqr->response_status === 'responded') {
-                return response()->json(['error' => 'Esta PQR ya ha sido respondida y no admite más respuestas.'], 422);
+                return response()->json(['error' => 'Esta PQR ya ha sido respondida.'], 422);
             }
 
-            // Generar el PDF con la plantilla
-            $pdf = Pdf::loadView('pdf.comunicacion', ['data' => $validated]);
+            // Preparar datos para el template unificado forzando CARTA
+            $data = $request->all();
+            $data['document_type'] = 'carta';
+
+            // Resolución de Logotipo y Firma (Base64)
+            $logoDataUri = $this->resolveLogoDataUri($request);
+            $signatureDataUri = $this->resolveSignatureDataUri($request);
+
+            // Pie de página
+            $defaultFooter = "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y');
+            $savedFooter = trim((string) ($request->user()?->pdf_footer_text ?? ''));
+            
+            // Preferimos footer_text (editable en el form) -> pie_pagina -> savedFooter -> default
+            $finalFooter = $validated['footer_text'] ?? ($validated['pie_pagina'] ?? ($savedFooter ?: $defaultFooter));
+            $data['footer_text'] = $finalFooter;
+            $data['pie_pagina'] = $finalFooter;
+
+            // Generar el PDF
+            $pdf = Pdf::loadView('pdf.template', [
+                'data' => $data,
+                'logoDataUri' => $logoDataUri,
+                'signatureDataUri' => $signatureDataUri,
+            ]);
             $pdf->setPaper('letter', 'portrait');
 
-            // Formato solicitado: dependenciaId-mes-anio-codigoPqr
-            $dependencyId = $pqr->dependency_id ?? 0;
-            $month = now()->month;
-            $year = now()->year;
-            $pqrCode = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
-            $fileName = $dependencyId . '-' . $month . '-' . $year . '-' . $pqrCode . '.pdf';
+            // Nombre de archivo: dependenciaId-mes-anio-codigoPqr
+            $fileName = ($pqr->dependency_id ?? 0) . '-' . now()->month . '-' . now()->year . '-' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
             $storagePath = 'pdf_responses/' . $fileName;
 
             // Guardar el PDF en storage/app/public/
             Storage::disk('public')->put($storagePath, $pdf->output());
 
-            // Obtener el tamaño del archivo guardado
-            $fileSize = Storage::disk('public')->size($storagePath);
-
-            // Registrar como AttachedSupport vinculado a la comunicación y/o PQR
-            $attachedSupport = AttachedSupport::create([
-                'name'             => $fileName,
-                'path'             => $storagePath,
-                'type'             => 'pdf',
-                'origin'           => 'ENV',
-                'size'             => $fileSize,
-                'pqr_id'           => $validated['pqr_id'],
-                'comunication_id'  => $validated['communication_id'] ?? null,
-                'hash'             => hash('sha256', uniqid((string) $pqr->id, true)),
-                'no_radicado'      => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
+            // Registrar PDF como AttachedSupport con origin 'ENV'
+            $pqr->attachedSupports()->create([
+                'name' => $fileName,
+                'path' => $storagePath,
+                'type' => 'pdf',
+                'origin' => 'ENV',
+                'size' => Storage::disk('public')->size($storagePath),
+                'hash' => hash('sha256', $pdf->output()),
+                'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
             ]);
 
-            // Marcar la PQR como respondida
-            $pqr->update([
-                'response_status' => 'responded',
-                'response_date' => now(),
-            ]);
-
-            // Enviar email de notificación
-            try {
-                $emailRecipient = $pqr->email ? $pqr->email : ($pqr->creator ? $pqr->creator->email : null);
-                if ($emailRecipient) {
-                    Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
-                    Log::info('Email de notificación enviado desde PdfController a: ' . $emailRecipient);
+            // Procesar otros archivos de soporte
+            if ($request->hasFile('support_files')) {
+                foreach ($request->file('support_files') as $file) {
+                    $path = $file->store('pqr_responses/supports', 'public');
+                    $pqr->attachedSupports()->create([
+                        'name' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'type' => $file->getClientOriginalExtension(),
+                        'size' => $file->getSize(),
+                        'origin' => 'ENV',
+                        'hash' => hash_file('sha256', $file->getRealPath()),
+                        'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
+                    ]);
                 }
-            } catch (\Exception $e) {
-                Log::error('Error enviando email desde PdfController: ' . $e->getMessage());
+            }
+
+            // Actualizar PQR
+            $pqr->update([
+                'response_date' => now(),
+                'response_status' => 'responded',
+                'state' => true
+            ]);
+
+            // Cargar adjuntos para el correo
+            $pqr->load('attachedSupports');
+
+            // Enviar notificación por correo
+            $emailRecipient = $pqr->email ?: ($pqr->creator?->email ?? null);
+            if ($emailRecipient) {
+                Mail::to($emailRecipient)->send(new PQRResponseMail($pqr));
             }
 
             return response()->json([
-                'message'  => 'PDF generado y guardado exitosamente',
-                'data'     => $attachedSupport,
-                'url'      => Storage::url($storagePath),
-                'pqr_status' => $pqr->response_status,
-                'response_date' => $pqr->response_date,
-            ], 201);
+                'message' => 'Respuesta enviada y PDF generado exitosamente.',
+                'pdf_url' => Storage::url($storagePath),
+                'pqr_status' => 'responded'
+            ]);
 
         } catch (\Exception $e) {
-            Log::error('Error generando PDF de comunicación: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Error generando el PDF: ' . $e->getMessage()
-            ], 500);
+            Log::error('Error en generateAndStore (Carta): ' . $e->getMessage());
+            return response()->json(['error' => 'Error al generar la respuesta: ' . $e->getMessage()], 500);
         }
     }
 }
