@@ -9,7 +9,7 @@ import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
 
 export const InputSearch = ({ handleSearch }) => {
     const { gridView, toggleGridView, showDropFolders, toggleDropFolders, setInputSearchTerm, inputSearchTerm } = useExplorerUI()
-    const { currentFolder, deleteSelection, globalSearch } = useExplorerData();
+    const { currentFolder, activeSheetId, deleteSelection, globalSearch } = useExplorerData();
     const url = usePage().url;
 
     return (
@@ -121,7 +121,22 @@ export const InputSearch = ({ handleSearch }) => {
 
                                 <button
                                     className="p-3 flex items-center gap-5 hover:bg-base-300/30 w-full rounded-md border-b border-gray-100"
-                                    onClick={() => router.visit(route("create-pdf"))}
+                                    onClick={() => {
+                                        const history = JSON.parse(localStorage.getItem("folder_id") || "[]");
+                                        const fallbackFolderId = history.length > 0 ? history[history.length - 1] : null;
+                                        const targetFolderId = currentFolder?.id ?? fallbackFolderId;
+                                        const targetSheetId = activeSheetId ?? localStorage.getItem("active_sheet_id");
+
+                                        if (!targetFolderId) {
+                                            toast.warning("Ubicate en una carpeta para guardar el PDF.");
+                                            return;
+                                        }
+
+                                        router.visit(route("create-pdf", {
+                                            folder_id: targetFolderId,
+                                            sheet_id: targetSheetId || undefined,
+                                        }));
+                                    }}
                                 >
                                     <DocumentPlusIcon className="size-5" />
 

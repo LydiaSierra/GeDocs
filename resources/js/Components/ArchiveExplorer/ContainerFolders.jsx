@@ -34,6 +34,9 @@ export default function ContainerFolders() {
         selectedItems,
         activeSheetId,
         setIsMultipleSelection,
+        pendingMoveItems,
+        cancelMoveItems,
+        performMoveItems
     } = useExplorerData();
 
     const {
@@ -71,6 +74,34 @@ export default function ContainerFolders() {
         }
 
         return null;
+    };
+
+    const handleHomeClick = () => {
+        if (!currentFolder || !Array.isArray(allFolders) || allFolders.length === 0) {
+            localStorage.removeItem("folder_id");
+            fetchFolders(null, activeSheetId);
+            setHistoryStack([]);
+            return;
+        }
+
+        const folderById = new Map(allFolders.map(f => [f.id, f]));
+        let rootFolder = currentFolder;
+        
+        while (rootFolder && rootFolder.parent_id) {
+            const parent = folderById.get(rootFolder.parent_id);
+            if (!parent) break;
+            rootFolder = parent;
+        }
+
+        if (rootFolder) {
+            localStorage.setItem("folder_id", JSON.stringify([rootFolder.id]));
+            fetchFolders(rootFolder.id, activeSheetId);
+            setHistoryStack([rootFolder.id]);
+        } else {
+            localStorage.removeItem("folder_id");
+            fetchFolders(null, activeSheetId);
+            setHistoryStack([]);
+        }
     };
 
     const activeSheet = sheets.find((sheet) => sheet.id === activeSheetId);
@@ -151,16 +182,27 @@ export default function ContainerFolders() {
                 {(selectedItems.length > 0) &&
                     <SelectionActionBar />
                 }
+                {(pendingMoveItems?.length > 0) &&
+                    <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 bg-white border border-gray-300 shadow-2xl rounded-full px-6 py-4 flex flex-row items-center gap-4">
+                        <span className="font-semibold text-gray-700 whitespace-nowrap">
+                            Moviendo {pendingMoveItems.length} elemento{pendingMoveItems.length !== 1 && 's'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={performMoveItems} className="bg-primary text-white font-medium px-4 py-2 rounded-full hover:bg-blue-600 transition-colors shadow-sm cursor-pointer">
+                                Mover aquí
+                            </button>
+                            <button onClick={cancelMoveItems} className="bg-gray-100 text-gray-700 font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition-colors shadow-sm cursor-pointer">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                }
                 {historyStack.length > 0 &&
                     <div className="flex gap-4 items-center underline bg-white">
                         <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
                             <ArrowLeftIcon className={"w-5 h-5 text-white"} />
                         </div>
-                        <div className="cursor-pointer" onClick={() => {
-                            localStorage.removeItem("folder_id")
-                            fetchFolders(null, activeSheetId);
-                            setHistoryStack([]);
-                        }}>
+                        <div className="cursor-pointer" onClick={handleHomeClick}>
                             Inicio
                         </div>
                     </div>

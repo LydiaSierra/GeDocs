@@ -446,6 +446,8 @@ class PQRController extends Controller
                         'type' => $file->getClientOriginalExtension(),
                         'size' => $file->getSize(),
                         'pqr_id' => $pqr->id,
+                        'hash' => hash('sha256', uniqid((string) $pqr->id, true)),
+                        'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
                     ]);
                 }
             }
@@ -471,5 +473,29 @@ class PQRController extends Controller
             return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
         }
 
+    }
+
+    /**
+     * Retorna datos específicos para construir el formulario de respuesta interna (Carta/Acta)
+     * GET /api/pqr/response-details/{id}
+     */
+    public function getResponseData(string $id): JsonResponse
+    {
+        $pqr = PQR::with(['dependency', 'comunications' => function($q) {
+            $q->orderBy('created_at', 'desc');
+        }])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'communication' => $pqr->comunications->first() ?? (object)[],
+                'pqr' => $pqr,
+                'dependency' => $pqr->dependency,
+            ],
+            'message' => 'Detalles de respuesta obtenidos'
+        ]);
     }
 }

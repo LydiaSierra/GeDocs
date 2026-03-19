@@ -1,6 +1,6 @@
 import SenderInformationCard from "@/Components/SenderInformationCard/SenderInformationCard";
 import PdfThumbnail from "@/Components/PdfThumbnail/PdfThumbnail";
-import { PdfCommunicationModal } from "@/Components/PdfCommunicationModal/PdfCommunicationModal";
+
 import { MailContext } from "@/context/MailContext/MailContext";
 import { useContext, useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
@@ -14,7 +14,7 @@ import {
     DocumentPlusIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
-import { usePage } from "@inertiajs/react";
+import { usePage, router, Link } from "@inertiajs/react";
 
 export function MailReader() {
     // ─── Context ───────────────────────────────────────────────────────────────
@@ -46,11 +46,10 @@ export function MailReader() {
     const [responseText, setResponseText] = useState("");
     const [sending, setSending] = useState(false);
     const [responseUrl, setResponseUrl] = useState("");
-    const [uploadedPdfFile, setUploadedPdfFile] = useState(null);
-    const [pdfModalOpen, setPdfModalOpen] = useState(false);
-    const [pdfSuccessUrl, setPdfSuccessUrl] = useState(null);
 
-    const pdfFileInputRef = useRef(null);
+
+
+
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
     const getDeadlineColor = (createdDateStr, responseDateStr) => {
@@ -74,9 +73,7 @@ export function MailReader() {
             const formData = new FormData();
             formData.append("message", responseText);
             formData.append("requires_response", "0");
-            if (uploadedPdfFile) {
-                formData.append("attachments[]", uploadedPdfFile);
-            }
+
             const commResponse = await api.post(
                 `/api/pqr/${currentMail.id}/comunicaciones`,
                 formData,
@@ -95,7 +92,7 @@ export function MailReader() {
                 )
             );
             alert("Respuesta enviada correctamente");
-            setUploadedPdfFile(null);
+            router.visit(route('outbox'));
         } catch (error) {
             console.error("Respond error:", error);
             const msg =
@@ -109,31 +106,6 @@ export function MailReader() {
         }
     };
 
-    const handlePdfFileChange = (e) => {
-        const file = e.target.files?.[0];
-        if (file && file.type === "application/pdf") {
-            setUploadedPdfFile(file);
-        } else if (file) {
-            alert("Solo se permiten archivos PDF.");
-            e.target.value = null;
-        }
-    };
-
-    const handlePdfGenerated = (data) => {
-        setPdfSuccessUrl(data.url);
-        setMailCards((prev) =>
-            prev.map((mail) =>
-                mail.id === currentMail.id
-                    ? {
-                          ...mail,
-                          response_status: data.pqr_status,
-                          response_date: data.response_date,
-                      }
-                    : mail
-            )
-        );
-        setTimeout(() => setPdfSuccessUrl(null), 8000);
-    };
 
     const handleArchiveToggle = async () => {
         try {
@@ -458,63 +430,15 @@ export function MailReader() {
 
                             {/* PDF buttons */}
                             <div className="flex items-center gap-2 flex-wrap">
-                                <input
-                                    ref={pdfFileInputRef}
-                                    type="file"
-                                    accept="application/pdf"
-                                    className="hidden"
-                                    onChange={handlePdfFileChange}
-                                    id="pdf-upload-input"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => pdfFileInputRef.current?.click()}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-primary hover:text-primary transition"
-                                >
-                                    <ArrowUpTrayIcon className="w-4 h-4" />
-                                    Subir Archivo
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPdfModalOpen(true)}
+                                <Link
+                                    href={`/pqr/responder/${currentMail.id}`}
                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-primary hover:text-primary transition"
                                 >
                                     <DocumentPlusIcon className="w-4 h-4" />
                                     Crear PDF
-                                </button>
-
-                                {uploadedPdfFile && (
-                                    <span className="text-xs text-primary font-medium truncate max-w-[180px]">
-                                        📎 {uploadedPdfFile.name}
-                                        <button
-                                            type="button"
-                                            className="ml-1 text-gray-400 hover:text-red-500"
-                                            onClick={() => {
-                                                setUploadedPdfFile(null);
-                                                if (pdfFileInputRef.current)
-                                                    pdfFileInputRef.current.value = null;
-                                            }}
-                                        >
-                                            ✕
-                                        </button>
-                                    </span>
-                                )}
+                                </Link>
                             </div>
 
-                            {pdfSuccessUrl && (
-                                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm text-green-700">
-                                    <CheckCircleIcon className="w-4 h-4 shrink-0" />
-                                    <span>PDF generado y guardado.</span>
-                                    <a
-                                        href={pdfSuccessUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="underline font-semibold hover:text-green-900"
-                                    >
-                                        Ver PDF
-                                    </a>
-                                </div>
-                            )}
 
                             <div className="flex justify-end items-center gap-3">
                                 {responseUrl && (
@@ -539,14 +463,6 @@ export function MailReader() {
                         </div>
                     )}
                 </div>
-
-                {/* PDF generation modal */}
-                <PdfCommunicationModal
-                    isOpen={pdfModalOpen}
-                    onClose={() => setPdfModalOpen(false)}
-                    pqrId={currentMail?.id}
-                    onSuccess={handlePdfGenerated}
-                />
             </div>
         </div>
     );

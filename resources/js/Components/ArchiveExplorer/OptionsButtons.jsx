@@ -1,6 +1,6 @@
 // OptionsButtons contains reusable button components for common actions (delete, edit, download, details) used throughout the archive explorer UI.
 import { useExplorerData } from "@/Hooks/useExplorer"
-import { ArrowDownTrayIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { ArrowDownTrayIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline"
 import { toast } from "sonner"
 
 
@@ -60,6 +60,25 @@ export const DetailsButtonOption = ({ showText = true }) => {
                 <InformationCircleIcon className="w-5 h-5 text-gray-600" />
                 {showText &&
                     <span>Detalles</span>
+                }
+            </button>
+        </li>
+    )
+}
+
+export const MoveButtonOption = ({ showText = true }) => {
+    const { startMoveItems, selectedItems } = useExplorerData();
+    return (
+        <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Mover">
+            <button
+                onClick={() => {
+                    startMoveItems();
+                }}
+                className={`${selectedItems?.length === 0 ? "opacity-50 pointer-events-none" : "opacity-100 hover:bg-base-300"} cursor-pointer transition-colors duration-300 ${showText ? "flex w-full items-center gap-2 px-3 py-2 border-b border-base-300 rounded-md" : "inline-block p-1 rounded-full cursor-pointer"}`}
+            >
+                <ArrowsRightLeftIcon className="w-5 h-5 text-gray-600" />
+                {showText &&
+                    <span>Mover</span>
                 }
             </button>
         </li>
