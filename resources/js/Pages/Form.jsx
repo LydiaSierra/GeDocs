@@ -25,7 +25,7 @@ export default function Form() {
         description: "",
         request_type: "Peticion",
         number: "",
-        dependency_id: 1,
+        dependency_id: "",
         attachments: [],
     });
 
@@ -54,7 +54,7 @@ export default function Form() {
             description: "",
             request_type: "Peticion",
             number: "",
-            dependency_id: 1,
+            dependency_id: "",
             attachments: [],
         });
         setSubmitted(false);
