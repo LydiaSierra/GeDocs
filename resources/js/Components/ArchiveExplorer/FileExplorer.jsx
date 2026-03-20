@@ -28,7 +28,7 @@ const File = ({ file }) => {
                     onDoubleClick={open}
                 >
                     {(isMultipleSelection && selectedItems.length > 0) &&
-                        <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary absolute left-2 top-2" checked={isSelected(file.id, 'file')} />
+                        <input type="checkbox" name="selected" id={`selected-file-${file.id}`} className="checkbox checkbox-primary absolute left-2 top-2 pointer-events-none" checked={isSelected(file.id, 'file')} readOnly />
                     }
                     {/* ICON + NAME */}
                     <div className="flex flex-col items-center gap-3 w-full select-none">
@@ -49,10 +49,10 @@ const File = ({ file }) => {
                     {/* OPTIONS BUTTON */}
                     <div className={`${gridView ? "absolute top-2 right-2" : "relative"}`}>
                         <>
-                            <div className="hidden md:inline-block">
+                            <div className="hidden lg:inline-block">
                                 <MenuOptions />
                             </div>
-                            <div className="md:hidden">
+                            <div className="lg:hidden">
                                 <ButtonDrawerInformation />
                             </div>
                         </>
@@ -73,7 +73,7 @@ const File = ({ file }) => {
 
                         <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium min-w-0 w-full"}`}>
                             {(isMultipleSelection && selectedItems.length > 0) &&
-                                <input type="checkbox" name="selected" id="selected" className="checkbox checkbox-primary" checked={isSelected(file.id, "file")}/>
+                                <input type="checkbox" name="selected" id={`selected-file-${file.id}`} className="checkbox checkbox-primary pointer-events-none" checked={isSelected(file.id, "file")} readOnly />
                             }
                             {file.is_image ? (
                                 <PhotoIcon className="w-8 text-blue-500" />
@@ -85,21 +85,21 @@ const File = ({ file }) => {
 
                             <span className="text-gray-600 shrink-0">{file.file_code}</span>
                             <span className="shrink-0">-</span>
-                            <div className="flex flex-col md:flex-row max-w-1/2 md:max-w-full">
+                            <div className="flex flex-col lg:flex-row max-w-1/2 lg:max-w-full">
                                 <span className="truncate w-full">{file.name}</span>
-                                <p className="w-26 md:hidden text-xs text-gray-500">--</p>
+                                <p className="w-26 lg:hidden text-xs text-gray-500">--</p>
                             </div>
                         </div>
 
                         <div className="flex gap-5 items-center">
-                            <p className="w-26 hidden md:inline-block text-gray-500">--</p>
+                            <p className="w-26 hidden lg:inline-block text-gray-500">--</p>
                             <p>{new Date(file.created_at).toLocaleDateString()}</p>
                             {!isMultipleSelection &&
                                 <>
-                                    <div className="hidden md:inline-block">
+                                    <div className="hidden lg:inline-block">
                                         <MenuOptions />
                                     </div>
-                                    <div className="md:hidden">
+                                    <div className="lg:hidden">
                                         <ButtonDrawerInformation />
                                     </div>
                                 </>
