@@ -19,6 +19,8 @@ const NotificationDropDown = () => {
     // Filter notifications by authenticated user role
     const roleFilteredNotifications = useMemo(() => {
         return notifications.filter((item) => {
+            if (item.type === "App\\Notifications\\PqrDeadlineNotification" || item.type === "pqr_deadline") return true;
+
             const notifRole = item?.data?.user?.roles?.[0]?.name || "";
             if (rol === "Instructor") return notifRole === "Aprendiz";
             if (rol === "Admin") return notifRole === "Instructor";
@@ -95,17 +97,27 @@ const NotificationDropDown = () => {
                                         >
                                             <UserCircleIcon className="h-10 w-10 shrink-0 self-center text-[#404142] md:h-11 md:w-11" />
 
-                                            <div className="min-w-0 flex-1">
-                                                <h1 className="truncate text-sm font-semibold text-[#010515] md:text-base">
-                                                    Nuevo{" "}
-                                                    {item.data.user.roles[0]
-                                                        ?.name || "Usuario"}
-                                                </h1>
-                                                <p className="text-xs font-medium text-[#404142] md:text-sm">
-                                                    Solicitud de Acceso:
-                                                </p>
-                                                <p className="line-clamp-2 text-xs text-[#606164] md:text-sm">{`${item.data.user.name} solicita un nuevo acceso con...`}</p>
-                                            </div>
+                                            {item.type === "App\\Notifications\\PqrDeadlineNotification" || item.type === "pqr_deadline" ? (
+                                                <div className="min-w-0 flex-1">
+                                                    <h1 className="truncate text-sm font-semibold text-red-600 md:text-base">
+                                                        {item.data.title || "¡PQR a punto de vencer!"}
+                                                    </h1>
+                                                    <p className="line-clamp-2 text-xs text-[#606164] md:text-sm mt-0.5">
+                                                        {item.data.message}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="min-w-0 flex-1">
+                                                    <h1 className="truncate text-sm font-semibold text-[#010515] md:text-base">
+                                                        Nuevo{" "}
+                                                        {item.data?.user?.roles?.[0]?.name || "Usuario"}
+                                                    </h1>
+                                                    <p className="text-xs font-medium text-[#404142] md:text-sm">
+                                                        Solicitud de Acceso:
+                                                    </p>
+                                                    <p className="line-clamp-2 text-xs text-[#606164] md:text-sm">{`${item.data?.user?.name || ''} solicita un nuevo acceso con...`}</p>
+                                                </div>
+                                            )}
 
                                             <div className="shrink-0 pt-0.5 text-right">
                                                 <p className="text-[11px] font-medium text-[#606164] md:text-xs">

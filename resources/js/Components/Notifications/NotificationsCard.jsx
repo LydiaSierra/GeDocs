@@ -32,9 +32,52 @@ const NotificationCard = () => {
 
     if (!visibleDetails) return null;
 
-    const isActive = visibleDetails.data.user.status === "active";
-    const isRejected = visibleDetails.data.user.status === "rejected";
-    const roleName = visibleDetails.data.user.roles[0]?.name || "Usuario";
+    const isPqrDeadline = visibleDetails.type === "App\\Notifications\\PqrDeadlineNotification" || visibleDetails.type === "pqr_deadline";
+
+    if (isPqrDeadline) {
+        return (
+            <div className="flex h-full flex-col gap-5 overflow-y-auto rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+                <div>
+                    <button
+                        onClick={closeDetails}
+                        className="btn btn-ghost btn-sm gap-1.5 text-slate-500 hover:text-slate-800"
+                    >
+                        <ArrowUturnLeftIcon className="size-4" />
+                        Volver
+                    </button>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-semibold text-red-600">
+                        {visibleDetails.data.title || "PQR Próxima a Vencer"}
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                        {visibleDetails.data.message}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                        {new Date(visibleDetails.created_at).toLocaleDateString("es-CO", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                        })}
+                    </p>
+                </div>
+
+                <div className="rounded-xl border border-red-100 bg-red-50 p-4">
+                    <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-500">
+                        Acción Requerida
+                    </h3>
+                    <p className="text-sm text-red-700">
+                        Dirígete a la bandeja de entrada y atiende la PQR #{visibleDetails.data.pqr_id}.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    const isActive = visibleDetails.data.user?.status === "active";
+    const isRejected = visibleDetails.data.user?.status === "rejected";
+    const roleName = visibleDetails.data.user?.roles?.[0]?.name || "Usuario";
 
     const userFields = [
         { label: "Solicitante", value: visibleDetails.data.user.name },

@@ -8,11 +8,51 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
+    private function checkDeadlines(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('Dependencia') || !$user->dependency_id) {
+            return;
+        }
+
+        $pqrs = \App\Models\PQR::where('dependency_id', $user->dependency_id)
+            ->whereNull('response_date')
+            ->whereNotNull('response_time')
+            ->where('state', false)
+            ->where('response_status', '!=', 'responded')
+            ->where('response_status', '!=', 'closed')
+            ->get();
+
+        foreach ($pqrs as $pqr) {
+            $created = \Carbon\Carbon::parse($pqr->created_at);
+            $deadline = \Carbon\Carbon::parse($pqr->response_time);
+            $now = \Carbon\Carbon::now();
+
+            $total = $deadline->diffInMinutes($created);
+            if ($total <= 0) continue;
+
+            $remaining = $deadline->diffInMinutes($now, false);
+            $pct = ($remaining / $total) * 100;
+
+            if ($pct < 50) {
+                $exists = $user->notifications()
+                    ->where('type', \App\Notifications\PqrDeadlineNotification::class)
+                    ->where('data->pqr_id', $pqr->id)
+                    ->exists();
+
+                if (!$exists) {
+                    $user->notify(new \App\Notifications\PqrDeadlineNotification($pqr));
+                }
+            }
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $this->checkDeadlines($request);
         $notifications = $request->user()
             ->notifications()
             ->latest()
@@ -22,6 +62,7 @@ class NotificationController extends Controller
 
     public function unread(Request $request)
     {
+        $this->checkDeadlines($request);
         return response()->json(['success' => true, 'notifications' => $request->user()->unreadNotifications]);
     }
 

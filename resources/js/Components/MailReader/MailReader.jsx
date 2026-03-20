@@ -72,32 +72,9 @@ export function MailReader() {
         try {
             setSending(true);
 
-            const respondRes = await axios.post(`/api/pqrs/${currentMail.id}/respond`, {
-                response_message: responseText,
-            });
-
-            // Actualizar el estado de la PQR
-            setMailCards((prev) =>
-                prev.map((mail) =>
-                    mail.id === currentMail.id
-                        ? { ...mail, ...respondRes.data.data }
-                        : mail
-                )
-            );
-
-            await axios
-                .post(`/api/pqr/${currentMail.id}/comunicaciones`, {
-                    message: responseText,
-                    requires_response: true,
-                })
-                .then((response) => {
-                    setResponseUrl(response.data.response_url);
-                });
-            // Optional UX improvements 👇
-
             const formData = new FormData();
             formData.append("message", responseText);
-            formData.append("requires_response", "0");
+            formData.append("requires_response", "1");
 
             const commResponse = await api.post(
                 `/api/pqr/${currentMail.id}/comunicaciones`,
@@ -117,8 +94,8 @@ export function MailReader() {
                 )
             );
             toast.custom((t) => (
-                <div className="w-[var(--width)] flex items-center gap-2 px-4 py-3 bg-green-100 text-green-700 font-bold rounded-xl border border-green-200 shadow-sm pointer-events-auto">
-                    <CheckCircleIcon className="w-5 h-5 text-green-600 shrink-0" />
+                <div className="w-[var(--width)] flex items-center gap-2 px-4 py-3 bg-green-50 text-green-700 font-medium rounded-xl border border-green-200 shadow-sm pointer-events-auto">
+                    <CheckCircleIcon className="w-4 h-4 text-green-600 shrink-0" />
                     <span>Respuesta enviada correctamente</span>
                 </div>
             ));
