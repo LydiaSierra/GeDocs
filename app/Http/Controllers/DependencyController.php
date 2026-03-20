@@ -20,7 +20,11 @@ class DependencyController extends Controller
                 "message" => "No hay dependencias",
             ], 404);
         }
-        $dependencies = $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [];
+        $dependencies = $request->user() ? (
+            $request->user()->hasRole("Instructor") 
+                ? Dependency::with('sheetNumber')->whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() 
+                : Dependency::with('sheetNumber')->whereHas('sheetNumber')->get()
+        ) : [];
 
         return response()->json([
             "message" => "Dependencias obtenidas exitosamente",
