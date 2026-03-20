@@ -43,7 +43,7 @@ const DocArea = ({ name, placeholder, className = "", rows = 6, ...props }) => (
 export default function Comunication({ pqrID }) {
     const { auth } = usePage().props;
     const initialUserLogoUrl = auth?.user?.pdf_logo_path ? `/storage/${auth.user.pdf_logo_path}` : DEFAULT_LOGO_PATH;
-    
+
     const [comunication, setComunication] = useState({});
     const [pqr, setPqr] = useState({});
     const [dependency, setDependency] = useState({});
@@ -71,8 +71,8 @@ export default function Comunication({ pqrID }) {
         async function fetchInitialData() {
             try {
                 const isInternalId = !isNaN(pqrID);
-                const endpoint = isInternalId 
-                    ? `/api/pqr/response-details/${pqrID}` 
+                const endpoint = isInternalId
+                    ? `/api/pqr/response-details/${pqrID}`
                     : `/api/pqr/responder/${pqrID}`;
 
                 const res = await axios.get(endpoint);
@@ -80,7 +80,7 @@ export default function Comunication({ pqrID }) {
                 setComunication(data.communication || {});
                 setPqr(data.pqr || {});
                 setDependency(data.dependency || {});
-                
+
                 // Cargar todas las carpetas de la ficha ligada a la PQR
                 if (data.dependency?.sheet_number_id) {
                     const foldersRes = await axios.get(`/api/folders-by-sheet?sheet_id=${data.dependency.sheet_number_id}`);
@@ -90,11 +90,11 @@ export default function Comunication({ pqrID }) {
                     // Inicializar jerarquía con el primer nivel: Años (parent_id = null)
                     const rootYears = folderList.filter(f => f.parent_id === null);
                     const initialPath = [{ options: rootYears, selectedId: "" }];
-                    
+
                     // Pre-seleccionar año actual si existe
                     const currentYearStr = new Date().getFullYear().toString();
                     const currentYearNode = rootYears.find(y => y.name === currentYearStr);
-                    
+
                     if (currentYearNode) {
                         initialPath[0].selectedId = currentYearNode.id.toString();
                         // Si el año tiene hijos, añadir el siguiente nivel automáticamente
@@ -118,7 +118,7 @@ export default function Comunication({ pqrID }) {
     const handlePathSelect = (index, folderId) => {
         let newPath = [...navigationPath];
         newPath[index].selectedId = folderId;
-        
+
         // Truncar cualquier nivel posterior al actual
         newPath = newPath.slice(0, index + 1);
 
@@ -173,7 +173,7 @@ export default function Comunication({ pqrID }) {
             const data = tempFormData;
             data.append("pqr_id", pqrID);
             data.append("folder_id", finalFolderId);
-            
+
             if (customLogoFile) data.append("logo_file", customLogoFile);
             if (customSignatureFile) data.append("signature_file", customSignatureFile);
 
@@ -189,7 +189,7 @@ export default function Comunication({ pqrID }) {
             await axios.post(`/api/pdf/generate-response`, data, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            
+
             toast.dismiss(toastId);
             toast.success("Respuesta enviada y PDF archivado correctamente.");
             setSubmitted(true);
@@ -274,16 +274,16 @@ export default function Comunication({ pqrID }) {
             </div>
 
             <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 p-6">
-                
+
                 {/* Editor de Documento (Solo Carta) */}
                 <form id="responseForm" onSubmit={handleSubmit} className="flex flex-col items-center">
-                    <div 
+                    <div
                         className="bg-white shadow-2xl w-full max-w-[794px] min-h-[1123px] px-14 py-12 leading-relaxed text-[11pt] text-gray-900 border border-gray-200"
                         style={{ fontFamily: "'Helvetica', 'Arial', sans-serif" }}
                     >
                         {/* Area de Logo */}
                         <div className="mb-8 flex justify-between items-start">
-                             <div className="relative inline-block group">
+                            <div className="relative inline-block group">
                                 <button
                                     type="button"
                                     onClick={() => logoInputRef.current?.click()}
@@ -328,7 +328,7 @@ export default function Comunication({ pqrID }) {
 
                         {/* Firma */}
                         <div className="mt-10 mb-10 border-t border-gray-100 pt-8">
-                             <div className="w-[250px] space-y-1">
+                            <div className="w-[250px] space-y-1">
                                 <div className="relative group mb-2">
                                     <button
                                         type="button"
@@ -351,26 +351,26 @@ export default function Comunication({ pqrID }) {
                         </div>
 
                         <div className="text-[9pt] text-gray-400 space-y-1">
-                             <DocInput name="anexo" placeholder="Anexos (Opcional)" className="w-full text-[9pt]" />
-                             <DocInput name="transcriptor" placeholder="Transcriptor / Redactor (Opcional)" className="w-full text-[9pt]" />
+                            <DocInput name="anexo" placeholder="Anexos (Opcional)" className="w-full text-[9pt]" />
+                            <DocInput name="transcriptor" placeholder="Transcriptor / Redactor (Opcional)" className="w-full text-[9pt]" />
                         </div>
 
                         {/* Pie de página editable y centrado */}
                         <div className="mt-16 border-t border-gray-100 pt-4">
-                             <DocArea 
-                                name="footer_text" 
-                                placeholder="Pie de página corporativo..." 
-                                className="text-center text-[9pt] text-gray-400 border-0 italic" 
+                            <DocArea
+                                name="footer_text"
+                                placeholder="Pie de página corporativo..."
+                                className="text-center text-[9pt] text-gray-400 border-0 italic"
                                 rows={2}
                                 defaultValue={`SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs ${new Date().getFullYear()}`}
-                             />
+                            />
                         </div>
                     </div>
                 </form>
 
                 {/* Sidebar de Ayuda y Archivos */}
                 <div className="space-y-6">
-                    
+
                     {/* Información de la PQR */}
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 space-y-4">
                         <h3 className="font-bold text-gray-800 flex items-center gap-2">
@@ -380,7 +380,7 @@ export default function Comunication({ pqrID }) {
                         <div className="space-y-3">
                             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
                                 <span className="text-[10px] uppercase font-bold text-gray-400">Mensaje Original</span>
-                                <p className="text-xs text-gray-600 mt-1 line-clamp-6 italic">"{comunication.message}"</p>
+                                <p className="text-xs text-gray-600 mt-1 line-clamp-6 italic">"{pqr.description}"</p>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="text-gray-400">Tipo:</span>
@@ -396,7 +396,7 @@ export default function Comunication({ pqrID }) {
                             Anexar Soportes
                         </h3>
                         <p className="text-[10px] text-gray-400">Adjunte documentos adicionales (JPG, PNG, PDF).</p>
-                        
+
                         <input
                             type="file"
                             multiple
@@ -483,8 +483,8 @@ export default function Comunication({ pqrID }) {
                                                                 {idx === 0 ? "Año / Raíz" : `Subnivel ${idx}`}
                                                             </label>
                                                             <div className="relative">
-                                                                <select 
-                                                                    value={level.selectedId} 
+                                                                <select
+                                                                    value={level.selectedId}
                                                                     onChange={(e) => handlePathSelect(idx, e.target.value)}
                                                                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer hover:bg-white"
                                                                 >

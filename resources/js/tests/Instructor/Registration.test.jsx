@@ -1,0 +1,131 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import Register from '@/Pages/Auth/Register';
+import { toast } from 'sonner';
+import { useForm } from '@inertiajs/react';
+
+// Mock de ziggy-js route
+global.route = vi.fn().mockReturnValue('/register');
+
+// Mock de sonner
+vi.mock('sonner', () => ({
+    toast: {
+        error: vi.fn(),
+        loading: vi.fn(),
+        dismiss: vi.fn(),
+    }
+}));
+
+// Mock de @inertiajs/react
+vi.mock('@inertiajs/react', () => ({
+    Head: () => null,
+    Link: ({ children }) => <a href="#">{children}</a>,
+    useForm: vi.fn(),
+}));
+
+// Mock de componentes que podrían requerir configuraciones especiales
+vi.mock('@/Layouts/GuestLayout', () => ({
+    default: ({ children }) => <div>{children}</div>
+}));
+
+describe('Pruebas del Registro', () => {
+    let mockData, mockSetData, mockPost, mockReset;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        
+        mockData = {
+            type_document: "",
+            document_number: "",
+            name: "",
+            email: "",
+            role: "",
+            technical_sheet_id: "",
+            password: "",
+            password_confirmation: "",
+        };
+
+        mockSetData = vi.fn((key, value) => {
+            mockData[key] = value;
+        });
+
+        mockPost = vi.fn();
+        mockReset = vi.fn();
+
+        useForm.mockReturnValue({
+            data: mockData,
+            setData: mockSetData,
+            post: mockPost,
+            processing: false,
+            errors: {},
+            reset: mockReset,
+        });
+    });
+
+    const mockSheets = [
+        { id: 1, number: 'Ficha-12345' },
+        { id: 2, number: 'Ficha-67890' }
+    ];
+
+    it('renders all initial form fields', () => {
+        render(<Register sheets={mockSheets} />);
+        
+        expect(screen.getByLabelText(/Tipo de documento/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Número de documento/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Nombre completo/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Email/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Rol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Contraseña/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Confirmar contraseña/i)).toBeInTheDocument();
+        
+        // Al inicio "Ficha" no debe estar presente porque el rol está vacío
+        expect(screen.queryByLabelText(/^Ficha/i)).not.toBeInTheDocument();
+    });
+
+    it('does NOT show the sheet select when the selected role is Instructor', () => {
+        mockData.role = "Instructor";
+        useForm.mockReturnValue({
+            data: mockData,
+            setData: mockSetData,
+            post: mockPost,
+            processing: false,
+            errors: {},
+            reset: mockReset,
+        });
+
+        render(<Register sheets={mockSheets} />);
+        
+        // No debe aparecer la etiqueta o select de ficha
+        expect(screen.queryByLabelText(/^Ficha/i)).not.toBeInTheDocument();
+    });
+    it('throws frontend validation toasts using Sonner when submitted incomplete', () => {
+        render(<Register sheets={mockSheets} />);
+        
+        const btn = screen.getByRole('button', { name: /Registrarse/i });
+        fireEvent.click(btn);
+
+        // Como todos los campos están vacíos, falla rápido en el tipo de documento
+        expect(toast.error).toHaveBeenCalledWith("Seleccione un tipo de documento");
+        expect(mockPost).not.toHaveBeenCalled();
+    });
+
+    it('prints the errors returned by the backend in the inputs (repeated email or ID)', () => {
+        useForm.mockReturnValue({
+            data: mockData,
+            setData: mockSetData,
+            post: mockPost,
+            processing: false,
+            errors: {
+                email: "Este correo electrónico ya está en uso.",
+                document_number: "Este número de documento ya está registrado."
+            },
+            reset: mockReset,
+        });
+
+        render(<Register sheets={mockSheets} />);
+        
+        // Localizamos que los textos de error existan bajo los inputs
+        expect(screen.getByText("Este correo electrónico ya está en uso.")).toBeInTheDocument();
+        expect(screen.getByText("Este número de documento ya está registrado.")).toBeInTheDocument();
+    });
+});

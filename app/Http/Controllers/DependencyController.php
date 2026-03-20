@@ -49,7 +49,7 @@ class DependencyController extends Controller
             "folder_code" => "nullable|string|max:255"
         ]);
 
-        //Obtener la ficha del suuario
+        //Obtener la ficha del usuario
         $sheet = $user->sheetNumbers()->first();
 
         // Prioridad: 1) Ficha del usuario, 2) Enviada en JSON
@@ -67,7 +67,7 @@ class DependencyController extends Controller
 
         $dependency = Dependency::create([
             'name' => $validate['name'],
-            'sheet_number_id' => $sheetId,
+            'sheet_number_id' => $validate['sheet_number_id'],
         ]);
 
         // Find or create the current year folder for the sheet

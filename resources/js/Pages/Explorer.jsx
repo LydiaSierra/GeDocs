@@ -34,6 +34,7 @@ export default function Explorer() {
         restoreSelection,
         setSelectedItems,
         updateFolder,
+        cancelMoveItems
     } = useExplorerData();
     const [editingYear, setEditingYear] = useState(null);
     const [showPdfToast, setShowPdfToast] = useState(false);
@@ -42,6 +43,7 @@ export default function Explorer() {
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
         fetchFolders(null, sheetId);
+        cancelMoveItems();
         localStorage.setItem("active_sheet_id", sheetId);
         localStorage.removeItem("folder_id"); // Clear folder_id when selecting a new sheet
         setHistoryStack([]);
@@ -175,7 +177,7 @@ export default function Explorer() {
                                                             }`}
                                                     >
                                                         <ArchiveBoxIcon className="size-4" />
-                                                        {archivedMode ? "Volver" : "Archivados"}
+                                                        {archivedMode ? "Volver" : "Papelera"}
                                                     </button>
                                                 </div>
                                             </div>
