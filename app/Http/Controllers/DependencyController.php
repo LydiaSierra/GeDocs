@@ -161,6 +161,12 @@ class DependencyController extends Controller
             ], 404);
         }
 
+        if ($dependency->name === 'Ventanilla Unica' && $request->input('name') !== 'Ventanilla Unica') {
+            return response()->json([
+                "message" => "El nombre de la dependencia Ventanilla Unica no puede ser modificado"
+            ], 403);
+        }
+
         $validate = $request->validate([
             'name' => [
                 'required',
@@ -192,6 +198,13 @@ class DependencyController extends Controller
                 "status" => "error",
                 "message" => "Dependencia no encontrada"
             ], 404);
+        }
+
+        if ($dependency->name === 'Ventanilla Unica') {
+            return response()->json([
+                "status" => "error",
+                "message" => "La dependencia Ventanilla Unica no puede ser eliminada"
+            ], 403);
         }
 
         $dependency->delete();
