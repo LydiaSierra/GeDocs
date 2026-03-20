@@ -52,7 +52,17 @@ class DependencyController extends Controller
                     return $query->where('sheet_number_id', $request->input('sheet_number_id'));
                 })
             ],
-            "sheet_number_id" => "nullable|exists:sheet_numbers,id",
+            "sheet_number_id" => [
+                "nullable",
+                "exists:sheet_numbers,id",
+                function ($attribute, $value, $fail) use ($user) {
+                    if ($value && $user->hasRole('Instructor')) {
+                        if (!$user->sheetNumbers->contains('id', $value)) {
+                            $fail('No tienes permisos para asignar dependencias a esta ficha.');
+                        }
+                    }
+                }
+            ],
             "folder_code" => "nullable|string|max:255"
         ]);
 
