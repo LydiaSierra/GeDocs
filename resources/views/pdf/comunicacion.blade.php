@@ -108,9 +108,27 @@
             color: #666;
             padding: 8px 0;
         }
+
+        /* QR CODE */
+        .qr-wrapper {
+            position: absolute;
+            top: 25px;
+            right: 0;
+        }
+        .qr-code {
+            width: 80px;
+            height: 80px;
+        }
     </style>
 </head>
 <body>
+
+    {{-- ============ QR CODE ============ --}}
+    @if(!empty($qrCodeDataUri))
+        <div class="qr-wrapper">
+            <img src="{{ $qrCodeDataUri }}" class="qr-code" alt="QR Code">
+        </div>
+    @endif
 
     {{-- ============ ENCABEZADO ============ --}}
     <div class="page-header">

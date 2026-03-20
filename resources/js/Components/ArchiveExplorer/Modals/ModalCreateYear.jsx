@@ -2,6 +2,7 @@ import { useExplorerData } from '@/Hooks/useExplorer';
 import React, { useState } from 'react'
 import { toast } from 'sonner';
 import { CalendarIcon } from "@heroicons/react/24/outline";
+import InputError from '@/Components/InputError';
 
 const ModalCreateYear = () => {
     const {
@@ -11,10 +12,16 @@ const ModalCreateYear = () => {
 
     const [loading, setLoading] = useState(false);
     const [year, setYear] = useState(new Date().getFullYear());
+    const [error, setError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        if (year < 2000 || year > new Date().getFullYear()) {
+            setLoading(false);
+            setError("El año debe estar entre 2000 y el año actual");
+            return;
+        }
 
         try {
             const data = {
@@ -54,7 +61,7 @@ const ModalCreateYear = () => {
                     <div className="size-16 bg-primary/10 rounded-full flex items-center justify-center">
                         <CalendarIcon className="size-10 text-primary" />
                     </div>
-                    
+
                     <div className="text-center">
                         <h2 className='text-2xl font-bold'>Crear Nuevo Año</h2>
                         <p className="text-sm text-gray-500 mt-1">
@@ -73,8 +80,12 @@ const ModalCreateYear = () => {
                             max={year}
                             className='w-full border-2 border-gray-100 rounded-xl p-3 text-center text-2xl font-black text-primary focus:border-primary focus:ring-0 transition-all'
                             value={year}
-                            onChange={(e) => setYear(e.target.value)}
+                            onChange={(e) =>{
+                                 setYear(e.target.value);
+                                 setError(null);
+                            }}
                         />
+                        {error && <InputError message={error}/>}
                     </div>
 
                     <div className='flex gap-3 justify-end'>
