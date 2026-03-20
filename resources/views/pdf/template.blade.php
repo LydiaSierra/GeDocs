@@ -17,6 +17,7 @@
 
         .logo-wrapper {
             margin-bottom: 22px;
+            text-align: left;
         }
 
         .document-logo {
@@ -81,6 +82,22 @@
         }
 
         li { margin-bottom: 6px; }
+        
+        /* QR CODE */
+        .qr-wrapper {
+            position: absolute;
+            top: 10px;
+            right: 0px;
+            width: 150px;
+            text-align: center;
+        }
+
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -116,6 +133,18 @@
 @php
     $footerText = $data['footer_text'] ?? ("SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.");
 @endphp
+
+@if(!empty($qrCodeDataUri))
+    <div class="qr-wrapper">
+        <img src="{{ $qrCodeDataUri }}" alt="QR Code" class="qr-code">
+        <div style="font-size: 8pt; margin-top: 5px; text-align: left;">
+            <div><b>Radicado No.:</b> {{ $data['no_radicado'] ?? '' }}</div>
+            <div><b>Atendido:</b> {{ $data['atendido'] ?? '' }}</div>
+            <div><b>Hora:</b> {{ $data['hora'] ?? '' }}</div>
+            <div><b>Ubicación:</b> {{ $data['archivado_en'] ?? '' }}</div>
+        </div>
+    </div>
+@endif
 
 @if(!empty($logoDataUri))
     <div class="logo-wrapper">
