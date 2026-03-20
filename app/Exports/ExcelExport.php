@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 
 /**
@@ -33,7 +34,30 @@ use Maatwebsite\Excel\Concerns\WithEvents;
  * - Flexible filters: trimester, year, date range, archived, dependency, responsible, response_status
  * - Placeholders for direction/environment once fields exist
  */
-class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, Responsable,WithEvents
+class ExcelExport implements WithMultipleSheets
+{
+    use Exportable;
+
+    protected array $filters;
+
+    public function __construct($filters = [])
+    {
+        $this->filters = $filters;
+    }
+
+    public function sheets(): array
+    {
+        return [
+            new Recibido($this->filters),   // Hoja 1
+            new ResumenSheetExport(),             // Hoja 2
+        ];
+    }
+}
+
+
+
+
+class Recibido implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, Responsable,WithEvents
 {
     use Exportable;
 
@@ -396,4 +420,28 @@ class ExcelExport implements FromQuery, WithHeadings, WithMapping, WithColumnFor
         },
     ];
 }
+}
+
+
+class ResumenSheetExport implements FromQuery, WithHeadings, WithMapping
+{
+    public function query()
+    {
+        return PQR::query()
+            ->selectRaw('response_status, COUNT(*) as total')
+            ->groupBy('response_status');
+    }
+
+    public function headings(): array
+    {
+        return ['Estado', 'Total'];
+    }
+
+    public function map($row): array
+    {
+        return [
+            $row->response_status,
+            $row->total
+        ];
+    }
 }
