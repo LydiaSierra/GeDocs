@@ -44,7 +44,14 @@ class DependencyController extends Controller
         $user = $request->user();
 
         $validate = $request->validate([
-            "name" => "required|string|max:255|unique:dependencies,name",
+            "name" => [
+                "required",
+                "string",
+                "max:255",
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($request) {
+                    return $query->where('sheet_number_id', $request->input('sheet_number_id'));
+                })
+            ],
             "sheet_number_id" => "nullable|exists:sheet_numbers,id",
             "folder_code" => "nullable|string|max:255"
         ]);
@@ -141,7 +148,14 @@ class DependencyController extends Controller
         }
 
         $validate = $request->validate([
-            'name' => "required|string|max:255"
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($dependency) {
+                    return $query->where('sheet_number_id', $dependency->sheet_number_id);
+                })->ignore($dependency->id)
+            ]
         ]);
 
         $dependency->update($validate);
