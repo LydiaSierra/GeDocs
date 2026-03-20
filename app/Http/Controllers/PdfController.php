@@ -17,6 +17,8 @@ use App\Models\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PQRResponseMail;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
 
 // Controlador encargado de generar el PDF
 class PdfController extends Controller
@@ -410,6 +412,22 @@ class PdfController extends Controller
             // Preparar datos para el template unificado forzando CARTA
             $data = $request->all();
             $data['document_type'] = 'carta';
+            // Agregar datos para el QR
+            $attachedSupport = $pqr->attachedSupports()->where('origin', 'ENV')->latest()->first();
+            $data['no_radicado'] = $attachedSupport ? $attachedSupport->no_radicado : str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $data['atendido'] = $pqr->responsible ? $pqr->responsible->name : ($request->user() ? $request->user()->name : '');
+            $data['hora'] = now()->format('H:i:s');
+            
+            $folderNames = [];
+            if (!empty($validated['folder_id'])) {
+                $currentFolder = \App\Models\Folder::find($validated['folder_id']);
+                while ($currentFolder) {
+                    $folderNames[] = $currentFolder->name;
+                    $currentFolder = $currentFolder->parent;
+                }
+                $folderNames = array_reverse($folderNames);
+            }
+            $data['archivado_en'] = implode(' / ', $folderNames);
 
             // Resolución de Logotipo y Firma (Base64)
             $logoDataUri = $this->resolveLogoDataUri($request);
@@ -424,11 +442,32 @@ class PdfController extends Controller
             $data['footer_text'] = $finalFooter;
             $data['pie_pagina'] = $finalFooter;
 
-            // 1. Generar la CARTA (PDF Principal)
+            // Recorrer el árbol de carpetas para generar el prefijo de IDs
+            $folderIds = [];
+            if (!empty($validated['folder_id'])) {
+                $currentFolder = \App\Models\Folder::find($validated['folder_id']);
+                while ($currentFolder) {
+                    $folderIds[] = $currentFolder->id;
+                    $currentFolder = \App\Models\Folder::find($currentFolder->parent_id);
+                }
+                $folderIds = array_reverse($folderIds);
+            }
+            $folderPrefix = implode('-', $folderIds) ?: ($pqr->dependency_id ?? 0);
+
+            // Definir nombre y ruta del archivo antes para que el QR pueda apuntar a él
+            $fileName = "{$folderPrefix}-" . now()->year . "-" . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
+            $storagePath = 'pdf_responses/' . $fileName;
+
+            // Generar Código QR que apunta directamente a la descarga del PDF
+            $qrUrl = asset('storage/' . $storagePath);
+            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
+
+            // 1. Generar la CARTA (PDF Principal usando la vista template)
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
                 'logoDataUri' => $logoDataUri,
                 'signatureDataUri' => $signatureDataUri,
+                'qrCodeDataUri' => $qrCodeDataUri,
             ]);
             $pdf->setPaper('letter', 'portrait');
             $mainPdfContent = $pdf->output();
@@ -479,7 +518,7 @@ class PdfController extends Controller
             // Si se seleccionó una carpeta en el modal, registrar el archivo en el explorador (Files)
             if (!empty($validated['folder_id'])) {
                 \App\Models\File::create([
-                    'name' => 'Radicado-' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . ' - ' . now()->format('Y-m-d'),
+                    'name' => str_replace('.pdf', '', $fileName),
                     'path' => $storagePath,
                     'extension' => 'pdf',
                     'mime_type' => 'application/pdf',
