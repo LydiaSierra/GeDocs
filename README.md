@@ -267,21 +267,80 @@ METHOD GET
 
 ```
 /api/users/filter?document_number=102030&email=andres@gmail.com&name=andres
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```
 
+# Documentación de API - Archivos y Carpetas (GeDocs)
+
+Esta documentación detalla los endpoints utilizados para la gestión del sistema de archivos, carpetas y la integración con la vista `Explorer.jsx`.
+
+## 1. Explorador y Navegación
+
+### `GET /explorer`
+Es el endpoint principal para cargar la estructura de archivos y carpetas.
+- **Parámetros (Query):**
+    - `sheet_id`: (Opcional) ID de la ficha técnica.
+    - `folder_id`: (Opcional) ID de la carpeta actual. Si es nulo, muestra las carpetas raíz (años).
+    - `buscador`: (Opcional) Término de búsqueda para filtrado global.
+- **Respuesta:** Renderiza la vista `Explorer` vía Inertia con los objetos `folders` y `files`.
+
+---
+
+## 2. Gestión de Carpetas
+
+### `POST /folders`
+Crea una nueva carpeta.
+- **Cuerpo (JSON):** `name`, `parent_id`, `sheet_number_id`, `folder_code`.
+
+### `PUT /folders/{folderId}`
+Actualiza o renombra una carpeta existente.
+- **Cuerpo (JSON):** `name`, `folder_code`.
+
+### `POST /folders/move-mixed`
+Mueve una selección de carpetas y archivos a una nueva ubicación.
+- **Cuerpo (JSON):** `target_folder_id`, `folders` (array de IDs), `files` (array de IDs).
+
+---
+
+## 3. Gestión de Archivos
+
+### `POST /folders/{id}/upload`
+Sube uno o más archivos a una carpeta específica.
+- **Cuerpo (Multipart/Form-Data):** `files[]` (array de archivos).
+- **Lógica especial:** 
+    - Genera un código secuencial (`file_code`) basado en el máximo global.
+    - Genera un hash SHA256 del contenido.
+    - Renombra el archivo en disco: `AÑO-Ex-COD-SEQ-HASH-NombreOriginal.pdf`.
+
+### `GET /folders/file/download/{id}`
+Descarga un archivo específico.
+
+### `POST /folders/download-mixed-zip`
+Comprime y descarga una selección mixta de carpetas y archivos en un archivo ZIP.
+
+---
+
+## 4. Sistema de Papelera (Trash)
+
+### `POST /folders/delete-mixed`
+Realiza un "borrado lógico" (mueve a la papelera) desactivando el flag `active`.
+- **Cuerpo (JSON):** `folders` (array de IDs), `files` (array de IDs).
+
+### `POST /folders/restore-mixed`
+Restaura elementos de la papelera volviendo a activar el flag `active`.
+
+### `GET /folders/archived`
+Lista todos los elementos que están actualmente en la papelera (`active = false`).
+
+---
+
+## Estructura de Datos (Modelo File)
+
+Cada archivo en el sistema GeDocs posee la siguiente metadata clave:
+- **`name`**: Nombre estandarizado visible.
+- **`file_code`**: Código consecutivo (ej: `008`) que sigue la secuencia de las PQRs.
+- **`hash`**: Hash SHA256 para verificar la integridad del documento.
+- **`path`**: Ruta física en el storage.
+- **`folder_id`**: Referencia a la carpeta contenedora.
 # API DE FICHAS (SheetUserController / SheetController)
 
 ---
