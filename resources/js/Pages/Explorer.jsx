@@ -103,7 +103,7 @@ export default function Explorer() {
                         <div className="w-8" /> {/* Spacer for centering */}
                     </div>
 
-                    {((!filters?.buscador) || archivedMode) && (
+                    {(
                         /* ====== DUAL COLUMN SELECTION VIEW ====== */
                         <div className="flex flex-col lg:flex-row flex-1 min-h-0 border border-gray-100 lg:rounded-3xl bg-white lg:shadow-xl overflow-hidden lg:mx-4 lg:mb-4 relative">
                             {/* LEFT COLUMN: Sheets (Fichas) List */}
@@ -153,7 +153,7 @@ export default function Explorer() {
                             </div>
 
                             {/* RIGHT COLUMN: Years List */}
-                            {(!currentFolder || archivedMode) && (
+                            {(!currentFolder || archivedMode) && !filters?.buscador && (
                                 <div className={`flex-1 flex-col min-h-0 bg-white relative ${!activeSheetId ? 'hidden lg:flex' : 'flex'}`}>
                                     {!activeSheetId ? (
                                         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
@@ -337,7 +337,7 @@ export default function Explorer() {
 
 
                             { /* ====== FOLDER EXPLORER VIEW ====== */}
-                            {currentFolder && !archivedMode && (
+                             {((currentFolder || filters?.buscador) && !archivedMode) && (
                                 <div className="flex flex-col flex-1 min-h-0 bg-white">
                                     <div className="hidden lg:flex items-center justify-between mb-0 p-4 shrink-0 border-b border-gray-100 sticky top-0 bg-white z-20">
                                         <div className="flex items-center gap-3">

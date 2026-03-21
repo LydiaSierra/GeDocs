@@ -77,13 +77,25 @@ class FolderController extends Controller
 
         // Global Search
         if ($buscador) {
-            $folders = Folder::where('active', true)
+            $foldersQuery = Folder::where('active', true)
                 ->where('name', 'LIKE', "%{$buscador}%")
-                ->get();
+                ->whereNotNull('parent_id'); // Exclude year folders
 
-            $files = File::where('active', true)
-                ->where('name', 'LIKE', "%{$buscador}%")
-                ->get()
+            if ($sheetId) {
+                $foldersQuery->where('sheet_number_id', $sheetId);
+            }
+            $folders = $foldersQuery->get();
+
+            $filesQuery = File::where('active', true)
+                ->where('name', 'LIKE', "%{$buscador}%");
+
+            if ($sheetId) {
+                $filesQuery->whereHas('folder', function ($q) use ($sheetId) {
+                    $q->where('sheet_number_id', $sheetId);
+                });
+            }
+
+            $files = $filesQuery->get()
                 ->map(fn($file) => [
                     "id" => $file->id,
                     "name" => $file->name,
