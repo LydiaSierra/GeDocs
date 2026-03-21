@@ -20,6 +20,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
 
 /**
@@ -34,7 +35,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  * - Flexible filters: trimester, year, date range, archived, dependency, responsible, response_status
  * - Placeholders for direction/environment once fields exist
  */
-class ExcelExport implements WithMultipleSheets
+class ExcelExport implements WithMultipleSheets, Responsable
 {
     use Exportable;
 
@@ -48,8 +49,8 @@ class ExcelExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new Recibido($this->filters),   // Hoja 1
-            new ResumenSheetExport(),             // Hoja 2
+            new Received($this->filters),   // Hoja 1
+            new Sended(),             // Hoja 2
         ];
     }
 }
@@ -57,7 +58,7 @@ class ExcelExport implements WithMultipleSheets
 
 
 
-class Recibido implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, Responsable,WithEvents
+class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, WithEvents, WithTitle
 {
     use Exportable;
 
@@ -148,6 +149,18 @@ class Recibido implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
         return $q;
     }
+
+
+
+    public function title(): string
+    {
+        return 'Recibidos';
+    }
+
+
+
+
+
 
     /**
      * Headings shown in the first row.
@@ -423,8 +436,10 @@ class Recibido implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 }
 
 
-class ResumenSheetExport implements FromQuery, WithHeadings, WithMapping
+class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatting, WithStyles, ShouldAutoSize, WithEvents, WithTitle
 {
+
+    use Exportable;
     public function query()
     {
         return PQR::query()
@@ -432,9 +447,186 @@ class ResumenSheetExport implements FromQuery, WithHeadings, WithMapping
             ->groupBy('response_status');
     }
 
+    public function columnFormats(): array
+    {
+        return [
+            2 => 'yyyy-mm-dd hh:mm', // Creado
+            8 => 'yyyy-mm-dd hh:mm', // Fecha Respuesta
+        ];
+    }
+
+
+    public function title(): string
+    {
+        return 'Enviados';
+    }
+
+
     public function headings(): array
     {
-        return ['Estado', 'Total'];
+        return [
+            [
+                'LOGO','',
+                "ALCALDÍA MUNICIPAL SOPÓ - CUNDINAMARCA\nNIT 899999468-2",'','','','','','','','','','','','','','','','',
+                'Fecha de elaboración','','',''
+            ],
+
+            [
+                '','','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            // Rows 3–4 (main title band)
+            [
+                'Registro de Radicación de Comunicaciones Recibidas','','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            [
+                '','','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            // Row 5 (secondary captions)
+            [
+                'Unidad Administrativa','','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            // Row 6 (secondary captions)
+            [
+                'Oficina productora','','','','','','','','','','','','','','','','','','','','','',''
+            ],
+
+            // Row 7 (table header, first line)
+            [
+                'Numero consecutivo',
+                'Fecha(dd/mm/aa)',
+                'Hora',
+                'Datos Remitente','','','',
+                'Datos destinatario','','','','','',
+                'Tipo de Comunicacion',
+                'Asunto',
+                'Anexos',
+                'Canal de Envio','','',
+                'Observaciones',
+                'Respuesta','',''
+            ],
+
+            // Row 8 (table header, second line)
+            [
+                '','','',
+                'Codigo de la Dependencia',
+                'Nombre de la Dependencia',
+                'Nombre y Apellidos',
+                'Cargo',
+                'Nombre y Apellidos',
+                'Cargo',
+                'Empresa',
+                'Direccion',
+                'Correo Electronico',
+                'Telefono',
+                '','','',
+                'Nro de guia',
+                'Empresa',
+                'Observaciones',
+                '',
+                'Numero de radicado',
+                'Fecha (dd/mm/aa)',
+                'Copia'
+            ]
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function($event) {
+
+                // Total de columnas = 20 (A → T)
+                //Fila 1
+                $event->sheet->mergeCells('A1:B2');
+                $event->sheet->mergeCells('C1:S2');
+                $event->sheet->mergeCells('T1:W2');
+                $event->sheet->mergeCells('A3:W4');
+                $event->sheet->mergeCells('A5:B5');
+                $event->sheet->mergeCells('A6:B6');
+                $event->sheet->mergeCells('C5:W5');
+                $event->sheet->mergeCells('C6:W6');
+                $event->sheet->mergeCells('D7:G7');
+                $event->sheet->mergeCells('H7:M7');
+                $event->sheet->mergeCells('N7:N8');
+                $event->sheet->mergeCells('O7:O8');
+                $event->sheet->mergeCells('P7:P8');
+                $event->sheet->mergeCells('Q7:S7');
+                $event->sheet->mergeCells('T7:T8');
+                $event->sheet->mergeCells('U7:W7');
+
+
+
+                // Centrar vertical y horizontal
+                $event->sheet->getStyle('A1:T2')
+                    ->getAlignment()
+                    ->setVertical('center')
+                    ->setHorizontal('center');
+
+                // Negrita
+                $event->sheet->getStyle('A1:T2')
+                    ->getFont()
+                    ->setBold(true);
+            },
+        ];
+    }
+
+
+    public function styles(Worksheet $sheet)
+    {
+        // Header alignment and wrapping (rows 1–8)
+        $sheet->getStyle('A1:V8')
+            ->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+
+        // Base font for header
+        $sheet->getStyle('A1:V8')->getFont()
+            ->setName('Times New Roman')
+            ->setBold(true)
+            ->setSize(11);
+
+        // Specific font sizes per template
+        $sheet->getStyle('C1:S2')->getFont()->setSize(24); // main title and NIT
+        $sheet->getStyle('A3:V4')->getFont()->setSize(18); // secondary title
+
+        // Light fills (subtle so text is readable)
+        $sheet->getStyle('A1:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
+        $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF9FAFB');
+        $sheet->getStyle('A7:V8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
+
+        // Row heights to visually match template proportions
+        $sheet->getRowDimension(1)->setRowHeight(28);
+        $sheet->getRowDimension(2)->setRowHeight(28);
+        $sheet->getRowDimension(3)->setRowHeight(24);
+        $sheet->getRowDimension(4)->setRowHeight(24);
+        $sheet->getRowDimension(5)->setRowHeight(18);
+        $sheet->getRowDimension(6)->setRowHeight(18);
+        $sheet->getRowDimension(7)->setRowHeight(22);
+        $sheet->getRowDimension(8)->setRowHeight(22);
+
+        // Apply thin borders to entire used range
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
+        $sheet->getStyle("A1:{$highestCol}{$highestRow}")
+            ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        // Zebra stripes for data rows only (from row 9 onward)
+        for ($row = 9; $row <= $highestRow; $row++) {
+            if ($row % 9 === 0) {
+                $sheet->getStyle("A{$row}:{$highestCol}{$row}")
+                    ->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFF8FBFF'); // very light blue
+            }
+        }
+
+        return [
+            1 => ['font' => ['bold' => true]],
+        ];
     }
 
     public function map($row): array
