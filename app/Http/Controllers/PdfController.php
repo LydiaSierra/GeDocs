@@ -409,25 +409,40 @@ class PdfController extends Controller
                 return response()->json(['error' => 'Esta PQR ya ha sido respondida.'], 422);
             }
 
-            // Preparar datos para el template unificado forzando CARTA
+            // Preparar datos base
             $data = $request->all();
+
+            // 1. Resolver Información de Ubicación y Prefijos automáticamente
+            $folderCodes = [];
+            $folderNames = [];
+            if (!empty($validated['folder_id'])) {
+                $currentFolder = \App\Models\Folder::with('parent')->find($validated['folder_id']);
+                while ($currentFolder) {
+                    $folderCodes[] = $currentFolder->folder_code ?? '000'; 
+                    $folderNames[] = $currentFolder->name;
+                    $currentFolder = $currentFolder->parent;
+                }
+                $folderCodes = array_reverse($folderCodes);
+                $folderNames = array_reverse($folderNames);
+            }
+            
+            $folderPrefix = implode('-', $folderCodes) ?: ($pqr->dependency_id ?? '000');
+
+            $data['archivado_en'] = implode(' / ', $folderNames);
+
+            // Definir nombre y ruta del archivo de forma definitiva
+            $fileName = "{$folderPrefix}-" . now()->year . "-" . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
+            $storagePath = 'pdf_responses/' . $fileName;
+            $absolutePath = storage_path('app/public/' . $storagePath);
+
+            // 2. Preparar datos para el template forzando CARTA
             $data['document_type'] = 'carta';
             // Agregar datos para el QR
             $attachedSupport = $pqr->attachedSupports()->where('origin', 'ENV')->latest()->first();
             $data['no_radicado'] = $attachedSupport ? $attachedSupport->no_radicado : str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
             $data['atendido'] = $pqr->responsible ? $pqr->responsible->name : ($request->user() ? $request->user()->name : '');
             $data['hora'] = now()->format('H:i:s');
-            
-            $folderNames = [];
-            if (!empty($validated['folder_id'])) {
-                $currentFolder = \App\Models\Folder::find($validated['folder_id']);
-                while ($currentFolder) {
-                    $folderNames[] = $currentFolder->name;
-                    $currentFolder = $currentFolder->parent;
-                }
-                $folderNames = array_reverse($folderNames);
-            }
-            $data['archivado_en'] = implode(' / ', $folderNames);
+
 
             // Resolución de Logotipo y Firma (Base64)
             $logoDataUri = $this->resolveLogoDataUri($request);
@@ -442,26 +457,10 @@ class PdfController extends Controller
             $data['footer_text'] = $finalFooter;
             $data['pie_pagina'] = $finalFooter;
 
-            // Recorrer el árbol de carpetas para generar el prefijo de IDs
-            $folderIds = [];
-            if (!empty($validated['folder_id'])) {
-                $currentFolder = \App\Models\Folder::find($validated['folder_id']);
-                while ($currentFolder) {
-                    $folderIds[] = $currentFolder->id;
-                    $currentFolder = \App\Models\Folder::find($currentFolder->parent_id);
-                }
-                $folderIds = array_reverse($folderIds);
-            }
-            $folderPrefix = implode('-', $folderIds) ?: ($pqr->dependency_id ?? 0);
-
-            // Definir nombre y ruta del archivo antes para que el QR pueda apuntar a él
-            $fileName = "{$folderPrefix}-" . now()->year . "-" . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
-            $storagePath = 'pdf_responses/' . $fileName;
-
             // Generar Código QR que apunta directamente a la descarga del PDF
             $qrUrl = asset('storage/' . $storagePath);
             $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
-
+            
             // 1. Generar la CARTA (PDF Principal usando la vista template)
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
@@ -489,10 +488,7 @@ class PdfController extends Controller
 
             // 4. Ejecutar la fusión y guardar el archivo final
             $oMerger->merge();
-            
-            $fileName = ($pqr->dependency_id ?? 0) . '-' . now()->month . '-' . now()->year . '-' . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
-            $storagePath = 'pdf_responses/' . $fileName;
-            $absolutePath = storage_path('app/public/' . $storagePath);
+
 
             // Asegurar que el directorio existe
             if (!file_exists(dirname($absolutePath))) {
