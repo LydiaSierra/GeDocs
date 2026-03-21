@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ExplorerController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -11,12 +11,25 @@ Route::middleware('auth')->group(function () {
 
     // routes/web.php
     Route::post('/generate-pdf', [PdfController::class, 'generate'])->name('pdf.generate');
+    Route::post('/generate-pdf-to-explorer', [PdfController::class, 'generateToExplorer'])->name('pdf.generateToExplorer');
+    Route::post('/pdf/footer-preference', [PdfController::class, 'saveFooterPreference'])->name('pdf.footer-preference');
+    Route::post('/pdf/logo-preference', [PdfController::class, 'saveLogoPreference'])->name('pdf.logo-preference');
+    Route::delete('/pdf/logo-preference', [PdfController::class, 'resetLogoPreference'])->name('pdf.logo-preference.reset');
+    Route::get('/create-pdf', function (\Illuminate\Http\Request $request) {
+        return Inertia::render('CreatePDF', [
+            'targetFolderId' => $request->query('folder_id') ? (int) $request->query('folder_id') : null,
+            'targetSheetId' => $request->query('sheet_id') ? (int) $request->query('sheet_id') : null,
+        ]);
+    })->name('create-pdf');
 
 
     // Inbox principal
 
     Route::get('/', fn() => Inertia::render('Inbox'))
         ->name('inbox');
+        
+    Route::get('/outbox', fn() => Inertia::render('Outbox'))
+        ->name('outbox');
 
 
     //Vista de notificaciones pasando el id
@@ -59,20 +72,49 @@ Route::middleware('auth')->group(function () {
         ])
     )->name('notifications.show');
 
-    Route::get('/explorer', [ExplorerController::class, 'index'])
+
+    //VISTA DE EXPLORADOR
+    Route::get('/explorer', [FolderController::class, 'explorer'])
         ->name('explorer');
+
+    Route::post('/folders', [FolderController::class, 'store'])
+        ->name('folders.store');
+
+    Route::post('/folders/{folder}/upload', [FolderController::class, 'upload'])
+        ->name('folders.upload');
+
+    Route::put('/folders/{folderId}', [FolderController::class, 'updateFolder'])
+        ->name('folders.update');
+
+    Route::get('/folders/file/download/{file}', [FolderController::class, 'download'])
+        ->name('folders.download');
+
+    Route::post('/folders/delete-mixed', [FolderController::class, 'deleteMixed'])
+        ->name('folders.deleteMixed');
+
+    Route::post('/folders/download-mixed-zip', [FolderController::class, 'downloadMixedZip'])
+        ->name('folders.downloadMixedZip');
+
+    Route::get('/folders/archived', [FolderController::class, 'archived'])
+        ->name('folders.archived');
+
+    Route::post('/folders/move-mixed', [FolderController::class, 'moveMixed'])
+        ->name('folders.moveMixed');
+
+    Route::post('/folders/restore-mixed', [FolderController::class, 'restoreMixed'])
+        ->name('folders.restoreMixed');
 
     Route::get('/archive', fn() => Inertia::render('Archive'))
         ->name('archive');
 
     //Direccion a Formulario
     Route::get('/form', function () {
-    $dependencies = \App\Models\Dependency::select('id', 'name')->get();
-    return Inertia::render('Form', [
-        'dependencies' => $dependencies,
-    ]);
+        $dependencies = \App\Models\Dependency::select('id', 'name')->get();
+        return Inertia::render('Form', [
+            'dependencies' => $dependencies,
+        ]);
 
-})->name('form');
+    })->name('form');
 
     //Vistas de Fichas
     Route::get('/sheets', fn() => Inertia::render('Sheets'))
@@ -89,6 +131,10 @@ Route::middleware('auth')->group(function () {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    //Vistas indice Electronico
+    Route::get('/electronic-index', fn() => Inertia::render('ElectronicIndex'))
+        ->name('electronic-index');
 });
 
 

@@ -3,6 +3,7 @@ import {
     FunnelIcon,
     MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
+import { InboxIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import InboxMailCard from "@/Components/InboxMailCard/InboxMailCard";
 import { useContext, useEffect, useState } from "react";
 import { MailContext } from "@/context/MailContext/MailContext.jsx";
@@ -17,6 +18,7 @@ export default function InboxSidebar() {
         filters,
         searchTerm,
         setSearchTerm,
+        setSideFilter,
     } = useContext(MailContext);
 
     const categories = [
@@ -24,12 +26,17 @@ export default function InboxSidebar() {
         { label: "Quejas", value: "Queja" },
         { label: "Reclamos", value: "Reclamo" },
         { label: "Sugerencias", value: "Sugerencia" },
+        { label: "Otro", value: "Otro" },
     ];
 
     const currentMonthYear = new Intl.DateTimeFormat("es-ES", {
         month: "long",
         year: "numeric",
     }).format(new Date());
+
+    useEffect(() => {
+        setSideFilter('received');
+    }, [setSideFilter]);
 
     return (
         <div
@@ -49,7 +56,7 @@ export default function InboxSidebar() {
     `}
         >
             <div className="w-full flex flex-col">
-                <h2 className="font-bold text-2xl mb-2 text-center">
+                <h2 className="font-bold text-2xl mb-4 text-center text-gray-800">
                     Bandeja de Entrada
                 </h2>
 
@@ -87,13 +94,13 @@ export default function InboxSidebar() {
                     </div>
                 </div>
                 <div className="flex justify-between p-2 items-center">
-                    <h3
+                    <h5
                         id="inbox-date"
                         className="text-start px-2 my-4 font-bold capitalize"
                     >
                         {currentMonthYear}
-                    </h3>
-
+                    </h5>
+                    
                     <SelectDependecyOrNumberSheet />
                 </div>
             </div>

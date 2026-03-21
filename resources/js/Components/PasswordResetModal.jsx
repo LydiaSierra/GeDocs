@@ -26,7 +26,7 @@ export default function PasswordResetModal() {
 
             const timer = setTimeout(() => {
                 setShowError(false);
-            }, 3000); // hides after 3 seconds
+            }, 3000); // hides after 3 seconds in case of error 
 
             return () => clearTimeout(timer);
         }

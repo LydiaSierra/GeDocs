@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
+import { usePage } from "@inertiajs/react";
 import axios from "axios";
 import ArchiveMailModal from "@/Components/ArchiveMailModal/ArchiveMailModal";
 import api from "@/lib/axios.js";
 import { ArrowPathIcon, MagnifyingGlassIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
 import { XMarkIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import EmptyState from "../EmptyState";
+import SelectDependecyOrNumberSheet from "../SelectDependecyOrNumberSheet";
 
 export default function ArchiveTable() {
+    const { auth } = usePage().props;
+    const role = auth?.user?.roles?.[0]?.name;
+    const userDependencyId = auth?.user?.dependency_id;
+
     const [mails, setMails] = useState([]);
     const [filteredMails, setFilteredMails] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [activeScopeFilter, setActiveScopeFilter] = useState(null);
     const [selectedMail, setSelectedMail] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -30,19 +37,35 @@ export default function ArchiveTable() {
 
     useEffect(() => {
         const lowerSearch = searchTerm.toLowerCase().trim();
-        if (lowerSearch === "") {
-            setFilteredMails(mails);
-            return;
-        }
+        const filtered = mails.filter((mail) => {
+            const matchesSearch =
+                lowerSearch === "" ||
+                mail.affair?.toLowerCase().includes(lowerSearch) ||
+                mail.description?.toLowerCase().includes(lowerSearch) ||
+                mail.id?.toString().includes(lowerSearch) ||
+                mail.sender_name?.toLowerCase().includes(lowerSearch);
 
-        const filtered = mails.filter(mail => 
-            mail.affair?.toLowerCase().includes(lowerSearch) ||
-            mail.description?.toLowerCase().includes(lowerSearch) ||
-            mail.id?.toString().includes(lowerSearch) ||
-            mail.sender_name?.toLowerCase().includes(lowerSearch)
-        );
+            if (!matchesSearch) return false;
+
+            if (role === "Aprendiz") {
+                return userDependencyId ? mail.dependency_id === userDependencyId : false;
+            }
+
+            if (!activeScopeFilter) return true;
+
+            if (activeScopeFilter.type === "sheet") {
+                return mail.sheet_number_id === activeScopeFilter.id;
+            }
+
+            if (activeScopeFilter.type === "dependency") {
+                return mail.dependency_id === activeScopeFilter.id;
+            }
+
+            return true;
+        });
+
         setFilteredMails(filtered);
-    }, [searchTerm, mails]);
+    }, [searchTerm, mails, activeScopeFilter, role, userDependencyId]);
 
     const unarchiveMail = async (id) => {
         await axios.patch(`/api/pqrs/${id}`, { archived: false });
@@ -52,7 +75,7 @@ export default function ArchiveTable() {
 
     return (
         <>
-            <div className="mb-4">
+            <div className="mb-4 w-full flex justify-between items-center">
                 <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full md:w-96 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
                     <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2" />
                     <input
@@ -63,15 +86,20 @@ export default function ArchiveTable() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     {searchTerm && (
-                        <XMarkIcon 
-                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer" 
+                        <XMarkIcon
+                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer"
                             onClick={() => setSearchTerm("")}
                         />
                     )}
                 </div>
+                <SelectDependecyOrNumberSheet
+                    activeScopeFilter={activeScopeFilter}
+                    setActiveScopeFilter={setActiveScopeFilter}
+                    showOnRoutes={["archive"]}
+                />
             </div>
 
-          
+
             <div className="overflow-x-auto mt-2.5 md:mt-0 pb-[30px] md:pb-0 rounded-lg">
                 {loading ?
                     <div className={"flex justify-center items-center h-40"}>
@@ -127,8 +155,8 @@ export default function ArchiveTable() {
                                         </td>
                                         <td className="px-2 md:px-4 text-center md:text-left">
                                             <span className={`inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold uppercase tracking-wider ${
-                                                mail.response_status === 'Finalizado' 
-                                                ? 'text-green-600' 
+                                                mail.response_status === 'Finalizado'
+                                                ? 'text-green-600'
                                                 : 'text-amber-600'
                                             }`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${
@@ -164,13 +192,14 @@ export default function ArchiveTable() {
                 }
 
             </div>
-            
+
             {selectedMail && (
                 <ArchiveMailModal
                     mail={selectedMail}
                     onClose={() => setSelectedMail(null)}
                     onUnarchive={unarchiveMail}
                 />
+                
             )}
         </>
     );

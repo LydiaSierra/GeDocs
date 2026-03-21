@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Folder;
 use Illuminate\Http\Request;
 use App\Models\Dependency;
 
@@ -10,9 +11,8 @@ class DependencyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
         $dependencies = Dependency::with('sheetNumber')->get();
         if (!$dependencies) {
             return response()->json([
@@ -20,6 +20,12 @@ class DependencyController extends Controller
                 "message" => "No hay dependencias",
             ], 404);
         }
+        $dependencies = $request->user() ? (
+            $request->user()->hasRole("Instructor") 
+                ? Dependency::with('sheetNumber')->whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() 
+                : Dependency::with('sheetNumber')->whereHas('sheetNumber')->get()
+        ) : [];
+
         return response()->json([
             "message" => "Dependencias obtenidas exitosamente",
             "dependencies" => $dependencies
@@ -31,7 +37,7 @@ class DependencyController extends Controller
      */
     public function create()
     {
-    //
+        //
     }
 
     /**
@@ -42,21 +48,37 @@ class DependencyController extends Controller
         $user = $request->user();
 
         $validate = $request->validate([
-            "name" => "required|string|max:255|unique:dependencies,name",
-            "sheet_number_id" => "nullable|exists:sheet_numbers,id"
+            "name" => [
+                "required",
+                "string",
+                "max:255",
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($request) {
+                    return $query->where('sheet_number_id', $request->input('sheet_number_id'));
+                })
+            ],
+            "sheet_number_id" => [
+                "nullable",
+                "exists:sheet_numbers,id",
+                function ($attribute, $value, $fail) use ($user) {
+                    if ($value && $user->hasRole('Instructor')) {
+                        if (!$user->sheetNumbers->contains('id', $value)) {
+                            $fail('No tienes permisos para asignar dependencias a esta ficha.');
+                        }
+                    }
+                }
+            ],
+            "folder_code" => "nullable|string|max:255"
         ]);
 
-        //Obtener la ficha del suuario
+        //Obtener la ficha del usuario
         $sheet = $user->sheetNumbers()->first();
 
         // Prioridad: 1) Ficha del usuario, 2) Enviada en JSON
         if ($sheet) {
             $sheetId = $sheet->id;
-        }
-        elseif (isset($validate['sheet_number_id'])) {
+        } elseif (isset($validate['sheet_number_id'])) {
             $sheetId = $validate['sheet_number_id'];
-        }
-        else {
+        } else {
             return response()->json([
                 "success" => false,
                 "message" => "Debe proporcionar un sheet_number_id o tener una ficha asignada"
@@ -66,7 +88,32 @@ class DependencyController extends Controller
 
         $dependency = Dependency::create([
             'name' => $validate['name'],
+            'sheet_number_id' => $validate['sheet_number_id'],
+        ]);
+
+        // Find or create the current year folder for the sheet
+        $yearFolder = Folder::firstOrCreate(
+            [
+                'sheet_number_id' => $sheetId,
+                'year' => date('Y'),
+                'parent_id' => null,
+            ],
+            [
+                'name' => date('Y'),
+                'active' => true,
+                'department' => 'Año',
+                'folder_code' => date('Y'),
+            ]
+        );
+
+        // Create the folder for the dependency inside the year folder
+      Folder::create([
+            'name' => $dependency->name,
+            'parent_id' => $yearFolder->id,
+            'folder_code' => $validate['folder_code'] ?? null,
+            'department' => 'sección',
             'sheet_number_id' => $sheetId,
+            'active' => true,
         ]);
 
         return response()->json([
@@ -114,8 +161,21 @@ class DependencyController extends Controller
             ], 404);
         }
 
+        if ($dependency->name === 'Ventanilla Unica' && $request->input('name') !== 'Ventanilla Unica') {
+            return response()->json([
+                "message" => "El nombre de la dependencia Ventanilla Unica no puede ser modificado"
+            ], 403);
+        }
+
         $validate = $request->validate([
-            'name' => "required|string|max:255"
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($dependency) {
+                    return $query->where('sheet_number_id', $dependency->sheet_number_id);
+                })->ignore($dependency->id)
+            ]
         ]);
 
         $dependency->update($validate);
@@ -136,13 +196,22 @@ class DependencyController extends Controller
         if (!$dependency) {
             return response()->json([
                 "status" => "error",
-                "message" => "Dependencia no encontrada"], 404);
+                "message" => "Dependencia no encontrada"
+            ], 404);
+        }
+
+        if ($dependency->name === 'Ventanilla Unica') {
+            return response()->json([
+                "status" => "error",
+                "message" => "La dependencia Ventanilla Unica no puede ser eliminada"
+            ], 403);
         }
 
         $dependency->delete();
 
         return response()->json([
             "success" => true,
-            "message" => "Dependencia eliminada"], 200);
+            "message" => "Dependencia eliminada"
+        ], 200);
     }
 }

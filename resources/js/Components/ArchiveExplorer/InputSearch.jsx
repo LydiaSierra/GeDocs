@@ -1,7 +1,7 @@
 // InputSearch provides the search input and related controls for filtering files and folders in the archive explorer. It also includes view toggles and quick actions.
 import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import React from "react";
-import { usePage } from "@inertiajs/react";
+import { usePage, router } from "@inertiajs/react";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
 
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
 
 export const InputSearch = ({ handleSearch }) => {
     const { gridView, toggleGridView, showDropFolders, toggleDropFolders, setInputSearchTerm, inputSearchTerm } = useExplorerUI()
-    const { currentFolder, deleteSelection, globalSearch } = useExplorerData();
+    const { currentFolder, activeSheetId, deleteSelection, globalSearch } = useExplorerData();
     const url = usePage().url;
 
     return (
@@ -17,10 +17,8 @@ export const InputSearch = ({ handleSearch }) => {
             {/* Search field */}
             <form onSubmit={(e) => {
                 e.preventDefault();
-                if (url === "/explorer") {
-                    globalSearch(inputSearchTerm);
-                }
-            }} className="flex flex-1 md:flex-none items-center bg-base-200 px-2 rounded-md">
+                globalSearch(inputSearchTerm);
+            }} className="flex flex-1 lg:flex-none items-center bg-base-200 px-2 rounded-md">
                 <input
                     placeholder="Buscar"
                     type="text"
@@ -28,12 +26,9 @@ export const InputSearch = ({ handleSearch }) => {
                     value={inputSearchTerm}
                     onChange={(e) => {
                         setInputSearchTerm(e.target.value);
-                        if (e.target.value.trim() == "") {
-                            if (url === "/explorer") {
-                                globalSearch("");
-                            }
+                        if (e.target.value.trim() === "") {
+                            globalSearch("");
                         }
-
                     }}
                 />
 
@@ -53,8 +48,8 @@ export const InputSearch = ({ handleSearch }) => {
             </form>
 
 
-            {url === "/explorer" &&
-                <div className="w-full md:w-auto md:flex-1 flex items-center justify-between">
+            {url.startsWith("/explorer") &&
+                <div className="w-full lg:w-auto lg:flex-1 flex items-center justify-between">
                     <div className="flex  gap-2">
                         {/* Filter button */}
                         <button
@@ -76,8 +71,8 @@ export const InputSearch = ({ handleSearch }) => {
                         <button
                             className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
                             ${gridView
-                                    ? "bg-primary text-white active:bg-primary/50 md:hover:bg-primary"
-                                    : "bg-base-200  active:bg-gray-300 md:hover:bg-gray-300"
+                                    ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
+                                    : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
                                 }`}
                             onClick={toggleGridView}
                         >
@@ -90,7 +85,7 @@ export const InputSearch = ({ handleSearch }) => {
                         </button>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 justify-end  md:w-max ">
+                    <div className="flex flex-wrap items-center gap-2 justify-end  lg:w-max ">
                         <div className="dropdown dropdown-end">
                             <div tabIndex={0} role="button" className="btn bg-primary text-white">Acciones</div>
                             <ul tabIndex="-1" className="dropdown-content bg-base-200 p-2 rounded-box z-50 w-52 shadow-sm">
@@ -126,9 +121,22 @@ export const InputSearch = ({ handleSearch }) => {
 
                                 <button
                                     className="p-3 flex items-center gap-5 hover:bg-base-300/30 w-full rounded-md border-b border-gray-100"
-                                    onClick={() =>
-                                        document.getElementById("my_modal_1").showModal()
-                                    }
+                                    onClick={() => {
+                                        const history = JSON.parse(localStorage.getItem("folder_id") || "[]");
+                                        const fallbackFolderId = history.length > 0 ? history[history.length - 1] : null;
+                                        const targetFolderId = currentFolder?.id ?? fallbackFolderId;
+                                        const targetSheetId = activeSheetId ?? localStorage.getItem("active_sheet_id");
+
+                                        if (!targetFolderId) {
+                                            toast.warning("Ubicate en una carpeta para guardar el PDF.");
+                                            return;
+                                        }
+
+                                        router.visit(route("create-pdf", {
+                                            folder_id: targetFolderId,
+                                            sheet_id: targetSheetId || undefined,
+                                        }));
+                                    }}
                                 >
                                     <DocumentPlusIcon className="size-5" />
 
@@ -139,9 +147,6 @@ export const InputSearch = ({ handleSearch }) => {
 
                     </div>
                 </div>
-
-
-
             }
         </div>
     );

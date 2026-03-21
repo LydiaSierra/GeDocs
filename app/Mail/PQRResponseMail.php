@@ -3,13 +3,14 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\PQR;
 use App\Models\comunication;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Mail\Mailables\Attachment;
 
 class PQRResponseMail extends Mailable
 {
@@ -27,12 +28,6 @@ class PQRResponseMail extends Mailable
         $this->pqr = $pqr;
         $this->comunication = $comunication;
         $this->responseUrl = $responseUrl;
-    }
-
-     public function build()
-    {
-        return $this->subject('Respuesta a tu PQR - SENA')
-                    ->view('emails.pqr_response');
     }
 
     /**
@@ -71,6 +66,19 @@ class PQRResponseMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $attachments = [];
+        
+        $responseFiles = $this->pqr->attachedSupports->whereIn('origin', ['ENV', 'response']);
+
+        foreach ($responseFiles as $file) {
+            $fullPath = Storage::disk('public')->path($file->path);
+            
+            if (file_exists($fullPath)) {
+                $attachments[] = Attachment::fromPath($fullPath)
+                    ->as($file->name);
+            }
+        }
+
+        return $attachments;
     }
 }

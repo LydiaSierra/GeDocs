@@ -15,6 +15,7 @@ export default function CreateDependencie() {
 
     const [name, setName] = useState("");
     const [sheetNumber, setSheetNumber] = useState("");
+    const [folderCode, setFolderCode] = useState("");
     const [sheets, setSheets] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -42,17 +43,23 @@ export default function CreateDependencie() {
             toast.error("Debe seleccionar una ficha");
             return;
         }
+        if (!folderCode.trim()) {
+            toast.error("Ingrese el código de la carpeta");
+            return;
+        }
 
         setLoading(true);
 
         const response = await createDependency({
             name: name.trim(),
             sheet_number_id: Number(sheetNumber),
+            folder_code: folderCode.trim(),
         });
 
         if (response.success) {
             setName("");
             setSheetNumber("");
+            setFolderCode("");
             document.getElementById(MODAL_ID)?.close();
             toast.success("Dependencia creada exitosamente");
         } else if (response.errors) {
@@ -97,6 +104,7 @@ export default function CreateDependencie() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Nombre de la dependencia"
+                                required
                             />
                         </div>
 
@@ -116,6 +124,20 @@ export default function CreateDependencie() {
                                     </option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Código de carpeta
+                            </label>
+                            <input
+                                type="text"
+                                className="input input-bordered w-full"
+                                value={folderCode}
+                                onChange={(e) => setFolderCode(e.target.value)}
+                                placeholder="Ej. 100, 101, 110"
+                                required
+                            />
                         </div>
 
                         <div className="flex items-center justify-end gap-3 mt-2">

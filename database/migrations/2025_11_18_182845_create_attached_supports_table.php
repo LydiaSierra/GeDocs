@@ -21,6 +21,8 @@ return new class extends Migration
             $table->unsignedBigInteger('comunication_id')->nullable();
             $table->foreign('comunication_id')->references('id')->on('comunications')->onDelete('cascade');
             $table->timestamps();
+            $table->string('hash');
+            $table->string('no_radicado');
         });
     }
 

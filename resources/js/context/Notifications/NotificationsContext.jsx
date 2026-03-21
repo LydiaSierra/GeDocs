@@ -43,6 +43,8 @@ export function NotificationsProvider({ children }) {
         }
     }, []);
 
+
+
     const visibleDetails = useMemo(() => {
         if (!notificationSeleted) return null;
         return notifications.find((n) => n.id === notificationSeleted);

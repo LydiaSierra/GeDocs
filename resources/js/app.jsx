@@ -5,53 +5,51 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { createRoot } from "react-dom/client";
 
-import { ExplorerUIProvider } from "./context/Explorer/ExplorerUIContext";
-import { ExplorerDataProvider } from "./context/Explorer/ExplorerDataContext";
-
-import { RightClickProvider } from "./context/Explorer/RightClickContext";
+import '@szhsin/react-menu/dist/index.css';
+import '@szhsin/react-menu/dist/transitions/zoom.css';
 
 import { NotificationsProvider } from "@/context/Notifications/NotificationsContext.jsx";
 import { UserProvider } from "./context/UserContext/UserContext";
 import { SheetsProvider } from "@/context/SheetsContext/SheetsContext.jsx";
 import { DependenciesProvider } from "./context/DependenciesContext/DependenciesContext";
-import '@szhsin/react-menu/dist/index.css';
-import '@szhsin/react-menu/dist/transitions/zoom.css';
 import { Toaster } from "sonner";
+import { ElectronicIndexProvider } from "./context/ElectronicIndexContext/ElectronicIndexContext";
 
 const appName = "GeDocs"
 
 createInertiaApp({
     title: (title) => ` ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: (name) => {
+        return resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob("./Pages/**/*.jsx"),
-        ),
+        );
+    },
 
     setup({ el, App, props }) {
         const root = createRoot(el);
+        const authUserId = props?.initialPage?.props?.auth?.user?.id ?? null;
+        const authUserRole = props?.initialPage?.props?.auth?.user?.roles?.[0]?.name ?? null;
+        const inertiaVersion = props?.initialPage?.version ?? null;
 
         root.render(
-            <ExplorerUIProvider>
-                <ExplorerDataProvider>
-                    <RightClickProvider>
-                        <NotificationsProvider>
-                            <UserProvider>
-                                <SheetsProvider>
-                                    <DependenciesProvider>
-                                        <Toaster
-                                            position="top-center"
-                                            richColors
-                                        />
+            <NotificationsProvider>
+                <UserProvider>
+                    <SheetsProvider>
+                        <DependenciesProvider>
+                            <ElectronicIndexProvider
+                                authUserId={authUserId}
+                                authUserRole={authUserRole}
+                                inertiaVersion={inertiaVersion}
+                            >
+                                <Toaster position="top-center" richColors closeButton expand={false} />
 
-                                        <App {...props} />
-                                    </DependenciesProvider>
-                                </SheetsProvider>
-                            </UserProvider>
-                        </NotificationsProvider>
-                    </RightClickProvider>
-                </ExplorerDataProvider>
-            </ExplorerUIProvider>,
+                                <App {...props} />
+                            </ElectronicIndexProvider>
+                        </DependenciesProvider>
+                    </SheetsProvider>
+                </UserProvider>
+            </NotificationsProvider>
         );
     },
 

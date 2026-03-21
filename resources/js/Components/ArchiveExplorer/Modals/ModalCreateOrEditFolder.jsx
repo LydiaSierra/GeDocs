@@ -1,4 +1,3 @@
-// ModalCreateOrEditFolder is a modal dialog for creating a new folder or editing an existing folder's details within the archive explorer.
 import { useExplorerData } from '@/Hooks/useExplorer';
 import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner';
@@ -11,7 +10,7 @@ const ModalCreateOrEditFolder = () => {
         updateFolder,
         selectedItems,
         folders,
-        deletedSelection
+        activeSheetId
     } = useExplorerData();
 
     const [loading, setLoading] = useState(false);
@@ -19,7 +18,7 @@ const ModalCreateOrEditFolder = () => {
     const [formData, setFormData] = useState({
         name: "",
         folder_code: "",
-        department: "sección",
+        department: "",
     });
 
     const selected =
@@ -27,10 +26,55 @@ const ModalCreateOrEditFolder = () => {
             ? folders.find(f => f.id === selectedItems[0].id)
             : null;
 
+    const options = ["sección", "subsección", "serie", "subserie"];
+
+    const currentIndex = options.indexOf(currentFolder?.department);
+
+    const validOptions =
+        currentFolder
+            ? options.slice(currentIndex + 1)
+            : ["sección"];
+
+    useEffect(() => {
+        if (!selected) {
+            if (validOptions.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    department: validOptions[0]
+                }));
+            } else {
+                setFormData(prev => ({
+                    ...prev,
+                    department: ""
+                }));
+            }
+        }
+    }, [currentFolder]);
+
+    useEffect(() => {
+        if (selected) {
+            setFormData({
+                name: selected.name || "",
+                folder_code: selected.folder_code || "",
+                department: selected.department || "",
+            });
+        } else {
+            setFormData({
+                name: "",
+                folder_code: "",
+                department: "",
+            });
+        }
+    }, [selected]);
 
     const createFolderSubmit = async (e) => {
         e.preventDefault();
-        document.getElementById("drawer-information").close();
+
+        if (validOptions.length === 0) {
+            toast.error("No se pueden crear más niveles aquí");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -38,11 +82,14 @@ const ModalCreateOrEditFolder = () => {
                 name: formData.name,
                 folder_code: formData.folder_code,
                 parent_id: currentFolder?.id || null,
-                department: formData.department || "sección",
+                department: formData.department,
+                sheet_number_id: currentFolder ? null : activeSheetId,
             };
 
             await createFolder({ data });
-            setFormData({ name: "", folder_code: "" });
+
+            setFormData({ name: "", folder_code: "", department: "" });
+
             document.getElementById('createFolder').close();
 
         } catch (err) {
@@ -52,11 +99,9 @@ const ModalCreateOrEditFolder = () => {
         }
     };
 
-
     const editFolderSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        document.getElementById("drawer-information").close();
 
         try {
             const data = {
@@ -66,11 +111,11 @@ const ModalCreateOrEditFolder = () => {
                 department: formData.department,
             };
 
-
             await updateFolder({
                 data,
                 folderId: selected.id,
             });
+
             document.getElementById('createFolder').close();
 
         } catch (err) {
@@ -84,24 +129,6 @@ const ModalCreateOrEditFolder = () => {
         setLoading(false);
         document.getElementById('createFolder').close();
     };
-
-    useEffect(() => {
-        if (selected) {
-            setFormData({
-                name: selected.name || "",
-                folder_code: selected.folder_code || "",
-                department: selected.department || "sección",
-            });
-        } else {
-            setFormData({
-                name: "",
-                folder_code: "",
-                department: "sección",
-            });
-        }
-    }, [selected]);
-
-
 
     return (
         <dialog id='createFolder' className='modal'>
@@ -128,7 +155,6 @@ const ModalCreateOrEditFolder = () => {
                             required
                             type="text"
                             className='border border-gray-300 rounded-md p-2'
-                            placeholder='Ejem: Actas'
                             value={formData.name}
                             onChange={(e) =>
                                 setFormData({ ...formData, name: e.target.value })
@@ -142,7 +168,6 @@ const ModalCreateOrEditFolder = () => {
                             required
                             type="text"
                             className='border border-gray-300 rounded-md p-2'
-                            placeholder='Ejem: 110'
                             value={formData.folder_code}
                             onChange={(e) =>
                                 setFormData({ ...formData, folder_code: e.target.value })
@@ -152,27 +177,34 @@ const ModalCreateOrEditFolder = () => {
 
                     <div className='flex flex-col space-y-2'>
                         <label>Clasificación:</label>
-                        <select
-                            className='border border-gray-300 rounded-md p-2'
-                            value={formData.department}
-                            onChange={(e) =>
-                                setFormData({ ...formData, department: e.target.value })
-                            }
-                            required
-                        >
-                            <option value="sección">Sección</option>
-                            <option value="subsección">Subsección</option>
-                            <option value="serie">Serie</option>
-                            <option value="subserie">Subserie</option>
-                        </select>
-                    </div>
 
+                        {validOptions.length > 0 ? (
+                            <select
+                                className='border border-gray-300 rounded-md p-2'
+                                value={formData.department}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, department: e.target.value })
+                                }
+                                required
+                            >
+                                {validOptions.map((item) => (
+                                    <option key={item} value={item}>
+                                        {item}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <p className="text-red-500 text-sm">
+                                No se pueden crear más niveles dentro de "subserie"
+                            </p>
+                        )}
+                    </div>
 
                     <div className='flex justify-center'>
                         <button
                             className='bg-primary text-white rounded-md px-4 py-2'
                             type='submit'
-                            disabled={loading}
+                            disabled={loading || validOptions.length === 0}
                         >
                             {loading
                                 ? selected ? "Editando..." : "Creando..."

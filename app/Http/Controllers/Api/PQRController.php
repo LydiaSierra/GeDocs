@@ -46,23 +46,47 @@ class PQRController extends Controller
             'sheetNumber'
         ])->where('archived', $archived);
 
-        // 🔹 Dependencia: only its own PQRs
-        if ($user->hasRole('Dependencia')) {
-            $query->where('dependency_id', $user->dependency_id);
-        }
+        // 🔹 Non-admin: role-based visibility with archive-specific apprentice restriction.
+        if (!$user->hasRole('Admin')) {
+            $query->where(function ($q) use ($user, $archived) {
+                if ($user->hasRole('Dependencia')) {
+                    if ($user->dependency_id) {
+                        $q->where('dependency_id', $user->dependency_id);
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
 
-        if ($user->hasRole('Aprendiz')) {
-            if ($user->dependency_id) {
-                $query->where('dependency_id', $user->dependency_id);
-            } else {
-                // Si no tiene dependencia asignada, no ve ninguna PQR
-                $query->whereRaw('1=0');
-            }
-        }
+                    // Keep merge behavior: also include items assigned directly to the user.
+                    $q->orWhere('responsible_id', $user->id);
+                    return;
+                }
 
-        // 🔹 Admin: sees all (no extra filters)
-        if ($user->hasRole('Admin')) {
-        // no additional conditions
+                if ($user->hasRole('Aprendiz')) {
+                    if ($archived) {
+                        // Keep previous behavior: archive is restricted to own dependency only.
+                        if ($user->dependency_id) {
+                            $q->where('dependency_id', $user->dependency_id);
+                        } else {
+                            $q->whereRaw('1=0');
+                        }
+                        return;
+                    }
+
+                    // Keep merge behavior for inbox/non-archived flow.
+                    if ($user->dependency_id) {
+                        $q->where('dependency_id', $user->dependency_id);
+                    } else {
+                        $q->whereRaw('1=0');
+                    }
+                    $q->orWhere('responsible_id', $user->id);
+                    return;
+                }
+
+                if ($user->hasRole('Instructor')) {
+                    $sheetIds = $user->sheetNumbers->pluck('id');
+                    $q->whereIn('sheet_number_id', $sheetIds);
+                }
+            });
         }
 
         $pqrs = $query->get();
@@ -85,7 +109,7 @@ class PQRController extends Controller
             'sender_name' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
             'affair' => 'required|string|max:255',
-            'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia',
+            'request_type' => 'required|string|in:Peticion,Queja,Reclamo,Sugerencia,Otro',
             'response_time' => 'nullable|date|after_or_equal:today',
             'response_days' => 'nullable|in:10,15,30',
             'number' => 'required|string',
@@ -150,12 +174,23 @@ class PQRController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('pqr_attachments', 'public');
+                $hash = hash('adler32',time());
+                $pqrID = $pqr->id;
+                if($pqrID<99){
+                    if($pqrID<9){
+                        $pqrID = "00$pqrID";
+                    }
+                    $pqrID = "0$pqrID";
+                }
 
                 $pqr->attachedSupports()->create([
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
                     'type' => $file->getClientOriginalExtension(),
                     'size' => $file->getSize(),
+                    'origin' => 'REC',
+                    'hash'=>$hash,
+                    'no_radicado' => $pqrID,
                 ]);
             }
         }
@@ -170,6 +205,31 @@ class PQRController extends Controller
             ]),
             'message' => 'PQR creada exitosamente'
         ], 201);
+    }
+    /**
+     * OBTENER EL HILO DE COMUNICACION DE UNA PQR
+     */
+    public function show(string $id): JsonResponse
+    {
+        $pqr = PQR::with([
+            'creator',
+            'responsible',
+            'dependency',
+            'attachedSupports', // Soportes generales
+            'sheetNumber',
+            'comunications' => function($query) {
+                $query->orderBy('created_at', 'asc')->with('attachedSupports');
+            }
+        ])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        return response()->json([
+            'data' => $pqr,
+            'message' => 'Hilo de comunicación de la PQR obtenido con éxito'
+        ], 200);
     }
 
     /**
@@ -296,8 +356,8 @@ class PQRController extends Controller
                 $emailRecipient = $pqr->creator ? $pqr->creator->email : $pqr->email;
 
                 if ($emailRecipient) {
-                    //Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
-                    //Log::info('Email enviado exitosamente a: ' . $emailRecipient);
+                    Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
+                    Log::info('Email enviado exitosamente a: ' . $emailRecipient);
                 }
                 else {
                     //Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
@@ -309,7 +369,9 @@ class PQRController extends Controller
 
             return response()->json([
                 'data' => $pqr->fresh()->load(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber']),
-                'message' => 'Respuesta enviada exitosamente'
+                'message' => 'Respuesta enviada exitosamente',
+                'pqr_status' => $pqr->response_status,
+                'response_date' => $pqr->response_date,
             ], 200);
 
         }
@@ -325,7 +387,7 @@ class PQRController extends Controller
     {
         return response()->json(['message' => 'No está permitido eliminar PQRs'], 405);
     }
-    //Dar respuesta final y cerrar la pqr   
+    //Dar respuesta final y cerrar la pqr
     public function finalizeResponse(Request $request, string $id): JsonResponse
     {
         $user = $request->user();
@@ -384,6 +446,8 @@ class PQRController extends Controller
                         'type' => $file->getClientOriginalExtension(),
                         'size' => $file->getSize(),
                         'pqr_id' => $pqr->id,
+                        'hash' => hash('sha256', uniqid((string) $pqr->id, true)),
+                        'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
                     ]);
                 }
             }
@@ -409,5 +473,29 @@ class PQRController extends Controller
             return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
         }
 
+    }
+
+    /**
+     * Retorna datos específicos para construir el formulario de respuesta interna (Carta/Acta)
+     * GET /api/pqr/response-details/{id}
+     */
+    public function getResponseData(string $id): JsonResponse
+    {
+        $pqr = PQR::with(['dependency', 'comunications' => function($q) {
+            $q->orderBy('created_at', 'desc');
+        }])->find($id);
+
+        if (!$pqr) {
+            return response()->json(['error' => 'PQR no encontrada'], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'communication' => $pqr->comunications->first() ?? (object)[],
+                'pqr' => $pqr,
+                'dependency' => $pqr->dependency,
+            ],
+            'message' => 'Detalles de respuesta obtenidos'
+        ]);
     }
 }

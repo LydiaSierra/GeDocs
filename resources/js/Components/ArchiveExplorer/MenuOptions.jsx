@@ -3,7 +3,7 @@ import { ArrowDownTrayIcon, EllipsisVerticalIcon, InformationCircleIcon, PencilS
 import { usePage } from '@inertiajs/react'
 import React from 'react'
 import { toast } from 'sonner'
-import { DeleteButtonOption, DetailsButtonOption, EditButtonOption } from './OptionsButtons'
+import { DeleteButtonOption, DetailsButtonOption, EditButtonOption, MoveButtonOption } from './OptionsButtons'
 import { getSelectedItem, useExplorerData } from '@/Hooks/useExplorer'
 
 const MenuOptions = () => {
@@ -17,7 +17,7 @@ const MenuOptions = () => {
     return (
         <>
             {/* OPTIONS BUTTON */}
-            <div className={`dropdown dropdown-bottom dropdown-center md:dropdown-end `}>
+            <div className={`dropdown dropdown-bottom  dropdown-end `}>
                 <button tabIndex={"-1"} role="button" className="p-1 h-full flex items-center rounded-full hover:bg-base-300 cursor-pointer">
                     <EllipsisVerticalIcon className="size-5" />
                 </button>
@@ -46,6 +46,7 @@ const MenuOptions = () => {
                             {!selectedItem?.extension &&
                                 <EditButtonOption />
                             }
+                            <MoveButtonOption />
 
                             <DeleteButtonOption />
                         </>
