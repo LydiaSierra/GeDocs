@@ -118,8 +118,16 @@ export default function DependenciesSettingsSection() {
                             <div className="collapse-content px-4 pb-4">
                                 <hr className="mb-4 border-slate-100" />
                                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-                                    <UpdateDependencie dependency={dependency} />
-                                    <DeleteDependencie dependency={dependency} />
+                                    {dependency.name !== 'Ventanilla Unica' ? (
+                                        <>
+                                            <UpdateDependencie dependency={dependency} />
+                                            <DeleteDependencie dependency={dependency} />
+                                        </>
+                                    ) : (
+                                        <div className="text-sm font-medium text-slate-500 italic py-2 px-1">
+                                            Dependencia del sistema (No modificable)
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

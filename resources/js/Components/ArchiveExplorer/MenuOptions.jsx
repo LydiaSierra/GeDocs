@@ -17,7 +17,7 @@ const MenuOptions = () => {
     return (
         <>
             {/* OPTIONS BUTTON */}
-            <div className={`dropdown dropdown-bottom dropdown-center md:dropdown-end `}>
+            <div className={`dropdown dropdown-bottom  dropdown-end `}>
                 <button tabIndex={"-1"} role="button" className="p-1 h-full flex items-center rounded-full hover:bg-base-300 cursor-pointer">
                     <EllipsisVerticalIcon className="size-5" />
                 </button>

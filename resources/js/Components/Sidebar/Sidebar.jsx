@@ -1,9 +1,9 @@
 import {
-  FolderIcon,
-  InboxIcon,
-  PlusCircleIcon,
-  InboxArrowDownIcon,
-  ArchiveBoxIcon
+    FolderIcon,
+    InboxIcon,
+    PlusCircleIcon,
+    InboxArrowDownIcon,
+    ArchiveBoxIcon
 } from "@heroicons/react/24/solid";
 import NavLink from "../NavLink";
 import { Link, usePage } from "@inertiajs/react";
@@ -17,7 +17,7 @@ export default function Sidebar() {
     const isAprendiz = user.roles?.some(role => role.name === "Aprendiz");
 
     const links = [
-        { id: "inbox", href: "inbox", icon: InboxIcon, name: "Bandeja de Entrada"},
+        { id: "inbox", href: "inbox", icon: InboxIcon, name: "Bandeja de Entrada" },
         { id: "outbox", href: "outbox", icon: InboxArrowDownIcon, name: "Enviados" },
         { id: "archive", href: "archive", icon: ArchiveBoxIcon, name: "Archivados" },
         { id: "explorer", href: "explorer", icon: FolderIcon, name: "Explorador" },
@@ -34,17 +34,16 @@ export default function Sidebar() {
             <aside className="hidden md:flex h-screen px-2 bg-primary flex-col justify-between items-center pt-16 pb-4">
                 <div className="flex flex-col items-center gap-3">
                     {filteredLinks.map(link => (
-                        <div className="tooltip tooltip-right" data-tip={link.name}>
+                        <div className="tooltip tooltip-right z-20" data-tip={link.name}>
+                            <NavLink
+                                key={link.id}
+                                href={route(link.href)}
+                                active={route().current(link.href)}
 
-                        <NavLink
-                            key={link.id}
-                            href={route(link.href)}
-                            active={route().current(link.href)}
-                         
                             >
-                            <link.icon className="size-10" />
-                        </NavLink>
-                            </div>
+                                <link.icon className="size-10" />
+                            </NavLink>
+                        </div>
                     ))}
                 </div>
 
@@ -60,7 +59,7 @@ export default function Sidebar() {
                         key={link.id}
                         href={route(link.href)}
                         active={route().current(link.href)}
-                       
+
                     >
                         <link.icon className="size-8" />
                     </NavLink>

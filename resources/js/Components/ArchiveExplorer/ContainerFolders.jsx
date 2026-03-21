@@ -21,9 +21,9 @@ export default function ContainerFolders() {
     const { props } = usePage();
     const sheets = props?.sheets || [];
 
-   const {
+    const {
         folders,
-       allFolders,
+        allFolders,
         loading,
         goBack,
         historyStack,
@@ -86,7 +86,7 @@ export default function ContainerFolders() {
 
         const folderById = new Map(allFolders.map(f => [f.id, f]));
         let rootFolder = currentFolder;
-        
+
         while (rootFolder && rootFolder.parent_id) {
             const parent = folderById.get(rootFolder.parent_id);
             if (!parent) break;
@@ -141,9 +141,9 @@ export default function ContainerFolders() {
 
 
     return (
-        <div className="relative my-4 flex flex-col h-full overflow-hidden p-3">
-
-            <div className="relative h-full pb-[12vh]">
+        <div className="relative flex flex-col">
+            {/* ESTÁTICO / STICKY HEADER */}
+            <div className="sticky top-0 z-10 bg-white px-2 lg:px-6 pt-0 pb-1 -mt-2">
                 {/* It displays the current folder where it is located. */}
                 {(selectedItems.length === 0) &&
                     <div className="w-full flex justify-between items-center">
@@ -174,7 +174,7 @@ export default function ContainerFolders() {
                                 }
                             }}
                         >
-                                Indice
+                            Indice
                         </Link>
                     </div>
                 }
@@ -183,81 +183,79 @@ export default function ContainerFolders() {
                     <SelectionActionBar />
                 }
                 {(pendingMoveItems?.length > 0) &&
-                    <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 bg-white border border-gray-300 shadow-2xl rounded-full px-6 py-4 flex flex-row items-center gap-4">
-                        <span className="font-semibold text-gray-700 whitespace-nowrap">
+                    <div className="fixed bottom-14 left-1/2 transform -translate-x-1/2 z-50 bg-white border border-gray-300 shadow-2xl rounded-full px-6 py-4 flex flex-col lg:flex-row items-center gap-4 w-[90%]">
+                        <span className="font-semibold text-gray-700 whitespace-nowrap hidden lg:inline-block">
                             Moviendo {pendingMoveItems.length} elemento{pendingMoveItems.length !== 1 && 's'}
                         </span>
                         <div className="flex items-center gap-2">
-                            <button onClick={performMoveItems} className="bg-primary text-white font-medium px-4 py-2 rounded-full hover:bg-blue-600 transition-colors shadow-sm cursor-pointer">
-                                Mover aquí
-                            </button>
+
                             <button onClick={cancelMoveItems} className="bg-gray-100 text-gray-700 font-medium px-4 py-2 rounded-full hover:bg-gray-200 transition-colors shadow-sm cursor-pointer">
                                 Cancelar
+                            </button>
+
+                            <button onClick={performMoveItems} className="bg-primary text-white font-medium px-4 py-2 rounded-full hover:bg-primary/70 transition-colors shadow-sm cursor-pointer">
+                                Mover aquí
                             </button>
                         </div>
                     </div>
                 }
-                {historyStack.length > 0 &&
-                    <div className="flex gap-4 items-center underline bg-white">
-                        <div className={"p-2 rounded-full bg-gray-500 cursor-pointer w-max my-3"} onClick={goBack}>
-                            <ArrowLeftIcon className={"w-5 h-5 text-white"} />
-                        </div>
-                        <div className="cursor-pointer" onClick={handleHomeClick}>
-                            Inicio
-                        </div>
+                {(historyStack.length > 1 || (historyStack.length === 1 && (!pendingMoveItems || pendingMoveItems.length === 0))) &&
+                    <div className="flex gap-3 items-center bg-white py-2 mb-2">
+                        <button
+                            className="p-2.5 rounded-xl bg-gray-100/80 hover:bg-gray-200 text-gray-600 transition-colors shadow-sm"
+                            onClick={goBack}
+                            title="Atrás"
+                        >
+                            <ArrowLeftIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                            className="text-sm font-semibold text-gray-500 hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/5"
+                            onClick={handleHomeClick}
+                        >
+                            Ir a Inicio
+                        </button>
                     </div>
                 }
 
                 {!gridView && (
                     <>
                         {(folders?.length !== 0 && files.length !== 0) &&
-                            <div className={`flex justify-between px-4 py-3 bg-white  ${folders.length > 0 ? "border-b border-gray-300" : "border-none"} `}>
-                                <div className="">
-                                    <div className="truncate max-w-[50vw] w-full">
+                            <div className="flex justify-between px-4 py-3 bg-gray-50 rounded-t-xl border border-gray-100 mt-2">
+                                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    <div className="truncate w-full max-w-[50vw]">
                                         <div className="flex">
-                                            Codigo /
-                                            <div className="flex flex-col md:flex-row">
-                                                <span>
-                                                    Nombre
-                                                </span>
-                                                <span className="text-xs md:hidden">
-                                                    Clasificación
-                                                </span>
+                                            <span>Codigo /&nbsp;</span>
+                                            <div className="flex flex-col lg:flex-row">
+                                                <span>Nombre</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="flex items-center gap-8">
-                                    <strong className="truncate max-w-[50vw]  hidden md:inline-block">Clasificación</strong>
-                                    <strong className="truncate max-w-[50vw]">Fecha de creación</strong>
+                                <div className="flex items-center gap-8 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                    <strong className="truncate max-w-[50vw] hidden lg:inline-block">Clasificación</strong>
+                                    <strong className="truncate max-w-[50vw]">Fecha de Creación</strong>
                                 </div>
                             </div>
                         }
                     </>
                 )}
+            </div>
 
-
-                <div className="h-full overflow-x-hidden relative">
-                    {folders?.length === 0 && files.length === 0 &&
+            {/* CONTENT */}
+            <div className="px-2 lg:px-6 pb-8">
+                {folders?.length === 0 && files.length === 0 && (
+                    <div className="mt-10">
                         <EmptyState text={"No hay carpetas o archivos disponibles."} />
-                    }
-                    <div
-                        className={`${gridView ? 'grid grid-cols-2  gap-1 md:grid-cols-4 lg:grid-cols-5' : 'flex flex-col'} min-w-0  pb-[20vh]`}>
-                        <>
-                            {(folders || []).map((folder) => (
-                                <Folder key={folder.id} folder={folder} />
-                            ))}
-
-                            {(files || []).map((file) => (
-                                <FileExplorer key={file.id} file={file} />
-                            ))}
-                        </>
-
                     </div>
-
+                )}
+                <div className={`${gridView ? 'grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3' : 'flex flex-col gap-1'} min-w-0 mt-3 pt-1 px-3`}>
+                    {(folders || []).map((folder) => (
+                        <Folder key={folder.id} folder={folder} />
+                    ))}
+                    {(files || []).map((file) => (
+                        <FileExplorer key={file.id} file={file} />
+                    ))}
                 </div>
-
             </div>
         </div>
 

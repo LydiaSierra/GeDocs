@@ -20,7 +20,11 @@ class DependencyController extends Controller
                 "message" => "No hay dependencias",
             ], 404);
         }
-        $dependencies = $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [];
+        $dependencies = $request->user() ? (
+            $request->user()->hasRole("Instructor") 
+                ? Dependency::with('sheetNumber')->whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() 
+                : Dependency::with('sheetNumber')->whereHas('sheetNumber')->get()
+        ) : [];
 
         return response()->json([
             "message" => "Dependencias obtenidas exitosamente",
@@ -44,8 +48,25 @@ class DependencyController extends Controller
         $user = $request->user();
 
         $validate = $request->validate([
-            "name" => "required|string|max:255|unique:dependencies,name",
-            "sheet_number_id" => "nullable|exists:sheet_numbers,id",
+            "name" => [
+                "required",
+                "string",
+                "max:255",
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($request) {
+                    return $query->where('sheet_number_id', $request->input('sheet_number_id'));
+                })
+            ],
+            "sheet_number_id" => [
+                "nullable",
+                "exists:sheet_numbers,id",
+                function ($attribute, $value, $fail) use ($user) {
+                    if ($value && $user->hasRole('Instructor')) {
+                        if (!$user->sheetNumbers->contains('id', $value)) {
+                            $fail('No tienes permisos para asignar dependencias a esta ficha.');
+                        }
+                    }
+                }
+            ],
             "folder_code" => "nullable|string|max:255"
         ]);
 
@@ -140,8 +161,21 @@ class DependencyController extends Controller
             ], 404);
         }
 
+        if ($dependency->name === 'Ventanilla Unica' && $request->input('name') !== 'Ventanilla Unica') {
+            return response()->json([
+                "message" => "El nombre de la dependencia Ventanilla Unica no puede ser modificado"
+            ], 403);
+        }
+
         $validate = $request->validate([
-            'name' => "required|string|max:255"
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                \Illuminate\Validation\Rule::unique('dependencies', 'name')->where(function ($query) use ($dependency) {
+                    return $query->where('sheet_number_id', $dependency->sheet_number_id);
+                })->ignore($dependency->id)
+            ]
         ]);
 
         $dependency->update($validate);
@@ -164,6 +198,13 @@ class DependencyController extends Controller
                 "status" => "error",
                 "message" => "Dependencia no encontrada"
             ], 404);
+        }
+
+        if ($dependency->name === 'Ventanilla Unica') {
+            return response()->json([
+                "status" => "error",
+                "message" => "La dependencia Ventanilla Unica no puede ser eliminada"
+            ], 403);
         }
 
         $dependency->delete();
