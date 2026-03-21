@@ -9,7 +9,7 @@ import ButtonDrawerInformation from "./Modals/ButtonDrawerInformation";
 
 const File = ({ file }) => {
     const { gridView } = useExplorerUI();
-    const { selectItem, selectedItems, isMultipleSelection, isSelected } = useExplorerData();
+    const { selectItem, selectedItems, isMultipleSelection, isSelected, pendingMoveItems } = useExplorerData();
 
     const open = () => {
         // Asegura que la URL sea absoluta
@@ -24,8 +24,10 @@ const File = ({ file }) => {
                 <div
                     key={file.id}
                     onClick={(e) => selectItem(file.id, 'file', e)}
-                    className={`cursor-pointer relative border-b lg:border rounded-lg shadow-sm hover:shadow-md transition p-2 text-center select-none items-center justify-between ${isSelected(file.id, 'file') ? "bg-primary/30" : "bg-white hover:bg-primary/20"}`}
-                    onDoubleClick={open}
+                    className={`cursor-pointer relative border-b lg:border rounded-lg shadow-sm hover:shadow-md transition p-2 text-center select-none items-center justify-between ${isSelected(file.id, 'file') ? "bg-primary/30" : "bg-white hover:bg-primary/20"} ${pendingMoveItems.some(i => i.id === file.id && i.type === 'file') ? "opacity-30 cursor-not-allowed scale-95 pointer-events-none" : ""}`}
+                    onDoubleClick={() => {
+                        if (pendingMoveItems.length === 0) open();
+                    }}
                 >
                     {(isMultipleSelection && selectedItems.length > 0) &&
                         <input type="checkbox" name="selected" id={`selected-file-${file.id}`} className="checkbox checkbox-primary absolute left-2 top-2 pointer-events-none" checked={isSelected(file.id, 'file')} readOnly />
@@ -44,10 +46,15 @@ const File = ({ file }) => {
                         <p className="font-medium w-full truncate text-gray-700">
                             {file.name}
                         </p>
+                        {file.hash && (
+                            <span className="text-[10px] text-gray-400 font-mono truncate w-full" title={file.hash}>
+                                Hash: {file.hash.substring(0, 12)}...
+                            </span>
+                        )}
                     </div>
 
                     {/* OPTIONS BUTTON */}
-                    <div className={`${gridView ? "absolute top-2 right-2" : "relative"}`}>
+                    {pendingMoveItems.length === 0 && (
                         <>
                             <div className="hidden lg:inline-block">
                                 <MenuOptions />
@@ -56,7 +63,7 @@ const File = ({ file }) => {
                                 <ButtonDrawerInformation />
                             </div>
                         </>
-                    </div>
+                    )}
 
                 </div>
             ) : (
@@ -65,9 +72,11 @@ const File = ({ file }) => {
                     <div
                         key={file.id}
                         onClick={(e) => selectItem(file.id, 'file', e)}
-                        onDoubleClick={open}
+                        onDoubleClick={() => {
+                            if (pendingMoveItems.length === 0) open();
+                        }}
 
-                        className={`flex justify-between border-b border-gray-400 px-2 py-3 cursor-pointer select-none ${isSelected(file.id, "file") ? "bg-primary/30" : "bg-white hover:bg-primary/20"} `}
+                        className={`flex justify-between border-b border-gray-400 px-2 py-3 cursor-pointer select-none ${isSelected(file.id, "file") ? "bg-primary/30" : "bg-white hover:bg-primary/20"} ${pendingMoveItems.some(i => i.id === file.id && i.type === 'file') ? "opacity-30 cursor-not-allowed scale-95 pointer-events-none" : ""}`}
                     >
 
 
@@ -87,6 +96,11 @@ const File = ({ file }) => {
                             <span className="shrink-0">-</span>
                             <div className="flex flex-col lg:flex-row max-w-1/2 lg:max-w-full">
                                 <span className="truncate w-full">{file.name}</span>
+                                {file.hash && (
+                                    <span className="text-[10px] text-gray-400 font-mono lg:ml-2 shrink-0" title={file.hash}>
+                                        [{file.hash.substring(0, 8)}]
+                                    </span>
+                                )}
                                 <p className="w-26 lg:hidden text-xs text-gray-500">--</p>
                             </div>
                         </div>
@@ -94,7 +108,7 @@ const File = ({ file }) => {
                         <div className="flex gap-5 items-center">
                             <p className="w-26 hidden lg:inline-block text-gray-500">--</p>
                             <p>{new Date(file.created_at).toLocaleDateString()}</p>
-                            {!isMultipleSelection &&
+                            {(!isMultipleSelection && pendingMoveItems.length === 0) &&
                                 <>
                                     <div className="hidden lg:inline-block">
                                         <MenuOptions />

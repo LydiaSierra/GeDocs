@@ -270,7 +270,7 @@ export const useExplorer = () => {
         const exists = store.selectedItems.find(item => item.id === id && item.type === type);
         let newSelection = [];
 
-        if (event.shiftKey || store.isMultipleSelection) {
+        if ((event.shiftKey || store.isMultipleSelection) && store.pendingMoveItems.length === 0) {
             if (exists) {
                 newSelection = store.selectedItems.filter(item => !(item.id === id && item.type === type));
             } else {
@@ -377,6 +377,12 @@ export const useExplorer = () => {
     const performMoveItems = () => {
         if (!store.currentFolder || store.pendingMoveItems.length === 0) {
             toast.error("No puedes mover archivos a la carpeta raíz o no hay elementos para mover.");
+            return;
+        }
+
+        const isTargetInPending = store.pendingMoveItems.some(i => i.id === store.currentFolder.id && i.type === 'folder');
+        if (isTargetInPending) {
+            toast.error("No puedes mover esta carpeta aquí");
             return;
         }
 

@@ -34,9 +34,8 @@ export default function Sidebar() {
             <aside className="hidden md:flex h-screen px-2 bg-primary flex-col justify-between items-center pt-16 pb-4">
                 <div className="flex flex-col items-center gap-3">
                     {filteredLinks.map(link => (
-                        <div className="tooltip tooltip-right z-20" data-tip={link.name}>
+                        <div key={link.id} className="tooltip tooltip-right z-20" data-tip={link.name}>
                             <NavLink
-                                key={link.id}
                                 href={route(link.href)}
                                 active={route().current(link.href)}
 

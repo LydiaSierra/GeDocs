@@ -39,7 +39,7 @@ export default function IndexTable() {
             incorporatedAt: formatDate(file.updated_at),
             managementNumber: file.folder_code || "Sin codigo",
             dependency: file.root_dependency_name || "Sin dependencia",
-            hash: file.path || "-",
+            hash: file.hash || "-",
         }));
     }, [scopedFiles]);
 
@@ -205,7 +205,11 @@ export default function IndexTable() {
                                 {row.dependency}
                             </td>
                             <td className="hidden sm:table-cell px-4 text-left text-sm text-gray-500">
-                                {row.hash}
+                                {row.hash && (
+                                    <>
+                                        {row.hash.substring(0, 12)}...
+                                    </>
+                                )}
                             </td>
                             <td className="hidden sm:table-cell px-4 text-right">
                                 <button

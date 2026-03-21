@@ -17,7 +17,9 @@ class File extends Model
         'mime_type',
         'size',
         'active',
-        'folder_id'
+        'folder_id',
+        'file_code',
+        'hash'
     ];
 
      public function folder()
