@@ -246,7 +246,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
     public function map($p): array
     {
         // Helper placeholders
-        $PH = '—';
+        $PH = 'N/A';
 
         // Dates and times formatted as requested in headers
         $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/y') : $PH; // dd/mm/aa
@@ -321,14 +321,33 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
     /**
      * Column formats using Excel codes.
      * Keys are 1-based column indexes: 1=>'A', 2=>'B', etc.
+     * Applies to the Received sheet.
      *
      * @return array<int,string>
      */
+
+    /*
     public function columnFormats(): array
     {
         return [
-            2 => 'yyyy-mm-dd hh:mm', // Creado
-            8 => 'yyyy-mm-dd hh:mm', // Fecha Respuesta
+            2 => 'dd/mm/yy', // B Fecha (dd/mm/aa)
+            3 => 'hh:mm',    // C Hora
+            18 => 'dd/mm/yy', // R Fecha Limite Respuesta (dd/mm/aa)
+            22 => 'dd/mm/yy', // V Fecha Respuesta (dd/mm/aa)
+        ];
+    }
+
+    */
+
+
+
+    public function columnFormats(): array
+    {
+        return [
+            'B' => 'dd/mm/yy',
+            'C' => 'hh:mm',
+            'R' => 'dd/mm/yy',
+            'V' => 'dd/mm/yy',
         ];
     }
 
@@ -443,15 +462,27 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     public function query()
     {
         return PQR::query()
-            ->selectRaw('response_status, COUNT(*) as total')
-            ->groupBy('response_status');
+            ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
+            ->whereNotNull('response_date')
+            ->orderByDesc('response_date');
     }
+
+   /* public function columnFormats(): array
+    {
+        return [
+            2 => 'dd/mm/yy', // B Fecha (dd/mm/aa)
+            3 => 'hh:mm',    // C Hora
+            22 => 'dd/mm/yy', // V Fecha Respuesta (dd/mm/aa)
+        ];
+    }
+    */
 
     public function columnFormats(): array
     {
         return [
-            2 => 'yyyy-mm-dd hh:mm', // Creado
-            8 => 'yyyy-mm-dd hh:mm', // Fecha Respuesta
+            'B' => 'dd/mm/yy',
+            'C' => 'hh:mm',
+            'V' => 'dd/mm/yy',
         ];
     }
 
@@ -557,6 +588,9 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
                 $event->sheet->mergeCells('Q7:S7');
                 $event->sheet->mergeCells('T7:T8');
                 $event->sheet->mergeCells('U7:W7');
+                $event->sheet->mergeCells('A7:A8');
+                $event->sheet->mergeCells('B7:B8');
+                $event->sheet->mergeCells('C7:C8');
 
 
 
@@ -629,11 +663,88 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         ];
     }
 
-    public function map($row): array
+    public function map($p): array
     {
+        $PH = 'N/A';
+
+        // Dates for sent communication use response_date when available; fallback to created_at
+        $sentAt = $p->response_date ?: $p->created_at;
+        $fechaEnvio = $sentAt ? Carbon::parse($sentAt)->format('d/m/y') : $PH; // dd/mm/aa
+        $horaEnvio = $sentAt ? Carbon::parse($sentAt)->format('H:i') : $PH;    // HH:mm
+
+        // Remitente (who sends): internal dependency and user (creator)
+        $dep = $p->dependency;
+        $remDepCodigo = $dep->code ?? $PH;           // no code column in schema → N/A
+        $remDepNombre = $dep->name ?? $PH;
+        $remNombre = $p->creator->name ?? $PH;       // internal sender
+        $remCargo = $PH;                             // not tracked
+
+        // Destinatario (external)
+        $destNombre = $p->sender_name ?: ($p->responsible->name ?? $PH);
+        $destCargo = $PH;
+        $destEmpresa = $PH;
+        $destDireccion = $PH;
+        $destCorreo = $p->email ?? $PH;
+        $destTelefono = $PH;
+
+        // Other fields
+        $tipoCom = $p->request_type ?? $PH;
+        $asunto = $p->affair ?? $PH;
+        $anexos = $p->attachedSupports ? $p->attachedSupports->count() : 0; // numeric count
+
+        // Canal de envío (tracking info) — not in schema
+        $nroGuia = $PH;
+        $empresaEnvio = $PH;
+        $obsEnvio = $PH;
+
+        // Observaciones generales
+        $observaciones = $p->description ?? $PH;
+
+        // Respuesta group
+        $numeroRadicado = $p->id; // fallback to internal id as radicado
+        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/y') : $PH;
+        $copia = $PH;
+
+        // Numero consecutivo: from sheetNumber
+        $numConsecutivo = optional($p->sheetNumber)->number ?? $PH;
+
         return [
-            $row->response_status,
-            $row->total
+            // A–C
+            $numConsecutivo,    // A Numero consecutivo
+            $fechaEnvio,        // B Fecha (dd/mm/aa)
+            $horaEnvio,         // C Hora
+
+            // D–G Datos Remitente
+            $remDepCodigo,      // D Codigo de la Dependencia
+            $remDepNombre,      // E Nombre de la Dependencia
+            $remNombre,         // F Nombre y Apellidos
+            $remCargo,          // G Cargo
+
+            // H–M Datos destinatario
+            $destNombre,        // H Nombre y Apellidos
+            $destCargo,         // I Cargo
+            $destEmpresa,       // J Empresa
+            $destDireccion,     // K Direccion
+            $destCorreo,        // L Correo Electronico
+            $destTelefono,      // M Telefono
+
+            // N–P Otros
+            $tipoCom,           // N Tipo de Comunicacion
+            $asunto,            // O Asunto
+            $anexos,            // P Anexos (count)
+
+            // Q–S Canal de Envio
+            $nroGuia,           // Q Nro de guia
+            $empresaEnvio,      // R Empresa
+            $obsEnvio,          // S Observaciones (canal)
+
+            // T Observaciones
+            $observaciones,     // T Observaciones
+
+            // U–W Respuesta
+            $numeroRadicado,    // U Numero de radicado
+            $fechaRespuesta,    // V Fecha (dd/mm/aa)
+            $copia,             // W Copia
         ];
     }
 }
