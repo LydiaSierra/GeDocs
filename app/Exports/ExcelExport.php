@@ -477,7 +477,7 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 
             // Rows 3–4 (main title band)
             [
-                'Registro de Radicación de Comunicaciones Recibidas','','','','','','','','','','','','','','','','','','','','','',''
+                'Registro de Radicación de Comunicaciones Enviadas','','','','','','','','','','','','','','','','','','','','','',''
             ],
 
             [
@@ -578,14 +578,14 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     public function styles(Worksheet $sheet)
     {
         // Header alignment and wrapping (rows 1–8)
-        $sheet->getStyle('A1:V8')
+        $sheet->getStyle('A1:W8')
             ->getAlignment()
             ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
             ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
             ->setWrapText(true);
 
         // Base font for header
-        $sheet->getStyle('A1:V8')->getFont()
+        $sheet->getStyle('A1:W8')->getFont()
             ->setName('Times New Roman')
             ->setBold(true)
             ->setSize(11);
@@ -597,7 +597,7 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         // Light fills (subtle so text is readable)
         $sheet->getStyle('A1:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
         $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF9FAFB');
-        $sheet->getStyle('A7:V8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
+        $sheet->getStyle('A7:W8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
 
         // Row heights to visually match template proportions
         $sheet->getRowDimension(1)->setRowHeight(28);
