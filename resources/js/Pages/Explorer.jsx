@@ -264,11 +264,11 @@ export default function Explorer() {
                                                 ) : (
                                                     <div className="grid grid-cols-2 lg:flex flex-wrap gap-4 lg:gap-6 pb-32">
                                                         {folders.filter(f => !f.parent_id && (f.year || !isNaN(f.name))).map((yearFolder) => (
-                                                            <div key={yearFolder.id} className="relative p-10 px-14 flex flex-col items-center justify-center gap-4  rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
-                                                                <button
-                                                                    onClick={() => openFolder(yearFolder.id, true)}
-                                                                    className=""
-                                                                >
+                                                            <div key={yearFolder.id} className="relative p-10 px-14 flex flex-col items-center justify-center gap-4  rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2"
+                                                                onClick={() => openFolder(yearFolder.id, true)}
+
+                                                            >
+                                                                <button>
                                                                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-150 group-hover:rotate-12">
                                                                         <CalendarIcon className="size-16 text-primary" />
                                                                     </div>
@@ -338,7 +338,7 @@ export default function Explorer() {
 
 
                             { /* ====== FOLDER EXPLORER VIEW ====== */}
-                             {((currentFolder || filters?.buscador) && !archivedMode) && (
+                            {((currentFolder || filters?.buscador) && !archivedMode) && (
                                 <div className="flex flex-col flex-1 min-h-0 bg-white">
                                     <div className="hidden lg:flex items-center justify-between mb-0 p-4 shrink-0 border-b border-gray-100 sticky top-0 bg-white z-20">
                                         <div className="flex items-center gap-3">

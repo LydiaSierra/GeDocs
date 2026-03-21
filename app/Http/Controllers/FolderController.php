@@ -105,6 +105,8 @@ class FolderController extends Controller
                     "folder_id" => $file->folder_id,
                     "created_at" => $file->created_at,
                     "updated_at" => $file->updated_at,
+                    "file_code" => $file->file_code,
+                    "hash" => $file->hash,
                 ]);
 
             return Inertia::render('Explorer', [
@@ -142,6 +144,8 @@ class FolderController extends Controller
                         "folder_id" => $file->folder_id,
                         "created_at" => $file->created_at,
                         "updated_at" => $file->updated_at,
+                        "file_code" => $file->file_code,
+                        "hash" => $file->hash,
                     ];
                 });
 
@@ -263,13 +267,20 @@ class FolderController extends Controller
              * and store it individually.
              */
             foreach ($request->file('files') as $file) {
-
                 // Used to build a standardized file name
                 $fileYear = date("Y");
                 $folderCode = $folder->folder_code ?? "000";
 
-                // New file name format
-                $newName = "{$fileYear}-Ex-{$folderCode}-{$file->getClientOriginalName()}";
+                // Generate sequence (max of all files)
+                $maxCode = (int) \App\Models\File::max('file_code');
+                $sequence = str_pad($maxCode + 1, 3, "0", STR_PAD_LEFT);
+
+                // Generate hash following REAL file content
+                $hash = hash_file('sha256', $file->getRealPath());
+                $shortHash = substr($hash, 0, 10);
+
+                // New file name format including sequence and short hash
+                $newName = "{$fileYear}-Ex-{$folderCode}-{$sequence}-{$shortHash}-{$file->getClientOriginalName()}";
 
                 // Store file in public disk
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
@@ -283,8 +294,9 @@ class FolderController extends Controller
                     "size" => $file->getSize(),
                     "folder_id" => $folderId,
                     "active" => true,
+                    "file_code" => $sequence,
+                    "hash" => $hash,
                 ]);
-
 
                 // Prepare response data
                 $uploadedFiles[] = [
@@ -298,8 +310,9 @@ class FolderController extends Controller
                     "created_at" => $newFile->created_at,
                     "updated_at" => $newFile->updated_at,
                     "url" => asset("storage/" . $newFile->path),
+                    "file_code" => $newFile->file_code,
+                    "hash" => $newFile->hash,
                 ];
-
             }
 
             return back();

@@ -46,6 +46,11 @@ const File = ({ file }) => {
                         <p className="font-medium w-full truncate text-gray-700">
                             {file.name}
                         </p>
+                        {file.hash && (
+                            <span className="text-[10px] text-gray-400 font-mono truncate w-full" title={file.hash}>
+                                Hash: {file.hash.substring(0, 12)}...
+                            </span>
+                        )}
                     </div>
 
                     {/* OPTIONS BUTTON */}
@@ -91,6 +96,11 @@ const File = ({ file }) => {
                             <span className="shrink-0">-</span>
                             <div className="flex flex-col lg:flex-row max-w-1/2 lg:max-w-full">
                                 <span className="truncate w-full">{file.name}</span>
+                                {file.hash && (
+                                    <span className="text-[10px] text-gray-400 font-mono lg:ml-2 shrink-0" title={file.hash}>
+                                        [{file.hash.substring(0, 8)}]
+                                    </span>
+                                )}
                                 <p className="w-26 lg:hidden text-xs text-gray-500">--</p>
                             </div>
                         </div>

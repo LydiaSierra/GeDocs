@@ -418,14 +418,14 @@ class PdfController extends Controller
             if (!empty($validated['folder_id'])) {
                 $currentFolder = \App\Models\Folder::with('parent')->find($validated['folder_id']);
                 while ($currentFolder) {
-                    $folderCodes[] = $currentFolder->folder_code ?? '000'; 
+                    $folderCodes[] = $currentFolder->folder_code ?? '000';
                     $folderNames[] = $currentFolder->name;
                     $currentFolder = $currentFolder->parent;
                 }
                 $folderCodes = array_reverse($folderCodes);
                 $folderNames = array_reverse($folderNames);
             }
-            
+
             $folderPrefix = implode('-', $folderCodes) ?: ($pqr->dependency_id ?? '000');
 
             $data['archivado_en'] = implode(' / ', $folderNames);
@@ -451,7 +451,7 @@ class PdfController extends Controller
             // Pie de página
             $defaultFooter = "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y');
             $savedFooter = trim((string) ($request->user()?->pdf_footer_text ?? ''));
-            
+
             // Preferimos footer_text (editable en el form) -> pie_pagina -> savedFooter -> default
             $finalFooter = $validated['footer_text'] ?? ($validated['pie_pagina'] ?? ($savedFooter ?: $defaultFooter));
             $data['footer_text'] = $finalFooter;
@@ -460,7 +460,7 @@ class PdfController extends Controller
             // Generar Código QR que apunta directamente a la descarga del PDF
             $qrUrl = asset('storage/' . $storagePath);
             $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
-            
+
             // 1. Generar la CARTA (PDF Principal usando la vista template)
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
@@ -498,7 +498,8 @@ class PdfController extends Controller
             $oMerger->save($absolutePath);
 
             // Limpiar archivo temporal
-            if (file_exists($tempMainPath)) unlink($tempMainPath);
+            if (file_exists($tempMainPath))
+                unlink($tempMainPath);
 
             // 5. Registrar el PDF FUSIONADO como único AttachedSupport con origin 'ENV'
             $pqr->attachedSupports()->create([
@@ -513,14 +514,20 @@ class PdfController extends Controller
 
             // Si se seleccionó una carpeta en el modal, registrar el archivo en el explorador (Files)
             if (!empty($validated['folder_id'])) {
+                $hash = hash_file('sha256', $absolutePath);
+                $fileCode = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+                $shortHash = substr($hash, 0, 10);
+
                 \App\Models\File::create([
-                    'name' => str_replace('.pdf', '', $fileName),
+                    'name' => str_replace('.pdf', '', $fileName) . "-{$shortHash}",
                     'path' => $storagePath,
                     'extension' => 'pdf',
                     'mime_type' => 'application/pdf',
                     'size' => filesize($absolutePath),
                     'active' => true,
-                    'folder_id' => $validated['folder_id']
+                    'folder_id' => $validated['folder_id'],
+                    'file_code' => $fileCode,
+                    'hash' => $hash,
                 ]);
             }
 

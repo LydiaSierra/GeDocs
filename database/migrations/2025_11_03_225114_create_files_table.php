@@ -18,6 +18,8 @@ return new class extends Migration {
             $table->string('mime_type');
             $table->boolean("active")->default(true);
             $table->bigInteger('size');
+            $table->string('file_code')->nullable();
+            $table->string('hash')->nullable();
             $table->unsignedBigInteger('folder_id')->nullable();
             $table->foreign('folder_id')->references('id')->on('folders')->onDelete('cascade');
             $table->timestamps();
