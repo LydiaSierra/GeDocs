@@ -47,10 +47,6 @@ export function MailReader() {
     const [sending, setSending] = useState(false);
     const [responseUrl, setResponseUrl] = useState("");
 
-
-
-
-
     // ─── Helpers ───────────────────────────────────────────────────────────────
     const getDeadlineColor = (createdDateStr, responseDateStr) => {
         if (!createdDateStr || !responseDateStr) return "text-gray-700";
@@ -129,6 +125,7 @@ export function MailReader() {
             setResponseText("");
         }
     };
+
 
 
     const handleArchiveToggle = async () => {
@@ -472,17 +469,6 @@ export function MailReader() {
                                 onChange={(e) => setResponseText(e.target.value)}
                             />
 
-                            {/* PDF buttons */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <Link
-                                    href={`/pqr/responder/${currentMail.id}`}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-primary hover:text-primary transition"
-                                >
-                                    <DocumentPlusIcon className="w-4 h-4" />
-                                    Crear PDF
-                                </Link>
-                            </div>
-
                             <div className="flex justify-end items-center gap-3">
                                 {responseUrl && (
                                     <a
@@ -494,14 +480,14 @@ export function MailReader() {
                                         Enlace de respuesta
                                     </a>
                                 )}
-                                <button
-                                    onClick={handleRespond}
-                                    disabled={sending}
-                                    className="btn btn-sm bg-primary text-white hover:bg-primary/90 border-none rounded-lg gap-1.5 disabled:opacity-50"
+                                <Link
+                                    href={`/pqr/responder/${currentMail.id}`}
+                                    className="btn btn-sm bg-primary text-white hover:bg-primary/90 border-none rounded-lg gap-1.5"
                                 >
                                     <PaperAirplaneIcon className="w-4" />
-                                    {sending ? "Enviando..." : "Enviar respuesta"}
-                                </button>
+                                    Generar Respuesta (PDF)
+                                </Link>
+
                             </div>
                         </div>
                     )}

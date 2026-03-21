@@ -312,6 +312,7 @@ export default function Form() {
                                 <label className="btn">Adjuntar Soportes</label>
                                 <PaperClipIcon className="w-5 h-5 text-gray-500" />
                                 <input
+                                    accept=".pdf"
                                     name="attachments"
                                     type="file"
                                     multiple
