@@ -267,43 +267,63 @@ METHOD GET
 
 ```
 /api/users/filter?document_number=102030&email=andres@gmail.com&name=andres
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```
 
-# API DE FICHAS 
+# API DE FICHAS (SheetUserController / SheetController)
 
 ---
 
 
-Todos los endpoints de Fichas requieren autenticación.  
-La creación, actualización y eliminación solo está permitida para el rol **Admin**.
+Este endpoint es para obtener las fichas dentro del sistema. Requieren autenticación y roles específicos (Admin o Instructor).
 
 ---
 
 
 ## Listar todas las fichas
 
-### Retorna cada ficha junto con sus usuarios clasificados por rol:
+### Obtiene una lista de todas las dependencias existentes asociadas al usuario autenticado por rol:
 -Instructor
 -Aprendices
 ###
 
 #### METHOD: GET
 ```
-/api/sheets
+/sheetsNumber
 ```
 
-### Respuesta esperada:
+### Respuesta esperada: Exitosa (200 OK)
 ```
 {
-  "success": true,
-  "sheets": [
+"message": "Fichas encontradas",
+"fichas": [
     {
       "id": 1,
-      "number": 2578923,
-      "Instructor": [...],
-      "Aprendices": [...]
+      "number": "3002085",
+      "active": 1,
+      "state": "active",
+      "created_at": "2025-12-15T10:00:00.000000Z"
     }
-  ]
+]
+}
+```
+### Respuesta de Error (404 Not Found):
+```
+{
+"status": "error",
+"message": "El usuario no tiene fichas asignadas"
 }
 ```
 
@@ -335,21 +355,23 @@ La creación, actualización y eliminación solo está permitida para el rol **A
 ### METHOD: POST
 ```
 
-/api/sheets
+/sheets
 ```
-### Body requerido:
+### Cuerpo de la Petición (Request Body):
 ```
-{
-  "number": 2578923
-}
+     {
+"number": "3002085",
+     }
 ```
 
-### Respuesta:
+### Respuesta: Exitosa (200 OK)
 ```
-{
-  "success": true,
-  "message": "Ficha creada con exito",
-  "ficha": { ... }
+     {
+"number": "3002085",
+"dependencies": {
+    "name": "Ventanilla unica",
+         "id": 2
+    }
 }
 ```
 
@@ -358,26 +380,34 @@ La creación, actualización y eliminación solo está permitida para el rol **A
 ### METHOD: PUT
 
 ```
-/api/sheets/{id_de_la_ficha}
+/sheets/{id}
 ```
 
-### Body permitido:
+### Cuerpo de la Petición (Request Body):
+```
+     {
+"name": "3002086",
+     “Active”:1,
+     “state”: “active”
+     }
+```
+
+
+### Respuesta: Exitosa (200 OK)
 ```
 {
-  "number": 555555
+"success": true,
+"message": "Ficha actualizada con exito"
 }
 ```
+### Respuesta de Error (404 not found):
 
-
-### Respuesta:
 ```
 {
-  "success": true,
-  "message": "Ficha actualizada con exito"
+"success": false,
+"message": "Ficha no encontrada"
 }
 ```
-
-
 ## Eliminar una ficha (Solo Admin)
 
 ### METHOD: DELETE
@@ -393,6 +423,53 @@ La creación, actualización y eliminación solo está permitida para el rol **A
   "message": "Ficha eliminada con exito"
 }
 ```
+
+## Eliminar una dependencia (Solo Admin)
+
+### METHOD: DELETE
+```
+/sheets/{id}
+```
+### Respuesta: Exitosa (200 OK)
+```
+{
+"success": true,
+"message": "Ficha eliminada con exito"
+}
+```
+### Respuesta de Error (404 not found):
+```
+{
+"success": false,
+"message": "Ficha no encontrada"
+}
+```
+### Creacion de QR (api/QrCode)
+
+### Crear un Nuevo QR
+
+### METHOD: GET
+```
+/qrcode
+```
+### Permisos:
+```
+El endpoint no esta protegido por rol de usuario, pero su naturaleza solo permite ser usado para crear QR al momento de responder una PQR.
+```
+### Descripción:
+```
+Crea una imagen png del QR que lleva a la dirección indicada en el cuerpo de la petición. La imagen es guardada en storage/qrcodes con el nombre indicado en el cuerpo de la petición.
+```
+### Cuerpo de la Petición (Request Body):
+
+```
+{
+"url": “Ingresar la url a la que dirige el QR,
+"file_name": "El nombre del archivo png que guarda el QR"
+}
+```
+    • Respuesta Exitosa (200 OK)
+    • Respuesta de Error (500 Internal server error)
 
 ## Agregar un usuario a una ficha
 
