@@ -1,4 +1,5 @@
 import { InputSearch } from "@/Components/ArchiveExplorer/InputSearch";
+import EmptyState from "@/Components/EmptyState";
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
@@ -261,12 +262,12 @@ export default function Explorer() {
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="grid grid-cols-2 sm:flex gap-4 lg:gap-6 pb-32">
+                                                    <div className="grid grid-cols-2 lg:flex flex-wrap gap-4 lg:gap-6 pb-32">
                                                         {folders.filter(f => !f.parent_id && (f.year || !isNaN(f.name))).map((yearFolder) => (
-                                                            <div key={yearFolder.id} className="relative">
+                                                            <div key={yearFolder.id} className="relative p-10 px-14 flex flex-col items-center justify-center gap-4  rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2">
                                                                 <button
                                                                     onClick={() => openFolder(yearFolder.id, true)}
-                                                                    className="w-full flex flex-col items-center justify-center gap-4 p-10 rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] relative transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2"
+                                                                    className=""
                                                                 >
                                                                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-150 group-hover:rotate-12">
                                                                         <CalendarIcon className="size-16 text-primary" />
@@ -342,7 +343,11 @@ export default function Explorer() {
                                     <div className="hidden lg:flex items-center justify-between mb-0 p-4 shrink-0 border-b border-gray-100 sticky top-0 bg-white z-20">
                                         <div className="flex items-center gap-3">
                                             <button
-                                                onClick={handleBackToSheets}
+                                                onClick={() => {
+                                                    localStorage.removeItem("folder_id");
+                                                    fetchFolders(null, activeSheetId);
+                                                    setHistoryStack([]);
+                                                }}
                                                 className="flex items-center py-1.5 px-3 rounded-xl gap-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-primary hover:bg-primary/5 transition-all group"
                                             >
                                                 <ArrowLeftCircleIcon className="size-5 transition-transform group-hover:-translate-x-1" />
