@@ -225,15 +225,13 @@ export default function Explorer() {
                                                                             <FolderIcon className="size-8 text-amber-400 shrink-0" />
                                                                             <span className="font-bold text-sm truncate">{folder.name}</span>
                                                                         </div>
-                                                                        {auth.user.roles[0] === 'admin' && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
-                                                                                className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
-                                                                                title="Restaurar"
-                                                                            >
-                                                                                <ArrowPathIcon className="size-5" />
-                                                                            </button>
-                                                                        )}
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
+                                                                            className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors lg:tooltip lg:tooltip-top"
+                                                                            data-tip="Restaurar"
+                                                                        >
+                                                                            <ArrowPathIcon className="size-5" />
+                                                                        </button>
                                                                     </div>
                                                                 ))}
                                                                 {archivedFiles.map(file => (
