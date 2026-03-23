@@ -2,8 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useState, useCallback, useEffect } from 'react';
 
-// External store to share state without Context
-let store = {
+const initialStore = {
     allFolders: [],
     currentFolder: null,
     selectedItems: [],
@@ -23,10 +22,15 @@ let store = {
     inputSearchTerm: ""
 };
 
+// External store to share state without Context
+let store = { ...initialStore };
+
 let listeners = [];
 
 const emitChange = () => {
-    listeners.forEach(listener => listener());
+    setTimeout(() => {
+        listeners.forEach(listener => listener());
+    }, 0);
 };
 
 const setStore = (updates) => {
@@ -559,4 +563,12 @@ export const getSelectedItem = () => {
             ? folders.find(f => f.id === selected.id)
             : files.find(f => f.id === selected.id)
         : null;
+};
+
+// For testing purposes only
+export const __resetExplorerStoreForTesting = () => {
+    store = { ...initialStore };
+    lastSyncedFilters = null;
+    lastSyncedProps = null;
+    listeners = [];
 };
