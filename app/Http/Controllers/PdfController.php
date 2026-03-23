@@ -433,7 +433,9 @@ class PdfController extends Controller
             $data['archivado_en'] = implode(' / ', $folderNames);
 
             // Definir nombre y ruta del archivo de forma definitiva
-            $fileName = "{$folderPrefix}-" . now()->year . "-" . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
+            $year = now()->year;
+            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $fileName = "{$folderPrefix}-ENV-{$year}-{$pqrNumber}.pdf";
             $storagePath = 'pdf_responses/' . $fileName;
             $absolutePath = storage_path('app/public/' . $storagePath);
 
