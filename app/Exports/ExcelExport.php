@@ -50,8 +50,17 @@ class ExcelExport implements WithMultipleSheets, Responsable
     {
         return [
             new Received($this->filters),   // Hoja 1
-            new Sended(),             // Hoja 2
+            new Sended($this->filters),     // Hoja 2
         ];
+    }
+
+    // Implement Responsable to allow returning this export directly from controllers/routes
+    public function toResponse($request)
+    {
+        $sheet = $this->filters['sheet_number_id'] ?? 'all';
+        $date = date('Ymd_His');
+        $filename = "pqrs_{$sheet}_{$date}.xlsx";
+        return $this->download($filename);
     }
 }
 
@@ -82,13 +91,23 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
             ->orderByDesc('created_at');
 
-        // Year filter (by created_at)
-        if (!empty($this->filters['year'])) {
-            $q->whereYear('created_at', (int) $this->filters['year']);
+        // Main filter: by Sheet Number
+        if (!empty($this->filters['sheet_number_id'])) {
+            $q->where('sheet_number_id', (int) $this->filters['sheet_number_id']);
         }
 
-        // Trimester filter (Q1=Jan-Mar, Q2=Apr-Jun, Q3=Jul-Sep, Q4=Oct-Dec)
-        if (!empty($this->filters['trimester'])) {
+        // Only PQRs that have at least one attached support with origin = 'REC'
+        $q->whereHas('attachedSupports', function (Builder $qq) {
+            $qq->where('origin', 'REC');
+        });
+
+        // Year filter (by created_at) — disabled per new requirements (filter by sheet number instead)
+        /* if (!empty($this->filters['year'])) {
+            $q->whereYear('created_at', (int) $this->filters['year']);
+        } */
+
+        // Trimester filter — commented out per requirements
+        /* if (!empty($this->filters['trimester'])) {
             $trimester = (int) $this->filters['trimester'];
             [$startMonth, $endMonth] = match ($trimester) {
                 1 => [1, 3],
@@ -102,7 +121,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
                 Carbon::create($year, $startMonth, 1)->startOfDay(),
                 Carbon::create($year, $endMonth, 1)->endOfMonth()->endOfDay(),
             ]);
-        }
+        } */
 
         // Date range filters (overrides trimester if both are provided)
         if (!empty($this->filters['from'])) {
@@ -245,76 +264,63 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
      */
     public function map($p): array
     {
-        // Helper placeholders
         $PH = 'N/A';
 
-        // Dates and times formatted as requested in headers
-        $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/y') : $PH; // dd/mm/aa
-        $horaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('H:i') : $PH;    // HH:mm
-        $fechaLimite = $p->response_time ? Carbon::parse($p->response_time)->format('d/m/y') : $PH; // dd/mm/aa
-        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/y') : $PH; // dd/mm/aa
+        // Attached support for REC origin (first match)
+        $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'REC') : null;
+        $noRadicado = $support->no_radicado ?? $PH;
+        $hash = $support->hash ?? $PH;
 
-        // Dependency info (recipient area)
-        $dep = $p->dependency;
-        $depCodigo = method_exists($dep, 'getAttribute') ? ($dep->code ?? $PH) : $PH; // placeholder, no code field in model
-        $depNombre = $dep->name ?? $PH;
+        // Dates and times
+        $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/Y') : $PH; // dd/mm/yyyy
+        $horaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('H:i') : $PH;    // HH:MM
+        $fechaLimite = $p->response_time ? Carbon::parse($p->response_time)->format('d/m/Y') : $PH;
+        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/Y') : $PH;
 
-        // Recipient person: use responsible user if present
-        $resp = $p->responsible;
-        $destNombre = $resp->name ?? $PH;
-        $destCargo = $PH; // User doesn't expose cargo/position field
+        // Dependency and responsible
+        $depNombre = $p->dependency->name ?? $PH;
+        $responsable = $p->responsible;
+        $responsableNombre = $responsable->name ?? $PH;
+        $rolResponsable = $responsable ? ($responsable->getRoleNames()->first() ?? $PH) : $PH;
 
-        // Sender (remitente)
-        $remNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
-        $remCargo = $PH; // No field available
-        $remEmpresa = $PH; // No field available
-        $remDireccion = $PH; // No field available
-        $remCorreo = $p->email ?: $PH;
-        $remTelefono = $PH; // No field available
-
-        // Other fields
-        $tipoCom = $p->request_type ?? $PH;
-        $asunto = $p->affair ?? $PH;
-        $anexos = $p->attachedSupports ? $p->attachedSupports->count() : 0; // numeric count
-        $firmaRecibido = $PH; // not tracked
-        $observaciones = $p->description ?? $PH;
-        $numConsecutivo = optional($p->sheetNumber)->number ?? $PH;
-
-        // Barcode not stored yet
-        $codigoBarras = $PH;
+        // Sender (creator) and role
+        $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
+        $rolCreador = $p->creator ? ($p->creator->getRoleNames()->first() ?? $PH) : $PH;
 
         return [
             // A–D
-            $p->id,                 // A Numero Radicado (fallback to ID)
-            $fechaCreacion,         // B Fecha (dd/mm/aa)
-            $horaCreacion,          // C Hora
-            $codigoBarras,          // D Cod. Barras
+            $noRadicado,          // A Numero Radicado (from attachedSupports.no_radicado)
+            $fechaCreacion,       // B Fecha creación dd/mm/yyyy
+            $horaCreacion,        // C Hora creación HH:MM
+            $noRadicado,          // D Cod. Barras (use same no_radicado for now)
 
-            // E–H Datos destinatario
-            $depCodigo,             // E Codigo de la Dependencia
-            $depNombre,             // F Nombre de la Dependencia
-            $destNombre,            // G Nombre y Apellidos (destinatario)
-            $destCargo,             // H Cargo (destinatario)
+            // E
+            $hash,                // E Hash from attachedSupports
 
-            // I–N Datos del remitente
-            $remNombre,             // I Nombre y Apellidos (remitente)
-            $remCargo,              // J Cargo (remitente)
-            $remEmpresa,            // K Empresa
-            $remDireccion,          // L Direccion
-            $remCorreo,             // M Correo Electronico
-            $remTelefono,           // N Telefono
+            // F–H destinatario/dependencia/responsable
+            $depNombre,           // F Nombre de la Dependencia
+            $responsableNombre,   // G Nombre del responsable
+            $rolResponsable,      // H Rol del responsable
 
-            // O–T Otros
-            $tipoCom,               // O Tipo de Comunicacion
-            $asunto,                // P Asunto
-            $anexos,                // Q Anexos (count)
-            $fechaLimite,           // R Fecha Limite Respuesta (dd/mm/aa)
-            $firmaRecibido,         // S Firma de Recibido
-            $observaciones,         // T Observaciones
+            // I–N remitente (PQR fields / creator)
+            $senderNombre,        // I sender_name
+            $rolCreador,          // J rol del remitente/creador
+            $PH,                  // K N/A
+            $PH,                  // L N/A
+            ($p->email ?: $PH),   // M email del PQR
+            $PH,                  // N N/A
 
-            // U–V Respuesta
-            $numConsecutivo,        // U Numero Consecutivo
-            $fechaRespuesta,        // V Fecha (dd/mm/aa)
+            // O–T otros
+            ($p->request_type ?: $PH),  // O tipo de solicitud
+            ($p->affair ?: $PH),        // P asunto
+            $PH,                        // Q N/A
+            $fechaLimite,               // R response_time (fecha límite)
+            $PH,                        // S N/A
+            $PH,                        // T N/A
+
+            // U–V respuesta
+            $hash,                // U Hash (again)
+            $fechaRespuesta,      // V response_date
         ];
     }
 
@@ -344,10 +350,10 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
     public function columnFormats(): array
     {
         return [
-            'B' => 'dd/mm/yy',
+            'B' => 'dd/mm/yyyy',
             'C' => 'hh:mm',
-            'R' => 'dd/mm/yy',
-            'V' => 'dd/mm/yy',
+            'R' => 'dd/mm/yyyy',
+            'V' => 'dd/mm/yyyy',
         ];
     }
 
@@ -459,12 +465,33 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 {
 
     use Exportable;
+
+    /** @var array<string,mixed> */
+    protected array $filters = [];
+
+    public function __construct(array $filters = [])
+    {
+        $this->filters = $filters;
+    }
+
     public function query()
     {
-        return PQR::query()
+        $q = PQR::query()
             ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
             ->whereNotNull('response_date')
             ->orderByDesc('response_date');
+
+        // Filter by sheet number if provided
+        if (!empty($this->filters['sheet_number_id'])) {
+            $q->where('sheet_number_id', (int) $this->filters['sheet_number_id']);
+        }
+
+        // Only PQRs with attached supports origin = 'ENV'
+        $q->whereHas('attachedSupports', function (Builder $qq) {
+            $qq->where('origin', 'ENV');
+        });
+
+        return $q;
     }
 
    /* public function columnFormats(): array
@@ -480,9 +507,9 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     public function columnFormats(): array
     {
         return [
-            'B' => 'dd/mm/yy',
+            'B' => 'dd/mm/yyyy',
             'C' => 'hh:mm',
-            'V' => 'dd/mm/yy',
+            'V' => 'dd/mm/yyyy',
         ];
     }
 
@@ -667,84 +694,58 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     {
         $PH = 'N/A';
 
-        // Dates for sent communication use response_date when available; fallback to created_at
-        $sentAt = $p->response_date ?: $p->created_at;
-        $fechaEnvio = $sentAt ? Carbon::parse($sentAt)->format('d/m/y') : $PH; // dd/mm/aa
-        $horaEnvio = $sentAt ? Carbon::parse($sentAt)->format('H:i') : $PH;    // HH:mm
+        // Attached support for ENV origin (first match)
+        $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'ENV') : null;
+        $hash = $support->hash ?? $PH;
 
-        // Remitente (who sends): internal dependency and user (creator)
-        $dep = $p->dependency;
-        $remDepCodigo = $dep->code ?? $PH;           // no code column in schema → N/A
-        $remDepNombre = $dep->name ?? $PH;
-        $remNombre = $p->creator->name ?? $PH;       // internal sender
-        $remCargo = $PH;                             // not tracked
+        // Dates and times from PQR creation for B and C
+        $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/Y') : $PH; // dd/mm/yyyy
+        $horaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('H:i') : $PH;    // HH:MM
+        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/Y') : $PH;
 
-        // Destinatario (external)
-        $destNombre = $p->sender_name ?: ($p->responsible->name ?? $PH);
-        $destCargo = $PH;
-        $destEmpresa = $PH;
-        $destDireccion = $PH;
-        $destCorreo = $p->email ?? $PH;
-        $destTelefono = $PH;
+        // Dependency and responsible
+        $depNombre = $p->dependency->name ?? $PH;
+        $responsable = $p->responsible;
+        $responsableNombre = $responsable->name ?? $PH;
+        $rolResponsable = $responsable ? ($responsable->getRoleNames()->first() ?? $PH) : $PH;
 
-        // Other fields
-        $tipoCom = $p->request_type ?? $PH;
-        $asunto = $p->affair ?? $PH;
-        $anexos = $p->attachedSupports ? $p->attachedSupports->count() : 0; // numeric count
-
-        // Canal de envío (tracking info) — not in schema
-        $nroGuia = $PH;
-        $empresaEnvio = $PH;
-        $obsEnvio = $PH;
-
-        // Observaciones generales
-        $observaciones = $p->description ?? $PH;
-
-        // Respuesta group
-        $numeroRadicado = $p->id; // fallback to internal id as radicado
-        $fechaRespuesta = $p->response_date ? Carbon::parse($p->response_date)->format('d/m/y') : $PH;
-        $copia = $PH;
-
-        // Numero consecutivo: from sheetNumber
-        $numConsecutivo = optional($p->sheetNumber)->number ?? $PH;
+        // Sender (creator) role and name
+        $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
+        $rolCreador = $p->creator ? ($p->creator->getRoleNames()->first() ?? $PH) : $PH;
 
         return [
-            // A–C
-            $numConsecutivo,    // A Numero consecutivo
-            $fechaEnvio,        // B Fecha (dd/mm/aa)
-            $horaEnvio,         // C Hora
+            // A–D
+            $hash,               // A hash from attachedSupports
+            $fechaCreacion,      // B Fecha creación dd/mm/yyyy
+            $horaCreacion,       // C Hora creación HH:MM
+            $hash,               // D hash again
 
-            // D–G Datos Remitente
-            $remDepCodigo,      // D Codigo de la Dependencia
-            $remDepNombre,      // E Nombre de la Dependencia
-            $remNombre,         // F Nombre y Apellidos
-            $remCargo,          // G Cargo
+            // E–G dependencia/responsable/rol
+            $depNombre,          // E Nombre de la Dependencia
+            $responsableNombre,  // F Nombre del responsable
+            $rolResponsable,     // G Rol del responsable
 
-            // H–M Datos destinatario
-            $destNombre,        // H Nombre y Apellidos
-            $destCargo,         // I Cargo
-            $destEmpresa,       // J Empresa
-            $destDireccion,     // K Direccion
-            $destCorreo,        // L Correo Electronico
-            $destTelefono,      // M Telefono
+            // H–M remitente
+            $senderNombre,               // H sender_name
+            $rolCreador,                 // I rol del remitente/creador
+            $PH,                         // J N/A
+            $PH,                         // K N/A
+            ($p->email ?: $PH),          // L email
+            $PH,                         // M N/A
 
-            // N–P Otros
-            $tipoCom,           // N Tipo de Comunicacion
-            $asunto,            // O Asunto
-            $anexos,            // P Anexos (count)
+            // N–T otros
+            ($p->request_type ?: $PH),   // N request type
+            ($p->affair ?: $PH),         // O affair
+            $PH,                         // P N/A
+            $PH,                         // Q N/A
+            $PH,                         // R N/A
+            'Se envio la respuesta por medio de la APP', // S fixed text
+            $PH,                         // T N/A
 
-            // Q–S Canal de Envio
-            $nroGuia,           // Q Nro de guia
-            $empresaEnvio,      // R Empresa
-            $obsEnvio,          // S Observaciones (canal)
-
-            // T Observaciones
-            $observaciones,     // T Observaciones
-
-            // U–W Respuesta
-            $numeroRadicado,    // U Numero de radicado
-            $fechaRespuesta,    // V Fecha (dd/mm/aa)
-            $copia,             // W Copia
+            // U–W respuesta
+            $hash,               // U hash again
+            $fechaRespuesta,     // V response_date
+            $PH,                 // W N/A
         ];
     }
 }
