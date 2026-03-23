@@ -116,7 +116,14 @@ class ExplorerController extends Controller
                     "extension" => $file->extension,
                     "size" => $file->size,
                     "url" => asset("storage/" . $file->path),
-                    "folder_id" => $file->folder_id
+                    "folder_id" => $file->folder_id,
+                    "file_code" => $file->file_code,
+                    "hash" => $file->hash,
+                    "mime_type" => $file->mime_type,
+                    "created_at" => $file->created_at,
+                    "updated_at" => $file->updated_at,
+                    "is_pdf" => $file->extension === 'pdf',
+                    "is_image" => in_array($file->extension, ['jpg', 'jpeg', 'png', 'gif', 'svg'])
                 ];
             }),
             "allFolders" => $allFolders->get(),
