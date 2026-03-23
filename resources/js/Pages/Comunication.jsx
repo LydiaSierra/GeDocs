@@ -239,21 +239,21 @@ export default function Comunication({ pqrID }) {
             <Head title={`Responder PQR #${pqr.id}`} />
 
             {/* Toolbar superior */}
-            <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-6 py-3">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-primary transition-colors">
+            <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 gap-3">
+                <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-hidden">
+                    <Link href="/" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-bold text-gray-500 hover:text-primary transition-colors whitespace-nowrap">
                         <ArrowLeftIcon className="size-4" />
-                        Volver
+                        <span className="hidden xs:inline sm:inline">Volver</span>
                     </Link>
-                    <div className="h-6 w-[1px] bg-gray-200" />
-                    <div className="flex flex-col">
-                        <span className="text-[10px] uppercase font-bold text-gray-400 leading-none">PQR Radicado</span>
-                        <span className="font-bold text-gray-700">#{pqr.id} - {pqr.affair}</span>
+                    <div className="h-4 sm:h-6 w-[1px] bg-gray-200 flex-shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[9px] sm:text-[10px] uppercase font-bold text-gray-400 leading-none">PQR Radicado</span>
+                        <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">#{pqr.id} - {pqr.affair}</span>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg uppercase tracking-wider">
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+                    <div className="hidden md:block px-3 py-1 bg-primary/10 text-primary text-[10px] sm:text-xs font-bold rounded-lg uppercase tracking-wider whitespace-nowrap">
                         Formato Carta
                     </div>
 
@@ -261,33 +261,34 @@ export default function Comunication({ pqrID }) {
                         type="submit"
                         form="responseForm"
                         disabled={isSubmitting}
-                        className="btn btn-sm h-9 bg-primary text-white border-0 rounded-lg shadow-md shadow-primary/20 px-4 disabled:opacity-50"
+                        className="btn btn-sm h-9 bg-primary text-white border-0 rounded-lg shadow-md shadow-primary/20 px-3 sm:px-4 disabled:opacity-50 flex-1 sm:flex-none"
                     >
                         {isSubmitting ? (
-                            <ArrowPathIcon className="size-4 animate-spin mr-2" />
+                            <ArrowPathIcon className="size-4 animate-spin mr-1 sm:mr-2" />
                         ) : (
-                            <DocumentArrowDownIcon className="size-4 mr-2" />
+                            <DocumentArrowDownIcon className="size-4 mr-1 sm:mr-2" />
                         )}
-                        {isSubmitting ? "Enviando..." : "Crear PDF y Responder"}
+                        <span className="text-xs sm:text-sm">{isSubmitting ? "Enviando..." : "Crear PDF y Responder"}</span>
                     </button>
                 </div>
             </div>
 
-            <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 p-6">
+            <div className="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6 p-4 sm:p-6">
 
-                {/* Editor de Documento (Solo Carta) */}
-                <form id="responseForm" onSubmit={handleSubmit} className="flex flex-col items-center">
-                    <div
-                        className="bg-white shadow-2xl w-full max-w-[794px] min-h-[1123px] px-14 py-12 leading-relaxed text-[11pt] text-gray-900 border border-gray-200"
-                        style={{ fontFamily: "'Helvetica', 'Arial', sans-serif" }}
-                    >
+                {/* Editor de Documento (Fluído en Móvil) */}
+                <div className="w-full pb-4">
+                    <form id="responseForm" onSubmit={handleSubmit} className="flex flex-col sm:items-center w-full">
+                        <div
+                            className="bg-white shadow-xl sm:shadow-2xl w-full max-w-[794px] min-h-[auto] sm:min-h-[1123px] px-5 sm:px-14 py-8 sm:py-12 leading-relaxed text-sm sm:text-[11pt] text-gray-900 border border-gray-200 mx-auto transition-all rounded-2xl sm:rounded-none"
+                            style={{ fontFamily: "'Helvetica', 'Arial', sans-serif" }}
+                        >
                         {/* Area de Logo */}
-                        <div className="mb-8 flex justify-between items-start">
-                            <div className="relative inline-block group">
+                        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-start gap-4">
+                            <div className="relative inline-block group w-full sm:w-auto text-center sm:text-left">
                                 <button
                                     type="button"
                                     onClick={() => logoInputRef.current?.click()}
-                                    className="relative rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                    className="relative rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/40 inline-flex justify-center sm:inline-block"
                                 >
                                     <img src={logoPreviewUrl} alt="Logo" className="h-16 w-auto object-contain" />
                                     <span className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/10 transition-colors" />
@@ -295,7 +296,7 @@ export default function Comunication({ pqrID }) {
                                 <input ref={logoInputRef} type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
                             </div>
 
-                            <div className="text-right text-[10pt] text-gray-400">
+                            <div className="text-center sm:text-right text-xs sm:text-[10pt] text-gray-400 w-full sm:w-auto">
                                 <p>SISTEMA GEDOCS</p>
                                 <p>Gestión de PQRs</p>
                             </div>
@@ -303,60 +304,60 @@ export default function Comunication({ pqrID }) {
 
                         {/* Contenido Formato Carta */}
                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <div className="mb-6 space-y-3">
-                                <DocInput name="codigo" placeholder="Código (Ej: GD-001)" className="w-44 text-[11pt]" />
-                                <div className="flex flex-wrap gap-4">
-                                    <DocInput name="lugar" placeholder="Lugar (Municipio)" className="flex-1 min-w-40" defaultValue={dependency.name || ""} />
-                                    <DocInput name="fecha" type="date" className="text-gray-600" defaultValue={new Date().toISOString().split('T')[0]} />
+                            <div className="mb-6 space-y-3 sm:space-y-4">
+                                <DocInput name="codigo" placeholder="Código (Ej: GD-001)" className="w-full sm:w-44 text-sm sm:text-[11pt]" />
+                                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
+                                    <DocInput name="lugar" placeholder="Lugar (Municipio)" className="w-full sm:flex-1 sm:min-w-40 text-sm sm:text-[11pt]" defaultValue={dependency.name || ""} />
+                                    <DocInput name="fecha" type="date" className="text-gray-600 w-full sm:w-auto text-sm sm:text-[11pt]" defaultValue={new Date().toISOString().split('T')[0]} />
                                 </div>
                             </div>
 
-                            <div className="my-8 space-y-2">
-                                <DocInput name="tratamiento" placeholder="Tratamiento (Ej: Sr, Sra, Dr)" className="w-full" />
-                                <DocInput name="nombres" placeholder="Nombres y apellidos del destinatario" className="w-full font-bold" defaultValue={pqr.sender_name || ""} />
-                                <DocInput name="cargo" placeholder="Cargo (Opcional)" className="w-full" />
-                                <DocInput name="empresa" placeholder="Empresa (Opcional)" className="w-full" />
-                                <DocInput name="direccion" placeholder="Dirección" className="w-full" />
-                                <DocInput name="ciudad" placeholder="Ciudad" className="w-full" />
+                            <div className="my-6 sm:my-8 space-y-3">
+                                <DocInput name="tratamiento" placeholder="Tratamiento (Ej: Sr, Sra, Dr)" className="w-full text-sm sm:text-[11pt]" />
+                                <DocInput name="nombres" placeholder="Nombres y apellidos del destinatario" className="w-full font-bold text-sm sm:text-[11pt]" defaultValue={pqr.sender_name || ""} />
+                                <DocInput name="cargo" placeholder="Cargo (Opcional)" className="w-full text-sm sm:text-[11pt]" />
+                                <DocInput name="empresa" placeholder="Empresa (Opcional)" className="w-full text-sm sm:text-[11pt]" />
+                                <DocInput name="direccion" placeholder="Dirección" className="w-full text-sm sm:text-[11pt]" />
+                                <DocInput name="ciudad" placeholder="Ciudad" className="w-full text-sm sm:text-[11pt]" />
                             </div>
 
-                            <DocInput name="asunto" placeholder="Asunto de la respuesta" className="w-full font-bold mb-4" defaultValue={`Respuesta a PQR #${pqr.id}`} />
-                            <DocInput name="saludo" placeholder="Cordial saludo," className="w-full mb-4" />
-                            <DocArea name="texto" rows={12} placeholder="Redacte aquí la respuesta detallada a la solicitud..." className="text-justify mb-8" />
-                            <DocInput name="despedida1" placeholder="Atentamente," className="w-full mb-16" />
+                            <DocInput name="asunto" placeholder="Asunto de la respuesta" className="w-full font-bold mb-4 sm:mb-6 text-sm sm:text-[11pt]" defaultValue={`Respuesta a PQR #${pqr.id}`} />
+                            <DocInput name="saludo" placeholder="Cordial saludo," className="w-full mb-4 sm:mb-6 text-sm sm:text-[11pt]" />
+                            <DocArea name="texto" rows={12} placeholder="Redacte aquí la respuesta detallada a la solicitud..." className="text-justify mb-8 text-sm sm:text-[11pt]" />
+                            <DocInput name="despedida1" placeholder="Atentamente," className="w-full mb-10 sm:mb-16 text-sm sm:text-[11pt]" />
                         </div>
 
                         {/* Firma */}
-                        <div className="mt-10 mb-10 border-t border-gray-100 pt-8">
-                            <div className="w-[250px] space-y-1">
-                                <div className="relative group mb-2">
+                        <div className="mt-8 sm:mt-10 mb-8 sm:mb-10 border-t border-gray-100 pt-8">
+                            <div className="w-full sm:w-[250px] space-y-2">
+                                <div className="relative group mb-3">
                                     <button
                                         type="button"
                                         onClick={() => signatureInputRef.current?.click()}
-                                        className="relative rounded-md min-h-[50px] w-full flex items-center justify-center border border-dashed border-gray-200 hover:bg-gray-50 transition-colors"
+                                        className="relative rounded-xl sm:rounded-md min-h-[60px] sm:min-h-[50px] w-full flex items-center justify-center border border-dashed border-gray-300 sm:border-gray-200 hover:bg-gray-50 transition-colors bg-gray-50/50 sm:bg-transparent"
                                     >
                                         {signaturePreviewUrl ? (
                                             <img src={signaturePreviewUrl} alt="Firma" className="h-12 w-auto object-contain" />
                                         ) : (
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Subir Firma</span>
+                                            <span className="text-[11px] sm:text-[10px] text-gray-400 font-bold uppercase tracking-widest">Subir Firma</span>
                                         )}
                                     </button>
                                     <input ref={signatureInputRef} type="file" className="hidden" onChange={handleSignatureChange} accept="image/*" />
                                 </div>
-                                <div className="border-t border-gray-800 pt-2 space-y-1">
-                                    <DocInput name="firma_nombres" placeholder="Nombre completo del firmante" className="w-full font-bold" defaultValue={auth.user?.name} />
-                                    <DocInput name="firma_cargo" placeholder="Cargo del firmante" className="w-full" />
+                                <div className="border-t border-gray-800 pt-3 sm:pt-2 space-y-2 sm:space-y-1">
+                                    <DocInput name="firma_nombres" placeholder="Nombre completo del firmante" className="w-full font-bold text-sm sm:text-[11pt]" defaultValue={auth.user?.name} />
+                                    <DocInput name="firma_cargo" placeholder="Cargo del firmante" className="w-full text-sm sm:text-[11pt]" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="text-[9pt] text-gray-400 space-y-1">
-                            <DocInput name="anexo" placeholder="Anexos (Opcional)" className="w-full text-[9pt]" />
-                            <DocInput name="transcriptor" placeholder="Transcriptor / Redactor (Opcional)" className="w-full text-[9pt]" />
+                        <div className="text-xs sm:text-[9pt] text-gray-400 space-y-2 sm:space-y-1">
+                            <DocInput name="anexo" placeholder="Anexos (Opcional)" className="w-full text-xs sm:text-[9pt]" />
+                            <DocInput name="transcriptor" placeholder="Transcriptor / Redactor (Opcional)" className="w-full text-xs sm:text-[9pt]" />
                         </div>
 
                         {/* Pie de página editable y centrado */}
-                        <div className="mt-16 border-t border-gray-100 pt-4">
+                        <div className="mt-8 sm:mt-16 border-t border-gray-100 pt-4">
                             <DocArea
                                 name="footer_text"
                                 placeholder="Pie de página corporativo..."
@@ -367,6 +368,7 @@ export default function Comunication({ pqrID }) {
                         </div>
                     </div>
                 </form>
+                </div>
 
                 {/* Sidebar de Ayuda y Archivos */}
                 <div className="space-y-6">
