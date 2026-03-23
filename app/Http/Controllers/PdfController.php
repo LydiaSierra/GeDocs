@@ -108,9 +108,18 @@ class PdfController extends Controller
             ]);
 
             $fileYear = date('Y');
-            $folderCode = $folder->folder_code ?? '000';
+            
+            // Build folder prefix (hierarchical codes)
+            $folderCodes = [];
+            $tempFolder = $folder;
+            while ($tempFolder) {
+                $folderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $folderPrefix = implode('-', array_reverse($folderCodes));
+
             $baseName = ($safeDocumentType ?: 'documento') . '_' . now()->format('Ymd_His');
-            $newName = "{$fileYear}-Ex-{$folderCode}-{$baseName}.pdf";
+            $newName = "{$folderPrefix}-SUB-{$fileYear}-{$baseName}.pdf";
             $path = "folders/{$folder->id}/{$newName}";
 
             Storage::disk('public')->put($path, $pdf->output());
@@ -531,7 +540,7 @@ class PdfController extends Controller
                     'active' => true,
                     'folder_id' => $validated['folder_id'],
                     'file_code' => $fileCode,
-                    'hash' => $hash,
+                    'hash' => $shortHash,
                 ]);
             }
 

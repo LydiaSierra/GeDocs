@@ -159,6 +159,15 @@ class FolderController extends Controller
                 return back()->withErrors(['files' => 'No files provided']);
             }
 
+            // Build folder prefix (hierarchical codes)
+            $folderCodes = [];
+            $tempFolder = $folder;
+            while ($tempFolder) {
+                $folderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $folderPrefix = implode('-', array_reverse($folderCodes));
+
             /**
              * Loop through each uploaded file
              * and store it individually.
@@ -166,7 +175,7 @@ class FolderController extends Controller
             foreach ($request->file('files') as $file) {
                 // Used to build a standardized file name
                 $fileYear = date("Y");
-                $folderCode = $folder->folder_code ?? "000";
+                $originalName = $file->getClientOriginalName();
 
                 // Generate sequence (max of all files)
                 $maxCode = (int) \App\Models\File::max('file_code');
@@ -177,7 +186,7 @@ class FolderController extends Controller
                 $shortHash = substr($hash, 0, 10);
 
                 // New file name format including sequence and short hash
-                $newName = "{$fileYear}-Ex-{$folderCode}-{$sequence}-{$shortHash}-{$file->getClientOriginalName()}";
+                $newName = "{$folderPrefix}-SUB-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
 
                 // Store file in public disk
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
@@ -321,17 +330,39 @@ class FolderController extends Controller
         }
 
         if (!empty($fileIds)) {
+            // Build target folder prefix (hierarchical codes)
+            $targetFolderCodes = [];
+            $tempFolder = $targetFolder;
+            while ($tempFolder) {
+                $targetFolderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $targetFolderPrefix = implode('-', array_reverse($targetFolderCodes));
+
             $files = File::whereIn('id', $fileIds)->get();
             foreach ($files as $file) {
-                $parts = explode('-', $file->name, 4);
-                if (count($parts) >= 4 && is_numeric($parts[0]) && $parts[1] === 'Ex') {
-                    $originalName = $parts[3];
-                } else {
-                    $originalName = $file->name;
+                $originalName = $file->name;
+
+                // Try to extract original name from new format (PREFIX-SUB-YEAR-SEQUENCE-HASH-ORIGINALNAME)
+                if (strpos($file->name, '-SUB-') !== false) {
+                    $parts = explode('-SUB-', $file->name, 2);
+                    if (count($parts) === 2) {
+                        $afterSub = explode('-', $parts[1], 4); // [YEAR, SEQUENCE, HASH, ORIGINALNAME]
+                        if (count($afterSub) === 4) {
+                            $originalName = $afterSub[3];
+                        }
+                    }
+                } 
+                // Try to extract from old format (YEAR-Ex-CODE-ORIGINALNAME)
+                else {
+                    $parts = explode('-', $file->name, 4);
+                    if (count($parts) >= 4 && is_numeric($parts[0]) && $parts[1] === 'Ex') {
+                        $originalName = $parts[3];
+                    }
                 }
 
                 $fileYear = $file->created_at->format('Y');
-                $newName = "{$fileYear}-Ex-{$targetFolderCode}-{$originalName}";
+                $newName = "{$targetFolderPrefix}-SUB-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
 
                 $oldPath = $file->path;
                 $newPath = "folders/{$targetFolderId}/{$newName}";
