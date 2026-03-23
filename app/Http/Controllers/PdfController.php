@@ -133,6 +133,8 @@ class PdfController extends Controller
                     'id' => $newFile->id,
                     'name' => $newFile->name,
                     'url' => asset('storage/' . $newFile->path),
+                    'created_at' => $newFile->created_at,
+                    'updated_at' => $newFile->updated_at,
                 ],
             ]);
         } catch (\InvalidArgumentException $e) {
