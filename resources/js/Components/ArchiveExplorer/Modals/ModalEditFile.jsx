@@ -7,12 +7,10 @@ export const ModalEditFile = () => {
     const selectedItem = getSelectedItem();
     
     const [name, setName] = useState("");
-    const [year, setYear] = useState(new Date().getFullYear());
 
     useEffect(() => {
         if (selectedItem?.type === 'file') {
             setName(selectedItem.pure_name || "");
-            setYear(selectedItem.year || new Date().getFullYear());
         }
     }, [selectedItem?.id, selectedItem?.pure_name]);
 
@@ -24,7 +22,6 @@ export const ModalEditFile = () => {
         const onClosed = () => {
             if (selectedItem?.type === 'file') {
                 setName(selectedItem.pure_name || "");
-                setYear(selectedItem.year || new Date().getFullYear());
             }
         };
 
@@ -39,7 +36,6 @@ export const ModalEditFile = () => {
         updateFile({
             fileId: selectedItem.id,
             name: name.trim(),
-            year: year
         });
 
         document.getElementById("modalEditFile").close();
@@ -61,71 +57,13 @@ export const ModalEditFile = () => {
                             Editar Archivo
                         </h3>
                         <p className="text-xs text-gray-500 font-medium italic">
-                            Ajusta el año y nombre original respetando la nomenclatura.
+                            Ajusta el nombre original respetando la nomenclatura.
                         </p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* AÑO (Editable con limites) */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                                Año
-                            </label>
-                            <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <CalendarIcon className="size-5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                </div>
-                                <input
-                                    type="number"
-                                    max={new Date().getFullYear()}
-                                    value={year}
-                                    onChange={(e) => setYear(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border-0 ring-1 ring-gray-200 focus:ring-2 focus:ring-primary rounded-2xl text-sm font-bold text-gray-700 transition-all"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {/* RADICADO (Solo lectura) */}
-                        <div className="space-y-2 opacity-60">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                                Radicado (N°)
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <HashtagIcon className="size-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    value={selectedItem?.file_code || ""}
-                                    readOnly
-                                    className="block w-full pl-11 pr-4 py-3 bg-gray-100 border-0 ring-1 ring-gray-200 rounded-2xl text-sm font-bold text-gray-500 cursor-not-allowed"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* HASH (Solo lectura) */}
-                    <div className="space-y-2 opacity-60">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                            Hash de Seguridad
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <KeyIcon className="size-5 text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                value={selectedItem?.hash || ""}
-                                readOnly
-                                className="block w-full pl-11 pr-4 py-3 bg-gray-100 border-0 ring-1 ring-gray-200 rounded-2xl text-xs font-mono font-medium text-gray-500 cursor-not-allowed"
-                            />
-                        </div>
-                    </div>
-
                     {/* NOMBRE ORIGINAL */}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">

@@ -395,12 +395,12 @@ export default function Explorer() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col min-h-0 bg-white overflow-y-auto overflow-x-hidden custom-scrollbar relative">
+                                    <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-white overflow-x-hidden custom-scrollbar relative">
                                         <div className="px-4 lg:px-6 pt-4 pb-2 shrink-0">
                                             <InputSearch />
                                         </div>
 
-                                        <div className="bg-white overflow-hidden pb-10 flex-1">
+                                        <div className="bg-white overflow-hidden pb-10 flex-1 overflow-y-auto">
                                             <ContainerFolders />
                                         </div>
                                     </div>

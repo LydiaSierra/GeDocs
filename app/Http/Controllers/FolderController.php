@@ -667,11 +667,9 @@ class FolderController extends Controller
 
         $validated = $request->validate([
             "name" => "required|string",
-            "year" => "required|integer|max:" . date('Y'),
         ]);
 
         $pureName = $validated['name'];
-        $newYear = $validated['year'];
 
         // Extract parts from current name: {prefix}-SUB-{year}-{fileCode}-{hash}-{originalName}
         $currentName = $file->name;
@@ -700,7 +698,7 @@ class FolderController extends Controller
         }
 
         // Reconstruct name: PREFIX-SUB-YEAR-FILECODE-HASH-PURENAME
-        $newName = "{$prefix}-SUB-{$newYear}-{$fileCode}-{$hash}-{$pureName}";
+        $newName = "{$prefix}-SUB{$file->year}-{$fileCode}-{$hash}-{$pureName}";
         
         if ($file->name !== $newName) {
             $oldPath = $file->path;
