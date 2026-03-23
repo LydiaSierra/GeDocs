@@ -14,6 +14,7 @@ import ModalCreateYear from "@/Components/ArchiveExplorer/Modals/ModalCreateYear
 import ModalEditYear from "@/Components/ArchiveExplorer/Modals/ModalEditYear";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import DropdownFolders from "@/Components/ArchiveExplorer/DropdownFolders";
+import ModalEditFile from "@/Components/ArchiveExplorer/Modals/ModalEditFile";
 
 export default function Explorer() {
     const {
@@ -483,6 +484,7 @@ export default function Explorer() {
                     <ModalCreateOrEditFolder />
                     <ModalCreateYear />
                     <ModalEditYear yearData={editingYear} />
+                    <ModalEditFile />
 
 
                 </div>

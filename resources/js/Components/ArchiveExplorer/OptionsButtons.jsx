@@ -17,21 +17,25 @@ export const DeleteButtonOption = ({ showText = true }) => {
     )
 }
 export const EditButtonOption = ({ showText = true }) => {
-    const { selectedItems, setSelectedItems, folders } = useExplorerData()
+    const { selectedItems } = useExplorerData()
 
     return (
-        <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Mover a la papelera">
+        <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Editar">
             <button
                 onClick={() => {
                     if (selectedItems.length !== 1) {
-                        toast.warning('Selecciona solo una carpeta para editar');
+                        toast.warning('Selecciona solo un elemento para editar');
                         return;
                     }
 
-                    document.getElementById('createFolder').showModal();
+                    if (selectedItems[0].type === 'folder') {
+                        document.getElementById('createFolder').showModal();
+                    } else {
+                        document.getElementById('modalEditFile').showModal();
+                    }
                 }
                 }
-                className={`${selectedItems?.length !== 1 ? "opacity-50 pointer-events-none" : "opacity-100 active:bg-red-300"} ${showText ? "flex w-full items-center gap-2 p-3 border-b border-base-300 rounded-md" : "inline-block p-1  rounded-full "} hover:bg-base-300 transition-colors cursor-pointer`}
+                className={`${selectedItems?.length !== 1 ? "opacity-50 pointer-events-none" : "opacity-100 active:bg-base-300"} ${showText ? "flex w-full items-center gap-2 p-3 border-b border-base-300 rounded-md" : "inline-block p-1  rounded-full "} hover:bg-base-300 transition-colors cursor-pointer`}
             >
                 <PencilSquareIcon className="w-5 h-5 text-gray-600" />
                 {showText && "Editar"}

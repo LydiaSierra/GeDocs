@@ -657,4 +657,44 @@ class FolderController extends Controller
 
         return response()->json($folders);
     }
+
+    /**
+     * Update file metadata (specifically the name).
+     */
+    public function updateFile(Request $request, $fileId)
+    {
+        $file = File::findOrFail($fileId);
+
+        $validated = $request->validate([
+            "name" => "required|string",
+        ]);
+
+        $newName = $validated['name'];
+        
+        // Ensure extension is preserved if missing in input
+        $extension = $file->extension;
+        if (!str_ends_with($newName, '.' . $extension)) {
+            $newName .= '.' . $extension;
+        }
+
+        if ($file->name !== $newName) {
+            $oldPath = $file->path;
+            $newPath = "folders/{$file->folder_id}/{$newName}";
+
+            if (Storage::disk('public')->exists($oldPath)) {
+                // Ensure no collision
+                if (Storage::disk('public')->exists($newPath)) {
+                    return back()->withErrors(['name' => 'Ya existe un archivo con ese nombre en esta carpeta.']);
+                }
+                Storage::disk('public')->move($oldPath, $newPath);
+            }
+
+            $file->update([
+                'name' => $newName,
+                'path' => $newPath
+            ]);
+        }
+
+        return back();
+    }
 }

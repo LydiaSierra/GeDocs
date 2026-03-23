@@ -220,6 +220,21 @@ export const useExplorer = () => {
         });
     };
 
+    const updateFile = ({ name, fileId }) => {
+        let toastId = toast.loading("Renombrando archivo...");
+        router.put(route('files.update', fileId), { name }, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Archivo renombrado con éxito");
+                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+            },
+            onError: (errors) => {
+                toast.dismiss(toastId);
+                toast.error(errors.name || "Error al renombrar archivo");
+            }
+        });
+    };
+
     const fetchArchived = useCallback(async (sheetId = null) => {
         setStore({ loading: true });
         try {
@@ -526,6 +541,7 @@ export const useExplorer = () => {
         uploadFiles,
         createFolder,
         updateFolder,
+        updateFile,
         selectItem,
         isSelected,
         deleteSelection,
@@ -558,11 +574,13 @@ export const useCanEdit = () => useExplorer().canEdit;
 export const getSelectedItem = () => {
     const { selectedItems, folders, files } = useExplorer();
     const selected = selectedItems[0];
-    return selected
-        ? selected.type === 'folder'
-            ? folders.find(f => f.id === selected.id)
-            : files.find(f => f.id === selected.id)
-        : null;
+    if (!selected) return null;
+
+    const found = selected.type === 'folder'
+        ? folders.find(f => f.id === selected.id)
+        : files.find(f => f.id === selected.id);
+
+    return found ? { ...found, type: selected.type } : null;
 };
 
 // For testing purposes only

@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/folders/file/download/{file}', [FolderController::class, 'download'])
         ->name('folders.download');
 
+    Route::put('/files/{fileId}', [FolderController::class, 'updateFile'])
+        ->name('files.update');
+
     Route::post('/folders/delete-mixed', [FolderController::class, 'deleteMixed'])
         ->name('folders.deleteMixed');
 
