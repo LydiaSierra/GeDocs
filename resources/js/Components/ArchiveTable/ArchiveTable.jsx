@@ -75,7 +75,7 @@ export default function ArchiveTable() {
 
     return (
         <>
-            <div className="mb-4 w-full flex justify-between items-center">
+            <div className="mb-4 w-full flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full md:w-96 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
                     <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2" />
                     <input
@@ -92,11 +92,13 @@ export default function ArchiveTable() {
                         />
                     )}
                 </div>
-                <SelectDependecyOrNumberSheet
-                    activeScopeFilter={activeScopeFilter}
-                    setActiveScopeFilter={setActiveScopeFilter}
-                    showOnRoutes={["archive"]}
-                />
+                <div className="w-full md:w-auto flex md:block justify-end">
+                    <SelectDependecyOrNumberSheet
+                        activeScopeFilter={activeScopeFilter}
+                        setActiveScopeFilter={setActiveScopeFilter}
+                        showOnRoutes={["archive"]}
+                    />
+                </div>
             </div>
 
 

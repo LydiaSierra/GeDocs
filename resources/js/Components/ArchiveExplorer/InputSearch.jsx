@@ -13,16 +13,17 @@ export const InputSearch = ({ handleSearch }) => {
     const url = usePage().url;
 
     return (
-        <div id="inbox-search" className="flex w-full justify-between flex-wrap gap-1 ">
+        <div id="inbox-search" className="flex w-full flex-col md:flex-row justify-between items-center gap-4">
             {/* Search field */}
             <form onSubmit={(e) => {
                 e.preventDefault();
                 globalSearch(inputSearchTerm);
-            }} className="flex flex-1 lg:flex-none items-center bg-base-200 px-2 rounded-md">
+            }} className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full md:w-96 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2" />
                 <input
-                    placeholder="Buscar"
+                    placeholder="Buscar..."
                     type="text"
-                    className="bg-base-200  text-black w-full focus:outline-none border-none p-4"
+                    className="bg-transparent border-none focus:outline-none w-full text-sm"
                     value={inputSearchTerm}
                     onChange={(e) => {
                         setInputSearchTerm(e.target.value);
@@ -32,17 +33,13 @@ export const InputSearch = ({ handleSearch }) => {
                     }}
                 />
 
-                {inputSearchTerm ? (
+                {inputSearchTerm && (
                     <XMarkIcon
-                        className="size-7 stroke-black hover:cursor-pointer"
+                        className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer"
                         onClick={() => {
                             setInputSearchTerm("");
-                            globalSearch("")
+                            globalSearch("");
                         }}
-                    />
-                ) : (
-                    <MagnifyingGlassIcon
-                        className="size-6 stroke-black hover:cursor-pointer"
                     />
                 )}
             </form>
