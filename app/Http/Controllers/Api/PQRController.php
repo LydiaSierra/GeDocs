@@ -245,7 +245,7 @@ class PQRController extends Controller
     {
         $user = $request->user();
 
-        // Auto-archivar PQRs vencidas (pendientes cuyo tiempo de respuesta ya expiró)
+        //archivar PQRs vencidas cuyo tiempo de respuesta ya expiró
         PQR::where('archived', false)
             ->where('response_status', 'pending')
             ->whereNotNull('response_time')
