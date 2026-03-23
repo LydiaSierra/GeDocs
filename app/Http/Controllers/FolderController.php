@@ -29,6 +29,7 @@ use App\Models\Folder;
  * Represents the "files" table and its relationships.
  */
 use App\Models\File;
+use App\Models\Sheet_number;
 
 /**
  * Storage facade.
@@ -66,111 +67,7 @@ class FolderController extends Controller
      * - Ordered by newest first
      */
 
-    public function explorer(Request $request)
-    {
-        $folderId = $request->query('folder_id');
-        $sheetId = $request->query('sheet_id');
-        $buscador = $request->query('buscador');
-
-        $foldersQuery = Folder::where("active", true);
-        $allFolders = Folder::where("active", true)->get();
-
-        // Global Search
-        if ($buscador) {
-            $foldersQuery = Folder::where('active', true)
-                ->where('name', 'LIKE', "%{$buscador}%")
-                ->whereNotNull('parent_id'); // Exclude year folders
-
-            if ($sheetId) {
-                $foldersQuery->where('sheet_number_id', $sheetId);
-            }
-            $folders = $foldersQuery->get();
-
-            $filesQuery = File::where('active', true)
-                ->where('name', 'LIKE', "%{$buscador}%");
-
-            if ($sheetId) {
-                $filesQuery->whereHas('folder', function ($q) use ($sheetId) {
-                    $q->where('sheet_number_id', $sheetId);
-                });
-            }
-
-            $files = $filesQuery->get()
-                ->map(fn($file) => [
-                    "id" => $file->id,
-                    "name" => $file->name,
-                    "extension" => $file->extension,
-                    "size" => $file->size,
-                    "url" => asset("storage/" . $file->path),
-                    "folder_id" => $file->folder_id,
-                    "created_at" => $file->created_at,
-                    "updated_at" => $file->updated_at,
-                    "file_code" => $file->file_code,
-                    "hash" => $file->hash,
-                ]);
-
-            return Inertia::render('Explorer', [
-                "folders" => $folders,
-                "files" => $files,
-                "allFolders" => $allFolders,
-                "currentFolder" => null,
-                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-            ]);
-        }
-
-        if ($sheetId) {
-            $foldersQuery->where('sheet_number_id', $sheetId);
-        }
-
-        if ($folderId) {
-            $folder = Folder::where('id', $folderId)
-                ->where('active', true)
-                ->firstOrFail();
-
-            $folders = $folder->children()
-                ->where("active", true)
-                ->get();
-
-            $files = $folder->files()
-                ->where("active", true)
-                ->get()
-                ->map(function ($file) {
-                    return [
-                        "id" => $file->id,
-                        "name" => $file->name,
-                        "extension" => $file->extension,
-                        "size" => $file->size,
-                        "url" => asset("storage/" . $file->path),
-                        "folder_id" => $file->folder_id,
-                        "created_at" => $file->created_at,
-                        "updated_at" => $file->updated_at,
-                        "file_code" => $file->file_code,
-                        "hash" => $file->hash,
-                    ];
-                });
-
-            return Inertia::render('Explorer', [
-                "folders" => $folders,
-                "files" => $files,
-                "allFolders" => $allFolders,
-                "currentFolder" => $folder,
-                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-            ]);
-        }
-
-        $folders = $foldersQuery
-            ->whereNull("parent_id")
-            ->get();
-
-        return Inertia::render('Explorer', [
-            "folders" => $folders,
-            "files" => [],
-            "allFolders" => $allFolders,
-            "currentFolder" => null,
-            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-        ]);
-    }
-
+  
 
 
 

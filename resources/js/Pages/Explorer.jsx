@@ -39,7 +39,7 @@ export default function Explorer() {
     } = useExplorerData();
     const [editingYear, setEditingYear] = useState(null);
     const [showPdfToast, setShowPdfToast] = useState(false);
-    const { sheets, filters, auth } = usePage().props;
+    const { sheets, filters, auth, permissionError } = usePage().props;
 
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
@@ -154,9 +154,26 @@ export default function Explorer() {
                             </div>
 
                             {/* RIGHT COLUMN: Years List */}
-                            {(!currentFolder || archivedMode) && !filters?.buscador && (
-                                <div className={`flex-1 flex-col min-h-0 bg-white relative ${!activeSheetId ? 'hidden lg:flex' : 'flex'}`}>
-                                    {!activeSheetId ? (
+                            {(!currentFolder || archivedMode) && (
+                                <div className="flex-1 flex flex-col h-full bg-white relative">
+                                    {permissionError ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
+                                            <div className="size-20 bg-red-50 rounded-3xl shadow-soft flex items-center justify-center mb-6 animate-float">
+                                                <ExclamationTriangleIcon className="size-10 text-red-500" />
+                                            </div>
+                                            <h4 className="font-black text-xl text-red-600 uppercase tracking-widest">Error de Acceso</h4>
+                                            <p className="max-w-xs mt-3 text-sm font-bold text-gray-600 leading-relaxed bg-red-50 px-4 py-2 rounded-xl">
+                                                {permissionError}
+                                            </p>
+                                            <button 
+                                                onClick={handleBackToSheets}
+                                                className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:underline"
+                                            >
+                                                <ArrowLeftCircleIcon className="size-5" />
+                                                Volver a la selección
+                                            </button>
+                                        </div>
+                                    ) : !activeSheetId ? (
                                         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
                                             <div className="size-20 bg-white/80 rounded-3xl shadow-soft flex items-center justify-center mb-6 animate-float">
                                                 <FolderIcon className="size-10 text-gray-200" />
