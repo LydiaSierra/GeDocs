@@ -13,7 +13,7 @@ use App\Mail\PQRResponseMail;
 use App\Models\Dependency;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB; // sirve para manejar transacciones de la db y realiza consultas directas.
+use Illuminate\Support\Facades\DB; 
 use App\Models\comunication;
 use App\Models\AttachedSupport;
 use App\Models\Sheet_number as SheetNumber;
@@ -30,6 +30,12 @@ class PQRController extends Controller
         if (!$user) {
             return response()->json(['message' => 'No autenticado'], 401);
         }
+
+        PQR::where('archived', false)
+            ->where('response_status', 'pending')
+            ->whereNotNull('response_time')
+            ->where('response_time', '<', Carbon::now())
+            ->update(['archived' => true]);
 
         // 🔹 Read ?archived=true|false (default: false → inbox)
         $archived = filter_var(
@@ -238,6 +244,13 @@ class PQRController extends Controller
     public function sheetShow(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        // Auto-archivar PQRs vencidas (pendientes cuyo tiempo de respuesta ya expiró)
+        PQR::where('archived', false)
+            ->where('response_status', 'pending')
+            ->whereNotNull('response_time')
+            ->where('response_time', '<', Carbon::now())
+            ->update(['archived' => true]);
 
         if ($user && $user->hasRole('Instructor')) {
             $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])
