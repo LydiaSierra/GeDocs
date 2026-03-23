@@ -694,6 +694,11 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     {
         $PH = 'N/A';
 
+
+        // NRO Racicado
+
+        $noRadicado = $support->no_radicado ?? $PH;
+
         // Attached support for ENV origin (first match)
         $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'ENV') : null;
         $hash = $support->hash ?? $PH;
@@ -715,10 +720,10 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 
         return [
             // A–D
-            $hash,               // A hash from attachedSupports
+            $noRadicado,               // A hash from attachedSupports
             $fechaCreacion,      // B Fecha creación dd/mm/yyyy
             $horaCreacion,       // C Hora creación HH:MM
-            $hash,               // D hash again
+            $PH,               // D hash again
 
             // E–G dependencia/responsable/rol
             $depNombre,          // E Nombre de la Dependencia
@@ -739,11 +744,11 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
             $PH,                         // P N/A
             $PH,                         // Q N/A
             $PH,                         // R N/A
-            'Se envio la respuesta por medio de la APP', // S fixed text
+            'Se envia respuesta por correo electronico', // S fixed text
             $PH,                         // T N/A
 
             // U–W respuesta
-            $hash,               // U hash again
+            $noRadicado,               // U hash again
             $fechaRespuesta,     // V response_date
             $PH,                 // W N/A
         ];
