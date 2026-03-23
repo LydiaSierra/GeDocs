@@ -80,7 +80,7 @@ const File = ({ file }) => {
                     >
 
 
-                        <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium min-w-0 w-full"}`}>
+                        <div className={`flex ${gridView ? "flex-col" : " gap-2 items-center font-medium min-w-0"}`}>
                             {(isMultipleSelection && selectedItems.length > 0) &&
                                 <input type="checkbox" name="selected" id={`selected-file-${file.id}`} className="checkbox checkbox-primary pointer-events-none" checked={isSelected(file.id, "file")} readOnly />
                             }
@@ -94,7 +94,7 @@ const File = ({ file }) => {
 
                             <span className="text-gray-600 shrink-0">{file.file_code}</span>
                             <span className="shrink-0">-</span>
-                            <div className="flex flex-col lg:flex-row max-w-1/2 lg:max-w-full">
+                            <div className="flex flex-col lg:flex-row max-w-1/2">
                                 <span className="truncate w-full">{file.name}</span>
                                 {file.hash && (
                                     <span className="text-[10px] text-gray-400 font-mono lg:ml-2 shrink-0" title={file.hash}>

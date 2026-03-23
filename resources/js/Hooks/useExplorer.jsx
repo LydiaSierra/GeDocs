@@ -220,9 +220,9 @@ export const useExplorer = () => {
         });
     };
 
-    const updateFile = ({ name, fileId }) => {
+    const updateFile = ({ name, year, fileId }) => {
         let toastId = toast.loading("Renombrando archivo...");
-        router.put(route('files.update', fileId), { name }, {
+        router.put(route('files.update', fileId), { name, year }, {
             onSuccess: () => {
                 toast.dismiss(toastId);
                 toast.success("Archivo renombrado con éxito");
@@ -230,7 +230,8 @@ export const useExplorer = () => {
             },
             onError: (errors) => {
                 toast.dismiss(toastId);
-                toast.error(errors.name || "Error al renombrar archivo");
+                const errorMsg = errors.name || errors.year || "Error al renombrar archivo";
+                toast.error(errorMsg);
             }
         });
     };

@@ -110,9 +110,31 @@ class ExplorerController extends Controller
         return Inertia::render('Explorer', [
             "folders" => $foldersQuery->get(),
             "files" => $filesQuery->get()->map(function ($file) {
+                $pureName = $file->name;
+                $fileYear = date('Y');
+                
+                if (str_contains($file->name, '-SUB-')) {
+                    $parts = explode('-SUB-', $file->name);
+                    $suffix = $parts[1];
+                    $suffixParts = explode('-', $suffix, 4);
+                    if (count($suffixParts) >= 4) {
+                        $fileYear = $suffixParts[0];
+                       
+                        $pureName = $suffixParts[3];
+                        
+                        // Remove extension if present in pureName for easier editing
+                        $ext = $file->extension;
+                        if (str_ends_with($pureName, '.'.$ext)) {
+                            $pureName = substr($pureName, 0, -(strlen($ext) + 1));
+                        }
+                    }
+                }
+
                 return [
                     "id" => $file->id,
                     "name" => $file->name,
+                    "pure_name" => $pureName,
+                    "year" => $fileYear,
                     "extension" => $file->extension,
                     "size" => $file->size,
                     "url" => asset("storage/" . $file->path),
@@ -120,10 +142,11 @@ class ExplorerController extends Controller
                     "file_code" => $file->file_code,
                     "hash" => $file->hash,
                     "mime_type" => $file->mime_type,
-                    "created_at" => $file->created_at,
-                    "updated_at" => $file->updated_at,
+                    "created_at" => $file->created_at ? $file->created_at->toISOString() : null,
+                    "updated_at" => $file->updated_at ? $file->updated_at->toISOString() : null,
                     "is_pdf" => $file->extension === 'pdf',
-                    "is_image" => in_array($file->extension, ['jpg', 'jpeg', 'png', 'gif', 'svg'])
+                    "is_image" => in_array($file->extension, ['jpg', 'jpeg', 'png', 'gif', 'svg']),
+                    "can_edit_name" => str_contains($file->name, '-SUB-')
                 ];
             }),
             "allFolders" => $allFolders->get(),

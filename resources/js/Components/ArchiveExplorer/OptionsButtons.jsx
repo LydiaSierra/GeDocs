@@ -1,10 +1,6 @@
-// OptionsButtons contains reusable button components for common actions (delete, edit, download, details) used throughout the archive explorer UI.
-import { useExplorerData } from "@/Hooks/useExplorer"
+import { useExplorerData, getSelectedItem } from "@/Hooks/useExplorer"
 import { ArrowDownTrayIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline"
 import { toast } from "sonner"
-
-
-
 
 export const DeleteButtonOption = ({ showText = true }) => {
     return (
@@ -16,8 +12,15 @@ export const DeleteButtonOption = ({ showText = true }) => {
         </li>
     )
 }
+
 export const EditButtonOption = ({ showText = true }) => {
-    const { selectedItems } = useExplorerData()
+    const { selectedItems } = useExplorerData();
+    const item = getSelectedItem();
+
+    // Only allow editing for folders or files that explicitly allow it (SUB nomenclature)
+    const canEdit = item?.type === 'folder' || item?.can_edit_name;
+
+    if (selectedItems.length === 1 && !canEdit) return null;
 
     return (
         <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Editar">
@@ -28,7 +31,7 @@ export const EditButtonOption = ({ showText = true }) => {
                         return;
                     }
 
-                    if (selectedItems[0].type === 'folder') {
+                    if (item?.type === 'folder') {
                         document.getElementById('createFolder').showModal();
                     } else {
                         document.getElementById('modalEditFile').showModal();

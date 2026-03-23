@@ -667,16 +667,41 @@ class FolderController extends Controller
 
         $validated = $request->validate([
             "name" => "required|string",
+            "year" => "required|integer|max:" . date('Y'),
         ]);
 
-        $newName = $validated['name'];
-        
-        // Ensure extension is preserved if missing in input
-        $extension = $file->extension;
-        if (!str_ends_with($newName, '.' . $extension)) {
-            $newName .= '.' . $extension;
+        $pureName = $validated['name'];
+        $newYear = $validated['year'];
+
+        // Extract parts from current name: {prefix}-SUB-{year}-{fileCode}-{hash}-{originalName}
+        $currentName = $file->name;
+        if (!str_contains($currentName, '-SUB-')) {
+             return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
         }
 
+        $parts = explode('-SUB-', $currentName);
+        $prefix = $parts[0];
+        $suffix = $parts[1];
+        $suffixParts = explode('-', $suffix, 4);
+
+        if (count($suffixParts) < 4) {
+             return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
+        }
+
+        // $oldYear = $suffixParts[0];
+        $fileCode = $suffixParts[1];
+        $hash = $suffixParts[2];
+        // $oldPureName = $suffixParts[3];
+
+        // Ensure extension
+        $extension = $file->extension;
+        if (!str_ends_with($pureName, '.' . $extension)) {
+            $pureName .= '.' . $extension;
+        }
+
+        // Reconstruct name: PREFIX-SUB-YEAR-FILECODE-HASH-PURENAME
+        $newName = "{$prefix}-SUB-{$newYear}-{$fileCode}-{$hash}-{$pureName}";
+        
         if ($file->name !== $newName) {
             $oldPath = $file->path;
             $newPath = "folders/{$file->folder_id}/{$newName}";
