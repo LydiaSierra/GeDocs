@@ -20,8 +20,6 @@ const UploadModal = () => {
 
         const allowedTypes = [
             "application/pdf",
-            "application/vnd.ms-excel", // .xls
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
         ];
 
         const validFiles = Array.from(files).filter(file =>
@@ -29,7 +27,7 @@ const UploadModal = () => {
         );
 
         if (validFiles.length !== files.length) {
-            seterror("Solo se permiten archivos PDF y Excel (.xls, .xlsx)");
+            seterror("Solo se permiten archivos PDF");
             return;
         }
 
@@ -67,6 +65,7 @@ const UploadModal = () => {
                             type="file"
                             className="hidden"
                             multiple
+                            accept=".pdf"
                             onChange={(e) => handleFiles(e.target.files)}
                         />
                     </label>
