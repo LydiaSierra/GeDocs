@@ -117,15 +117,19 @@ class ExplorerController extends Controller
                     $parts = explode('-ENV-', $file->name);
                     $suffix = $parts[1];
                     $suffixParts = explode('-', $suffix, 4);
-                    if (count($suffixParts) >= 4) {
+                    if (count($suffixParts) >= 3) {
                         $fileYear = $suffixParts[0];
 
-                        $pureName = $suffixParts[3];
+                        if (count($suffixParts) >= 4) {
+                            $pureName = $suffixParts[3];
 
-                        // Remove extension if present in pureName for easier editing
-                        $ext = $file->extension;
-                        if (str_ends_with($pureName, '.' . $ext)) {
-                            $pureName = substr($pureName, 0, -(strlen($ext) + 1));
+                            // Remove extension if present in pureName for easier editing
+                            $ext = $file->extension;
+                            if (str_ends_with($pureName, '.' . $ext)) {
+                                $pureName = substr($pureName, 0, -(strlen($ext) + 1));
+                            }
+                        } else {
+                            $pureName = ""; // No original name part
                         }
                     }
                 }

@@ -350,6 +350,9 @@ class FolderController extends Controller
                         $afterSub = explode('-', $parts[1], 4); // [YEAR, SEQUENCE, HASH, ORIGINALNAME]
                         if (count($afterSub) === 4) {
                             $originalName = $afterSub[3];
+                        } elseif (count($afterSub) === 3) {
+                            // If it has only 3 parts, there is no original name part (e.g. system generated)
+                            $originalName = "";
                         }
                     }
                 }
@@ -362,20 +365,19 @@ class FolderController extends Controller
                 }
 
                 $fileYear = $file->created_at->format('Y');
-                $newName = "{$targetFolderPrefix}-ENV-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
+                $shortHash = substr($file->hash, 0, 10);
+                $newName = "{$targetFolderPrefix}-ENV-{$fileYear}-{$file->file_code}-{$shortHash}";
+                
+                // Only append original name if it's not empty, to avoid trailing dash
+                if ($originalName !== "") {
+                    $newName = "{$newName}-{$originalName}";
+                }
 
                 $oldPath = $file->path;
                 $newPath = "folders/{$targetFolderId}/{$newName}";
 
-                if (Storage::disk('public')->exists($oldPath)) {
-                    // Prevention: If file already exists in target folder, we skip or handle it.
-                    // For safety, we verify if the destination path already exists.
-                    if (Storage::disk('public')->exists($newPath) && $oldPath !== $newPath) {
-                        // Skip this file if it already exists to avoid overwriting/duplication
-                        continue; 
-                    }
-                    Storage::disk('public')->move($oldPath, $newPath);
-                }
+                Storage::disk('public')->move($oldPath, $newPath);
+
 
                 $file->update([
                     'folder_id' => $targetFolderId,
@@ -689,14 +691,14 @@ class FolderController extends Controller
         $suffix = $parts[1];
         $suffixParts = explode('-', $suffix, 4);
 
-        if (count($suffixParts) < 4) {
+        if (count($suffixParts) < 3) {
             return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
         }
 
         // $oldYear = $suffixParts[0];
         $fileCode = $suffixParts[1];
         $hash = $suffixParts[2];
-        // $oldPureName = $suffixParts[3];
+        // $oldPureName = count($suffixParts) >= 4 ? $suffixParts[3] : "";
 
         // Ensure extension
         $extension = $file->extension;
@@ -705,7 +707,12 @@ class FolderController extends Controller
         }
 
         // Reconstruct name: PREFIX-ENV-YEAR-FILECODE-HASH-PURENAME
-        $newName = "{$prefix}-ENV{$file->year}-{$fileCode}-{$hash}-{$pureName}";
+        $year = $file->year ?? $file->created_at->format('Y');
+        $newName = "{$prefix}-ENV-{$year}-{$fileCode}-{$hash}";
+
+        if ($pureName !== "") {
+            $newName .= "-{$pureName}";
+        }
 
         if ($file->name !== $newName) {
             $oldPath = $file->path;
