@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use App\Models\PQR;
+use App\Models\Folder;
+use App\Models\File;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\Builder;
@@ -82,46 +84,65 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
         $this->filters = $filters;
     }
 
+    // Cache to avoid repeated DB lookups per $noRadicado during one export run
+    protected array $radicadoFolderCache = [];
+
+    /**
+     * Resolve folder_code via $noRadicado using files.file_code -> files.folder_id -> folders.folder_code
+     */
+    protected function resolveFolderCodeByNoRadicado(?string $noRadicado): ?string
+    {
+        try {
+            if (!$noRadicado || $noRadicado === 'N/A') {
+                return null;
+            }
+            if (isset($this->radicadoFolderCache[$noRadicado])) {
+                return $this->radicadoFolderCache[$noRadicado];
+            }
+            $file = File::with('folder')
+                ->where('file_code', $noRadicado)
+                ->first();
+            $code = $file?->folder?->folder_code;
+            // Cache even nulls to minimize repeated misses
+            $this->radicadoFolderCache[$noRadicado] = $code;
+            return $code;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     /**
      * Build the base query applying optional filters.
      */
     public function query()
     {
+        $table = (new PQR())->getTable();
+
         $q = PQR::query()
-            ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
-            ->orderByDesc('created_at');
+            ->leftJoin('attached_supports as ats', function ($join) use ($table) {
+                $join->on('ats.pqr_id', '=', $table . '.id')
+                    ->whereIn('ats.origin', ['REC', 'ENV']);
+            })
+            ->leftJoin('files as f', 'f.file_code', '=', 'ats.no_radicado')
+            ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
+
+            ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
+
+            ->select(
+                $table . '.*',
+                'ats.no_radicado as no_radicado_from_join',
+                'fo.folder_code as folder_code_from_join'
+            )
+
+            ->orderByDesc($table . '.created_at');
 
         // Main filter: by Sheet Number
         if (!empty($this->filters['sheet_number_id'])) {
             $q->where('sheet_number_id', (int) $this->filters['sheet_number_id']);
         }
 
-        // Only PQRs that have at least one attached support with origin = 'REC'
-        $q->whereHas('attachedSupports', function (Builder $qq) {
-            $qq->where('origin', 'REC');
-        });
 
-        // Year filter (by created_at) — disabled per new requirements (filter by sheet number instead)
-        /* if (!empty($this->filters['year'])) {
-            $q->whereYear('created_at', (int) $this->filters['year']);
-        } */
 
-        // Trimester filter — commented out per requirements
-        /* if (!empty($this->filters['trimester'])) {
-            $trimester = (int) $this->filters['trimester'];
-            [$startMonth, $endMonth] = match ($trimester) {
-                1 => [1, 3],
-                2 => [4, 6],
-                3 => [7, 9],
-                4 => [10, 12],
-                default => [1, 12],
-            };
-            $year = !empty($this->filters['year']) ? (int) $this->filters['year'] : (int) date('Y');
-            $q->whereBetween('created_at', [
-                Carbon::create($year, $startMonth, 1)->startOfDay(),
-                Carbon::create($year, $endMonth, 1)->endOfMonth()->endOfDay(),
-            ]);
-        } */
 
         // Date range filters (overrides trimester if both are provided)
         if (!empty($this->filters['from'])) {
@@ -155,16 +176,8 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             $q->where('response_status', $this->filters['response_status']);
         }
 
-        // Direction filter (received|sent) — PLACEHOLDER
-        if (!empty($this->filters['direction'])) {
-            // Example (uncomment and adapt):
-            // $q->where('direction', $this->filters['direction']);
-        }
 
-        // Environment filter — PLACEHOLDER
-        if (!empty($this->filters['environment'])) {
-            // Example: $q->where('environment', $this->filters['environment']);
-        }
+
 
         return $q;
     }
@@ -262,14 +275,41 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
      * @param PQR $p
      * @return array<int,mixed>
      */
+    protected function resolveFolderCode(PQR $p): ?string
+    {
+        try {
+            $depName = $p->dependency->name ?? null;
+            $sheetId = $p->sheet_number_id ?? null;
+            if (!$depName || !$sheetId) return null;
+            $year = $p->created_at ? Carbon::parse($p->created_at)->format('Y') : date('Y');
+            $folder = Folder::query()
+                ->where('name', $depName)
+                ->where('sheet_number_id', $sheetId)
+                ->whereHas('parent', function ($q) use ($year) {
+                    $q->where('year', $year)->orWhere('name', $year);
+                })
+                ->first();
+            return $folder?->folder_code;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function map($p): array
     {
         $PH = 'N/A';
 
+
+
         // Attached support for REC origin (first match)
-        $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'REC') : null;
-        $noRadicado = $support->no_radicado ?? $PH;
-        $hash = $support->hash ?? $PH;
+
+
+        $noRadicado = $p->no_radicado_from_join ?? 'N/A';
+
+        $folderCode = $p->folder_code_from_join
+            ?? $this->resolveFolderCodeByNoRadicado($noRadicado)
+            ?? 'N/A';
+
 
         // Dates and times
         $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/Y') : $PH; // dd/mm/yyyy
@@ -287,6 +327,25 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
         $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
         $rolCreador = $p->creator ? ($p->creator->getRoleNames()->first() ?? $PH) : $PH;
 
+        \Log::info('DEBUG FINAL', [
+            'pqr_id' => $p->id,
+            'no_radicado_join' => $p->no_radicado_from_join,
+            'folder_code_join' => $p->folder_code_from_join,
+        ]);
+
+        if ($noRadicado === 'N/A') {
+            \Log::info('NO RADICADO VACIO', ['pqr_id' => $p->id]);
+        }
+
+        $file = File::where('file_code', $noRadicado)->first();
+        if (!$file) {
+            \Log::info('FILE NO ENCONTRADO', ['noRadicado' => $noRadicado]);
+        }
+
+        if ($file && !$file->folder) {
+            \Log::info('FILE SIN FOLDER', ['file_id' => $file->id]);
+        }
+
         return [
             // A–D
             $noRadicado,          // A Numero Radicado (from attachedSupports.no_radicado)
@@ -295,7 +354,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             $noRadicado,          // D Cod. Barras (use same no_radicado for now)
 
             // E
-            $hash,                // E Hash from attachedSupports
+            $folderCode, // E Codigo de la Dependencia (folder_code)
 
             // F–H destinatario/dependencia/responsable
             $depNombre,           // F Nombre de la Dependencia
@@ -319,7 +378,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             $PH,                        // T N/A
 
             // U–V respuesta
-            $hash,                // U Hash (again)
+            $noRadicado,                // U Hash (again)
             $fechaRespuesta,      // V response_date
         ];
     }
@@ -362,6 +421,9 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
      */
     public function styles(Worksheet $sheet)
     {
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
+
         // Header alignment and wrapping (rows 1–8)
         $sheet->getStyle('A1:V8')
             ->getAlignment()
@@ -375,14 +437,34 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             ->setBold(true)
             ->setSize(11);
 
+        $sheet->getStyle("A9:{$highestCol}{$highestRow}")
+            ->getAlignment()
+            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
+            ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
+            ->setWrapText(true);
+
         // Specific font sizes per template
         $sheet->getStyle('C1:S2')->getFont()->setSize(24); // main title and NIT
         $sheet->getStyle('A3:V4')->getFont()->setSize(18); // secondary title
 
         // Light fills (subtle so text is readable)
         $sheet->getStyle('A1:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
-        $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF9FAFB');
-        $sheet->getStyle('A7:V8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
+        $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2EFD9');
+        $sheet->getStyle('A7:D8')->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFE2EFD9');
+
+        $sheet->getStyle('E7:H8')->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFD9E2F3');
+
+        $sheet->getStyle('I7:N8')->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFFEF2CB');
+
+        $sheet->getStyle('O7:V8')->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFE2EFD9');
 
         // Row heights to visually match template proportions
         $sheet->getRowDimension(1)->setRowHeight(28);
@@ -472,6 +554,33 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     public function __construct(array $filters = [])
     {
         $this->filters = $filters;
+    }
+
+    // Cache to avoid repeated DB lookups per $noRadicado during one export run
+    protected array $radicadoFolderCache = [];
+
+    /**
+     * Resolve folder_code via $noRadicado using files.file_code -> files.folder_id -> folders.folder_code
+     */
+    protected function resolveFolderCodeByNoRadicado(?string $noRadicado): ?string
+    {
+        try {
+            if (!$noRadicado || $noRadicado === 'N/A') {
+                return null;
+            }
+            if (isset($this->radicadoFolderCache[$noRadicado])) {
+                return $this->radicadoFolderCache[$noRadicado];
+            }
+            $file = File::with('folder')
+                ->where('file_code', $noRadicado)
+                ->first();
+            $code = $file?->folder?->folder_code;
+            // Cache even nulls to minimize repeated misses
+            $this->radicadoFolderCache[$noRadicado] = $code;
+            return $code;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     public function query()
@@ -622,7 +731,7 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 
 
                 // Centrar vertical y horizontal
-                $event->sheet->getStyle('A1:T2')
+                $event->sheet->getStyle('A1:W8')
                     ->getAlignment()
                     ->setVertical('center')
                     ->setHorizontal('center');
@@ -638,8 +747,11 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 
     public function styles(Worksheet $sheet)
     {
+
+        $highestRow = $sheet->getHighestRow();
+        $highestCol = $sheet->getHighestColumn();
         // Header alignment and wrapping (rows 1–8)
-        $sheet->getStyle('A1:W8')
+        $sheet->getStyle("A9:{$highestCol}{$highestRow}")
             ->getAlignment()
             ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
             ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
@@ -656,9 +768,19 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         $sheet->getStyle('A3:V4')->getFont()->setSize(18); // secondary title
 
         // Light fills (subtle so text is readable)
-        $sheet->getStyle('A1:V2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
-        $sheet->getStyle('A3:V4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF9FAFB');
-        $sheet->getStyle('A7:W8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F8FF'); // very light blue for table header
+        $sheet->getStyle('A1:W2')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF5F5F5');
+        $sheet->getStyle('A3:W4')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2EFD9');
+        $sheet->getStyle('A7:C8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2EFD9');
+        $sheet->getStyle('D7:G8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFB4C6E7');
+        $sheet->getStyle('H7:M8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFEF2CB');
+        $sheet->getStyle('N7:P8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2EFD9');
+        $sheet->getStyle('Q7:S8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('T7:T8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFE2EFD9');
+        $sheet->getStyle('U7:W8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF70AD47');
+
+
+
+         // very light blue for table header
 
         // Row heights to visually match template proportions
         $sheet->getRowDimension(1)->setRowHeight(28);
@@ -690,14 +812,29 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         ];
     }
 
+    protected function resolveFolderCode(PQR $p): ?string
+    {
+        try {
+            $depName = $p->dependency->name ?? null;
+            $sheetId = $p->sheet_number_id ?? null;
+            if (!$depName || !$sheetId) return null;
+            $year = $p->created_at ? Carbon::parse($p->created_at)->format('Y') : date('Y');
+            $folder = Folder::query()
+                ->where('name', $depName)
+                ->where('sheet_number_id', $sheetId)
+                ->whereHas('parent', function ($q) use ($year) {
+                    $q->where('year', $year)->orWhere('name', $year);
+                })
+                ->first();
+            return $folder?->folder_code;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     public function map($p): array
     {
         $PH = 'N/A';
-
-
-        // NRO Racicado
-
-        $noRadicado = $support->no_radicado ?? $PH;
 
         // Attached support for ENV origin (first match)
         $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'ENV') : null;
@@ -714,6 +851,10 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         $responsableNombre = $responsable->name ?? $PH;
         $rolResponsable = $responsable ? ($responsable->getRoleNames()->first() ?? $PH) : $PH;
 
+        // NRO Racicado
+
+        $noRadicado = $support->no_radicado ?? $PH;
+
         // Sender (creator) role and name
         $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
         $rolCreador = $p->creator ? ($p->creator->getRoleNames()->first() ?? $PH) : $PH;
@@ -723,7 +864,7 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
             $noRadicado,               // A hash from attachedSupports
             $fechaCreacion,      // B Fecha creación dd/mm/yyyy
             $horaCreacion,       // C Hora creación HH:MM
-            $PH,               // D hash again
+            $this->resolveFolderCodeByNoRadicado($noRadicado) ?: ($this->resolveFolderCode($p) ?: $PH), // D Codigo de la Dependencia (folder_code)
 
             // E–G dependencia/responsable/rol
             $depNombre,          // E Nombre de la Dependencia
