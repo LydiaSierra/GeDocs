@@ -2,8 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { useState, useCallback, useEffect } from 'react';
 
-// External store to share state without Context
-let store = {
+const initialStore = {
     allFolders: [],
     currentFolder: null,
     selectedItems: [],
@@ -23,10 +22,15 @@ let store = {
     inputSearchTerm: ""
 };
 
+// External store to share state without Context
+let store = { ...initialStore };
+
 let listeners = [];
 
 const emitChange = () => {
-    listeners.forEach(listener => listener());
+    setTimeout(() => {
+        listeners.forEach(listener => listener());
+    }, 0);
 };
 
 const setStore = (updates) => {
@@ -212,6 +216,22 @@ export const useExplorer = () => {
                 toast.error("Error al editar carpeta", {
                     description: "Verifica que no exista el mismo año"
                 });
+            }
+        });
+    };
+
+    const updateFile = ({ name, year, fileId }) => {
+        let toastId = toast.loading("Renombrando archivo...");
+        router.put(route('files.update', fileId), { name, year }, {
+            onSuccess: () => {
+                toast.dismiss(toastId);
+                toast.success("Archivo renombrado con éxito");
+                window.dispatchEvent(new CustomEvent("explorer:files-updated"));
+            },
+            onError: (errors) => {
+                toast.dismiss(toastId);
+                const errorMsg = errors.name || errors.year || "Error al renombrar archivo";
+                toast.error(errorMsg);
             }
         });
     };
@@ -522,6 +542,7 @@ export const useExplorer = () => {
         uploadFiles,
         createFolder,
         updateFolder,
+        updateFile,
         selectItem,
         isSelected,
         deleteSelection,
@@ -554,9 +575,19 @@ export const useCanEdit = () => useExplorer().canEdit;
 export const getSelectedItem = () => {
     const { selectedItems, folders, files } = useExplorer();
     const selected = selectedItems[0];
-    return selected
-        ? selected.type === 'folder'
-            ? folders.find(f => f.id === selected.id)
-            : files.find(f => f.id === selected.id)
-        : null;
+    if (!selected) return null;
+
+    const found = selected.type === 'folder'
+        ? folders.find(f => f.id === selected.id)
+        : files.find(f => f.id === selected.id);
+
+    return found ? { ...found, type: selected.type } : null;
+};
+
+// For testing purposes only
+export const __resetExplorerStoreForTesting = () => {
+    store = { ...initialStore };
+    lastSyncedFilters = null;
+    lastSyncedProps = null;
+    listeners = [];
 };

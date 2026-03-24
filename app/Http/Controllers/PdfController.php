@@ -108,9 +108,18 @@ class PdfController extends Controller
             ]);
 
             $fileYear = date('Y');
-            $folderCode = $folder->folder_code ?? '000';
+            
+            // Build folder prefix (hierarchical codes)
+            $folderCodes = [];
+            $tempFolder = $folder;
+            while ($tempFolder) {
+                $folderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $folderPrefix = implode('-', array_reverse($folderCodes));
+
             $baseName = ($safeDocumentType ?: 'documento') . '_' . now()->format('Ymd_His');
-            $newName = "{$fileYear}-Ex-{$folderCode}-{$baseName}.pdf";
+            $newName = "{$folderPrefix}-SUB-{$fileYear}-{$baseName}.pdf";
             $path = "folders/{$folder->id}/{$newName}";
 
             Storage::disk('public')->put($path, $pdf->output());
@@ -133,6 +142,8 @@ class PdfController extends Controller
                     'id' => $newFile->id,
                     'name' => $newFile->name,
                     'url' => asset('storage/' . $newFile->path),
+                    'created_at' => $newFile->created_at,
+                    'updated_at' => $newFile->updated_at,
                 ],
             ]);
         } catch (\InvalidArgumentException $e) {
@@ -431,7 +442,9 @@ class PdfController extends Controller
             $data['archivado_en'] = implode(' / ', $folderNames);
 
             // Definir nombre y ruta del archivo de forma definitiva
-            $fileName = "{$folderPrefix}-" . now()->year . "-" . str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT) . '.pdf';
+            $year = now()->year;
+            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $fileName = "{$folderPrefix}-ENV-{$year}-{$pqrNumber}.pdf";
             $storagePath = 'pdf_responses/' . $fileName;
             $absolutePath = storage_path('app/public/' . $storagePath);
 
@@ -527,7 +540,7 @@ class PdfController extends Controller
                     'active' => true,
                     'folder_id' => $validated['folder_id'],
                     'file_code' => $fileCode,
-                    'hash' => $hash,
+                    'hash' => $shortHash,
                 ]);
             }
 

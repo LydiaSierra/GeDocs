@@ -15,7 +15,7 @@ export default function Header() {
     const rol = user?.roles?.[0]?.name;
 
 
-    const shouldShowHamburger = !["/", "/archive", "/explorer"].includes(url);
+    const shouldShowHamburger = !["/", "/archive", "/explorer", "/outbox"].includes(url);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
 
 

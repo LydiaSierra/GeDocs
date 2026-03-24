@@ -101,12 +101,12 @@ const SelectDependecyOrNumberSheet = ({
     return (
         <Menu
             menuButton={
-                <MenuButton className="cursor-pointer w-max p-2 border border-gray-200 rounded-md flex items-center gap-2 text-md font-medium">
-                    {getButtonText()}
+                <MenuButton className="cursor-pointer max-w-[150px] xs:max-w-[200px] sm:max-w-xs p-2 border border-gray-300 bg-white hover:bg-gray-50 transition-colors rounded-lg flex items-center justify-between gap-2 text-xs sm:text-sm font-medium shadow-sm">
+                    <span className="truncate" title={getButtonText()}>{getButtonText()}</span>
                     {showSheetSelection && currentScopeFilter && (
                         <button
                             onClick={handleClear}
-                            className="text-gray-400 hover:text-red-500 rounded-full bg-gray-100 p-0.5 ml-2 leading-none"
+                            className="text-gray-400 hover:text-red-500 rounded-full bg-gray-100/80 hover:bg-red-50 p-0.5 ml-1 leading-none shrink-0 transition-colors"
                             title="Limpiar filtro"
                         >
                             &times;
