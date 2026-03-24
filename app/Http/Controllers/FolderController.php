@@ -159,14 +159,8 @@ class FolderController extends Controller
                 return back()->withErrors(['files' => 'No files provided']);
             }
 
-            // Build folder prefix (hierarchical codes)
-            $folderCodes = [];
-            $tempFolder = $folder;
-            while ($tempFolder) {
-                $folderCodes[] = $tempFolder->folder_code ?? '000';
-                $tempFolder = $tempFolder->parent;
-            }
-            $folderPrefix = implode('-', array_reverse($folderCodes));
+            // Build folder prefix using hierarchical and specialized separators
+            $folderPrefix = $folder->getFullHierarchyCode();
 
             /**
              * Loop through each uploaded file
@@ -330,14 +324,8 @@ class FolderController extends Controller
         }
 
         if (!empty($fileIds)) {
-            // Build target folder prefix (hierarchical codes)
-            $targetFolderCodes = [];
-            $tempFolder = $targetFolder;
-            while ($tempFolder) {
-                $targetFolderCodes[] = $tempFolder->folder_code ?? '000';
-                $tempFolder = $tempFolder->parent;
-            }
-            $targetFolderPrefix = implode('-', array_reverse($targetFolderCodes));
+            // Build target folder prefix using specialized separators
+            $targetFolderPrefix = $targetFolder->getFullHierarchyCode();
 
             $files = File::whereIn('id', $fileIds)->get();
             foreach ($files as $file) {
@@ -509,8 +497,16 @@ class FolderController extends Controller
             }
         }
 
+        // Calculate original prefix to detect changes
+        $originalPrefix = $folder->getFullHierarchyCode();
+
         // Apply updates
         $folder->update($validated);
+
+        // If prefix has changed, sync all files recursively
+        if ($originalPrefix !== $folder->getFullHierarchyCode()) {
+            $this->syncFolderPathRecursively($folder);
+        }
 
         return back();
     }
@@ -733,5 +729,65 @@ class FolderController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Recursively syncs file names and paths when a parent folder's code or name changes.
+     */
+    private function syncFolderPathRecursively($folder)
+    {
+        foreach ($folder->files as $file) {
+            $currentName = $file->name;
+            $pureName = "";
+            $tag = "";
+
+            if (str_contains($currentName, '-ENV-')) {
+                $tag = '-ENV-';
+            } elseif (str_contains($currentName, '-SUB-')) {
+                $tag = '-SUB-';
+            }
+
+            if ($tag !== "") {
+                $parts = explode($tag, $currentName, 2);
+                if (count($parts) < 2) continue;
+                
+                $suffix = $parts[1];
+                $suffixParts = explode('-', $suffix, 4);
+                
+                if (count($suffixParts) >= 4) {
+                    $pureName = $suffixParts[3];
+                }
+
+                $folderPrefix = $folder->getFullHierarchyCode();
+                $fileYear = $file->created_at->format('Y');
+                $shortHash = substr($file->hash ?? '0000000000', 0, 10);
+                
+                $newName = "{$folderPrefix}{$tag}{$fileYear}-{$file->file_code}-{$shortHash}";
+                if ($pureName !== "") {
+                    $newName .= "-{$pureName}";
+                }
+
+                if ($currentName !== $newName) {
+                    $oldPath = $file->path;
+                    $newPath = "folders/{$file->folder_id}/{$newName}";
+                    
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        // Ensure target doesn't exist to avoid collisions
+                        if ($oldPath !== $newPath && !Storage::disk('public')->exists($newPath)) {
+                             Storage::disk('public')->move($oldPath, $newPath);
+                        }
+                    }
+                    
+                    $file->update([
+                        'name' => $newName,
+                        'path' => $newPath
+                    ]);
+                }
+            }
+        }
+
+        foreach ($folder->children as $child) {
+            $this->syncFolderPathRecursively($child);
+        }
     }
 }

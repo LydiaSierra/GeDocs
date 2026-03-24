@@ -42,8 +42,39 @@ class Folder extends Model
         return $this->belongsTo(Folder::class);
     }
 
-    public function getIsPdfAttribute()
+    public function getFullHierarchyCode()
     {
-        return $this->extension === 'pdf';
+        $segments = [];
+        $current = $this;
+
+        while ($current) {
+            $segments[] = [
+                'code' => $current->folder_code ?? '000',
+                'dept' => strtolower($current->department ?? '')
+            ];
+            $current = $current->parent;
+        }
+
+        $segments = array_reverse($segments);
+        $fullCode = "";
+
+        // The user wants to omit the sheet number and any level corresponding to the Year (dept 'año')
+        $first = true;
+        foreach ($segments as $segment) {
+            if ($segment['dept'] === 'año') {
+                continue;
+            }
+
+            if ($first) {
+                $fullCode .= $segment['code'];
+                $first = false;
+            } else {
+                // Use "." for serie/subserie, "-" for others
+                $sep = in_array($segment['dept'], ['serie', 'subserie']) ? '.' : '-';
+                $fullCode .= $sep . $segment['code'];
+            }
+        }
+
+        return $fullCode;
     }
 }

@@ -109,14 +109,8 @@ class PdfController extends Controller
 
             $fileYear = date('Y');
             
-            // Build folder prefix (hierarchical codes)
-            $folderCodes = [];
-            $tempFolder = $folder;
-            while ($tempFolder) {
-                $folderCodes[] = $tempFolder->folder_code ?? '000';
-                $tempFolder = $tempFolder->parent;
-            }
-            $folderPrefix = implode('-', array_reverse($folderCodes));
+            // Build folder prefix using hierarchical and specialized separators
+            $folderPrefix = $folder->getFullHierarchyCode();
 
             $baseName = ($safeDocumentType ?: 'documento') . '_' . now()->format('Ymd_His');
             $newName = "{$folderPrefix}-SUB-{$fileYear}-{$baseName}.pdf";
@@ -423,23 +417,23 @@ class PdfController extends Controller
             // Preparar datos base
             $data = $request->all();
 
-            // 1. Resolver Información de Ubicación y Prefijos automáticamente
-            $folderCodes = [];
-            $folderNames = [];
+            // 1. Resolve Location Information and Prefixes automatically
+            $folderPrefix = $pqr->dependency_id ?? '000';
+            
             if (!empty($validated['folder_id'])) {
-                $currentFolder = \App\Models\Folder::with('parent')->find($validated['folder_id']);
-                while ($currentFolder) {
-                    $folderCodes[] = $currentFolder->folder_code ?? '000';
-                    $folderNames[] = $currentFolder->name;
-                    $currentFolder = $currentFolder->parent;
+                $folder = \App\Models\Folder::with('parent')->find($validated['folder_id']);
+                if ($folder) {
+                    $folderPrefix = $folder->getFullHierarchyCode();
+                    
+                    $tempFolder = $folder;
+                    $folderNames = [];
+                    while ($tempFolder) {
+                        $folderNames[] = $tempFolder->name;
+                        $tempFolder = $tempFolder->parent;
+                    }
+                    $data['archivado_en'] = implode(' / ', array_reverse($folderNames));
                 }
-                $folderCodes = array_reverse($folderCodes);
-                $folderNames = array_reverse($folderNames);
             }
-
-            $folderPrefix = implode('-', $folderCodes) ?: ($pqr->dependency_id ?? '000');
-
-            $data['archivado_en'] = implode(' / ', $folderNames);
 
             // Definir nombre y ruta del archivo de forma definitiva
             $year = now()->year;
