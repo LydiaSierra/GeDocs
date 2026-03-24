@@ -67,7 +67,7 @@ class FolderController extends Controller
      * - Ordered by newest first
      */
 
-  
+
 
 
 
@@ -186,7 +186,7 @@ class FolderController extends Controller
                 $shortHash = substr($hash, 0, 10);
 
                 // New file name format including sequence and short hash
-                $newName = "{$folderPrefix}-SUB-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
+                $newName = "{$folderPrefix}-ENV-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
 
                 // Store file in public disk
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
@@ -317,14 +317,14 @@ class FolderController extends Controller
         $folderIds = $request->input('folders', []);
         $fileIds = $request->input('files', []);
         $targetFolderId = $request->input('target_folder_id');
-        
+
         $targetFolder = Folder::findOrFail($targetFolderId);
         $targetFolderCode = $targetFolder->folder_code ?? "000";
 
         if (!empty($folderIds)) {
             Folder::whereIn('id', $folderIds)
                 ->update([
-                    'parent_id' => $targetFolderId, 
+                    'parent_id' => $targetFolderId,
                     'sheet_number_id' => $targetFolder->sheet_number_id
                 ]);
         }
@@ -343,16 +343,16 @@ class FolderController extends Controller
             foreach ($files as $file) {
                 $originalName = $file->name;
 
-                // Try to extract original name from new format (PREFIX-SUB-YEAR-SEQUENCE-HASH-ORIGINALNAME)
-                if (strpos($file->name, '-SUB-') !== false) {
-                    $parts = explode('-SUB-', $file->name, 2);
+                // Try to extract original name from new format (PREFIX-ENV-YEAR-SEQUENCE-HASH-ORIGINALNAME)
+                if (strpos($file->name, '-ENV-') !== false) {
+                    $parts = explode('-ENV-', $file->name, 2);
                     if (count($parts) === 2) {
                         $afterSub = explode('-', $parts[1], 4); // [YEAR, SEQUENCE, HASH, ORIGINALNAME]
                         if (count($afterSub) === 4) {
                             $originalName = $afterSub[3];
                         }
                     }
-                } 
+                }
                 // Try to extract from old format (YEAR-Ex-CODE-ORIGINALNAME)
                 else {
                     $parts = explode('-', $file->name, 4);
@@ -362,12 +362,18 @@ class FolderController extends Controller
                 }
 
                 $fileYear = $file->created_at->format('Y');
-                $newName = "{$targetFolderPrefix}-SUB-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
+                $newName = "{$targetFolderPrefix}-ENV-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
 
                 $oldPath = $file->path;
                 $newPath = "folders/{$targetFolderId}/{$newName}";
-                
+
                 if (Storage::disk('public')->exists($oldPath)) {
+                    // Prevention: If file already exists in target folder, we skip or handle it.
+                    // For safety, we verify if the destination path already exists.
+                    if (Storage::disk('public')->exists($newPath) && $oldPath !== $newPath) {
+                        // Skip this file if it already exists to avoid overwriting/duplication
+                        continue; 
+                    }
                     Storage::disk('public')->move($oldPath, $newPath);
                 }
 
@@ -648,7 +654,8 @@ class FolderController extends Controller
     public function getFoldersBySheet(Request $request)
     {
         $sheetId = $request->query('sheet_id');
-        if (!$sheetId) return response()->json([], 200);
+        if (!$sheetId)
+            return response()->json([], 200);
 
         $folders = Folder::where('sheet_number_id', $sheetId)
             ->where('active', true)
@@ -671,19 +678,19 @@ class FolderController extends Controller
 
         $pureName = $validated['name'];
 
-        // Extract parts from current name: {prefix}-SUB-{year}-{fileCode}-{hash}-{originalName}
+        // Extract parts from current name: {prefix}-ENV-{year}-{fileCode}-{hash}-{originalName}
         $currentName = $file->name;
-        if (!str_contains($currentName, '-SUB-')) {
-             return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
+        if (!str_contains($currentName, '-ENV-')) {
+            return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
         }
 
-        $parts = explode('-SUB-', $currentName);
+        $parts = explode('-ENV-', $currentName);
         $prefix = $parts[0];
         $suffix = $parts[1];
         $suffixParts = explode('-', $suffix, 4);
 
         if (count($suffixParts) < 4) {
-             return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
+            return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
         }
 
         // $oldYear = $suffixParts[0];
@@ -697,9 +704,9 @@ class FolderController extends Controller
             $pureName .= '.' . $extension;
         }
 
-        // Reconstruct name: PREFIX-SUB-YEAR-FILECODE-HASH-PURENAME
-        $newName = "{$prefix}-SUB{$file->year}-{$fileCode}-{$hash}-{$pureName}";
-        
+        // Reconstruct name: PREFIX-ENV-YEAR-FILECODE-HASH-PURENAME
+        $newName = "{$prefix}-ENV{$file->year}-{$fileCode}-{$hash}-{$pureName}";
+
         if ($file->name !== $newName) {
             $oldPath = $file->path;
             $newPath = "folders/{$file->folder_id}/{$newName}";
