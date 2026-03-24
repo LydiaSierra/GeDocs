@@ -10,7 +10,7 @@ use Inertia\Inertia;
 
 class ExplorerController extends Controller
 {
-   public function index(Request $request)
+    public function index(Request $request)
     {
         $folderId = $request->query('folder_id');
         $sheetId = $request->query('sheet_id');
@@ -65,7 +65,7 @@ class ExplorerController extends Controller
                 ->exists();
 
             if (!$yearExists) {
-                \App\Services\FolderStructureService::createDefaultStructure($sheetId, (int)$currentYear);
+                \App\Services\FolderStructureService::createDefaultStructure($sheetId, (int) $currentYear);
             }
         }
 
@@ -79,10 +79,10 @@ class ExplorerController extends Controller
         } elseif ($buscador) {
             $foldersQuery->where('name', 'LIKE', "%{$buscador}%");
             $filesQuery->where('name', 'LIKE', "%{$buscador}%");
-            
+
             if ($sheetId) {
                 $foldersQuery->where('sheet_number_id', $sheetId);
-                $filesQuery->whereHas('folder', function($q) use ($sheetId) {
+                $filesQuery->whereHas('folder', function ($q) use ($sheetId) {
                     $q->where('sheet_number_id', $sheetId);
                 });
             }
@@ -112,20 +112,24 @@ class ExplorerController extends Controller
             "files" => $filesQuery->get()->map(function ($file) {
                 $pureName = $file->name;
                 $fileYear = date('Y');
-                
-                if (str_contains($file->name, '-SUB-')) {
-                    $parts = explode('-SUB-', $file->name);
+
+                if (str_contains($file->name, '-ENV-')) {
+                    $parts = explode('-ENV-', $file->name);
                     $suffix = $parts[1];
                     $suffixParts = explode('-', $suffix, 4);
-                    if (count($suffixParts) >= 4) {
+                    if (count($suffixParts) >= 3) {
                         $fileYear = $suffixParts[0];
-                       
-                        $pureName = $suffixParts[3];
-                        
-                        // Remove extension if present in pureName for easier editing
-                        $ext = $file->extension;
-                        if (str_ends_with($pureName, '.'.$ext)) {
-                            $pureName = substr($pureName, 0, -(strlen($ext) + 1));
+
+                        if (count($suffixParts) >= 4) {
+                            $pureName = $suffixParts[3];
+
+                            // Remove extension if present in pureName for easier editing
+                            $ext = $file->extension;
+                            if (str_ends_with($pureName, '.' . $ext)) {
+                                $pureName = substr($pureName, 0, -(strlen($ext) + 1));
+                            }
+                        } else {
+                            $pureName = ""; // No original name part
                         }
                     }
                 }
@@ -146,7 +150,7 @@ class ExplorerController extends Controller
                     "updated_at" => $file->updated_at ? $file->updated_at->toISOString() : null,
                     "is_pdf" => $file->extension === 'pdf',
                     "is_image" => in_array($file->extension, ['jpg', 'jpeg', 'png', 'gif', 'svg']),
-                    "can_edit_name" => str_contains($file->name, '-SUB-')
+                    "can_edit_name" => str_contains($file->name, '-ENV-')
                 ];
             }),
             "allFolders" => $allFolders->get(),

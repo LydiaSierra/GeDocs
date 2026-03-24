@@ -23,7 +23,7 @@ test('apprentice can access allowed web routes (profile, dependencies)', functio
 });
 
 test('apprentice CANNOT access forbidden web routes (management)', function () {
-    // Should be forbidden (403), NOT 200. This is testing the REQUIRED safe behavior.
+    
     actingAs($this->apprentice)->get('/users/instructor')->assertForbidden();
     actingAs($this->apprentice)->get('/users/aprendiz')->assertForbidden();
     actingAs($this->apprentice)->get('/sheets')->assertForbidden();
@@ -45,7 +45,7 @@ test('apprentice can update his own profile details', function () {
 });
 
 test('apprentice CANNOT delete their own account', function () {
-    // Should be forbidden (403), NOT 302 to /. 
+    
     $response = actingAs($this->apprentice)->delete('/profile', [
         'password' => 'password123'
     ]);

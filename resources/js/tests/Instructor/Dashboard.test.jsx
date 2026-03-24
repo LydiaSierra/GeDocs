@@ -5,15 +5,12 @@ import { MailContext } from '@/context/MailContext/MailContext';
 import InboxSidebar from '@/Components/InboxSidebar/InboxSidebar';
 import { MailReader } from '@/Components/MailReader/MailReader';
 
-// Mock de Axios
 vi.mock('axios');
 
-// Mock Ziggy route helper
 window.route = () => ({
     current: () => 'inbox'
 });
 
-// Mock de @inertiajs/react con Rol Instructor
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -32,7 +29,6 @@ vi.mock('@inertiajs/react', () => ({
     }
 }));
 
-// Datos de prueba limitados a las fichas asignadas al Instructor
 const mockMailCards = [
     {
         id: 201,
@@ -89,19 +85,16 @@ describe('Dashboard Inbox Tests - Instructor Role', () => {
         );
 
         expect(screen.getByText('Bandeja de Entrada')).toBeInTheDocument();
-        // The list should only show PQRs for their sheets (mockMailCards above)
+        
         expect(screen.getByText('Petición Instructor')).toBeInTheDocument();
     });
 
     it(' Instructor is able to assign Dependency (menu exists)', () => {
         renderWithMailContext(
             <MailReader />,
-            { selectedMail: 201 } // Seleccionar la PQR
+            { selectedMail: 201 } 
         );
-        // The instructor is authorized to see the dropdown for assigning dependencies.
-        // It says "Asignar Dependencia" or the name of the dependency if it has one.
-        // In our mock, dependency_id is 1. Since mock dependency has id: 1. It should display "Dependencia Prueba" or similar from the list if mapped.
-        // But the dropdown button exists and is clickable.
+
         const assignDropdowns = screen.getAllByText(/Dependencia Prueba|Asignar Dependencia/i);
         expect(assignDropdowns.length).toBeGreaterThan(0);
     });

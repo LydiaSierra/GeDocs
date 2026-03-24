@@ -67,7 +67,7 @@ class FolderController extends Controller
      * - Ordered by newest first
      */
 
-  
+
 
 
 
@@ -159,14 +159,8 @@ class FolderController extends Controller
                 return back()->withErrors(['files' => 'No files provided']);
             }
 
-            // Build folder prefix (hierarchical codes)
-            $folderCodes = [];
-            $tempFolder = $folder;
-            while ($tempFolder) {
-                $folderCodes[] = $tempFolder->folder_code ?? '000';
-                $tempFolder = $tempFolder->parent;
-            }
-            $folderPrefix = implode('-', array_reverse($folderCodes));
+            // Build folder prefix using hierarchical and specialized separators
+            $folderPrefix = $folder->getFullHierarchyCode();
 
             /**
              * Loop through each uploaded file
@@ -186,7 +180,7 @@ class FolderController extends Controller
                 $shortHash = substr($hash, 0, 10);
 
                 // New file name format including sequence and short hash
-                $newName = "{$folderPrefix}-SUB-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
+                $newName = "{$folderPrefix}-ENV-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
 
                 // Store file in public disk
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
@@ -317,42 +311,39 @@ class FolderController extends Controller
         $folderIds = $request->input('folders', []);
         $fileIds = $request->input('files', []);
         $targetFolderId = $request->input('target_folder_id');
-        
+
         $targetFolder = Folder::findOrFail($targetFolderId);
         $targetFolderCode = $targetFolder->folder_code ?? "000";
 
         if (!empty($folderIds)) {
             Folder::whereIn('id', $folderIds)
                 ->update([
-                    'parent_id' => $targetFolderId, 
+                    'parent_id' => $targetFolderId,
                     'sheet_number_id' => $targetFolder->sheet_number_id
                 ]);
         }
 
         if (!empty($fileIds)) {
-            // Build target folder prefix (hierarchical codes)
-            $targetFolderCodes = [];
-            $tempFolder = $targetFolder;
-            while ($tempFolder) {
-                $targetFolderCodes[] = $tempFolder->folder_code ?? '000';
-                $tempFolder = $tempFolder->parent;
-            }
-            $targetFolderPrefix = implode('-', array_reverse($targetFolderCodes));
+            // Build target folder prefix using specialized separators
+            $targetFolderPrefix = $targetFolder->getFullHierarchyCode();
 
             $files = File::whereIn('id', $fileIds)->get();
             foreach ($files as $file) {
                 $originalName = $file->name;
 
-                // Try to extract original name from new format (PREFIX-SUB-YEAR-SEQUENCE-HASH-ORIGINALNAME)
-                if (strpos($file->name, '-SUB-') !== false) {
-                    $parts = explode('-SUB-', $file->name, 2);
+                // Try to extract original name from new format (PREFIX-ENV-YEAR-SEQUENCE-HASH-ORIGINALNAME)
+                if (strpos($file->name, '-ENV-') !== false) {
+                    $parts = explode('-ENV-', $file->name, 2);
                     if (count($parts) === 2) {
                         $afterSub = explode('-', $parts[1], 4); // [YEAR, SEQUENCE, HASH, ORIGINALNAME]
                         if (count($afterSub) === 4) {
                             $originalName = $afterSub[3];
+                        } elseif (count($afterSub) === 3) {
+                            // If it has only 3 parts, there is no original name part (e.g. system generated)
+                            $originalName = "";
                         }
                     }
-                } 
+                }
                 // Try to extract from old format (YEAR-Ex-CODE-ORIGINALNAME)
                 else {
                     $parts = explode('-', $file->name, 4);
@@ -362,14 +353,19 @@ class FolderController extends Controller
                 }
 
                 $fileYear = $file->created_at->format('Y');
-                $newName = "{$targetFolderPrefix}-SUB-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
+                $shortHash = substr($file->hash, 0, 10);
+                $newName = "{$targetFolderPrefix}-ENV-{$fileYear}-{$file->file_code}-{$shortHash}";
+                
+                // Only append original name if it's not empty, to avoid trailing dash
+                if ($originalName !== "") {
+                    $newName = "{$newName}-{$originalName}";
+                }
 
                 $oldPath = $file->path;
                 $newPath = "folders/{$targetFolderId}/{$newName}";
-                
-                if (Storage::disk('public')->exists($oldPath)) {
-                    Storage::disk('public')->move($oldPath, $newPath);
-                }
+
+                Storage::disk('public')->move($oldPath, $newPath);
+
 
                 $file->update([
                     'folder_id' => $targetFolderId,
@@ -501,8 +497,16 @@ class FolderController extends Controller
             }
         }
 
+        // Calculate original prefix to detect changes
+        $originalPrefix = $folder->getFullHierarchyCode();
+
         // Apply updates
         $folder->update($validated);
+
+        // If prefix has changed, sync all files recursively
+        if ($originalPrefix !== $folder->getFullHierarchyCode()) {
+            $this->syncFolderPathRecursively($folder);
+        }
 
         return back();
     }
@@ -648,7 +652,8 @@ class FolderController extends Controller
     public function getFoldersBySheet(Request $request)
     {
         $sheetId = $request->query('sheet_id');
-        if (!$sheetId) return response()->json([], 200);
+        if (!$sheetId)
+            return response()->json([], 200);
 
         $folders = Folder::where('sheet_number_id', $sheetId)
             ->where('active', true)
@@ -671,25 +676,25 @@ class FolderController extends Controller
 
         $pureName = $validated['name'];
 
-        // Extract parts from current name: {prefix}-SUB-{year}-{fileCode}-{hash}-{originalName}
+        // Extract parts from current name: {prefix}-ENV-{year}-{fileCode}-{hash}-{originalName}
         $currentName = $file->name;
-        if (!str_contains($currentName, '-SUB-')) {
-             return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
+        if (!str_contains($currentName, '-ENV-')) {
+            return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
         }
 
-        $parts = explode('-SUB-', $currentName);
+        $parts = explode('-ENV-', $currentName);
         $prefix = $parts[0];
         $suffix = $parts[1];
         $suffixParts = explode('-', $suffix, 4);
 
-        if (count($suffixParts) < 4) {
-             return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
+        if (count($suffixParts) < 3) {
+            return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
         }
 
         // $oldYear = $suffixParts[0];
         $fileCode = $suffixParts[1];
         $hash = $suffixParts[2];
-        // $oldPureName = $suffixParts[3];
+        // $oldPureName = count($suffixParts) >= 4 ? $suffixParts[3] : "";
 
         // Ensure extension
         $extension = $file->extension;
@@ -697,9 +702,14 @@ class FolderController extends Controller
             $pureName .= '.' . $extension;
         }
 
-        // Reconstruct name: PREFIX-SUB-YEAR-FILECODE-HASH-PURENAME
-        $newName = "{$prefix}-SUB{$file->year}-{$fileCode}-{$hash}-{$pureName}";
-        
+        // Reconstruct name: PREFIX-ENV-YEAR-FILECODE-HASH-PURENAME
+        $year = $file->year ?? $file->created_at->format('Y');
+        $newName = "{$prefix}-ENV-{$year}-{$fileCode}-{$hash}";
+
+        if ($pureName !== "") {
+            $newName .= "-{$pureName}";
+        }
+
         if ($file->name !== $newName) {
             $oldPath = $file->path;
             $newPath = "folders/{$file->folder_id}/{$newName}";
@@ -719,5 +729,65 @@ class FolderController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Recursively syncs file names and paths when a parent folder's code or name changes.
+     */
+    private function syncFolderPathRecursively($folder)
+    {
+        foreach ($folder->files as $file) {
+            $currentName = $file->name;
+            $pureName = "";
+            $tag = "";
+
+            if (str_contains($currentName, '-ENV-')) {
+                $tag = '-ENV-';
+            } elseif (str_contains($currentName, '-SUB-')) {
+                $tag = '-SUB-';
+            }
+
+            if ($tag !== "") {
+                $parts = explode($tag, $currentName, 2);
+                if (count($parts) < 2) continue;
+                
+                $suffix = $parts[1];
+                $suffixParts = explode('-', $suffix, 4);
+                
+                if (count($suffixParts) >= 4) {
+                    $pureName = $suffixParts[3];
+                }
+
+                $folderPrefix = $folder->getFullHierarchyCode();
+                $fileYear = $file->created_at->format('Y');
+                $shortHash = substr($file->hash ?? '0000000000', 0, 10);
+                
+                $newName = "{$folderPrefix}{$tag}{$fileYear}-{$file->file_code}-{$shortHash}";
+                if ($pureName !== "") {
+                    $newName .= "-{$pureName}";
+                }
+
+                if ($currentName !== $newName) {
+                    $oldPath = $file->path;
+                    $newPath = "folders/{$file->folder_id}/{$newName}";
+                    
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        // Ensure target doesn't exist to avoid collisions
+                        if ($oldPath !== $newPath && !Storage::disk('public')->exists($newPath)) {
+                             Storage::disk('public')->move($oldPath, $newPath);
+                        }
+                    }
+                    
+                    $file->update([
+                        'name' => $newName,
+                        'path' => $newPath
+                    ]);
+                }
+            }
+        }
+
+        foreach ($folder->children as $child) {
+            $this->syncFolderPathRecursively($child);
+        }
     }
 }

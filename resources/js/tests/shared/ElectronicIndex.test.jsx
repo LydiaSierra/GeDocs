@@ -4,13 +4,11 @@ import IndexTable from "@/Components/ElectronicIndex/indexTable";
 import { ElectronicIndexContext } from "@/context/ElectronicIndexContext/ElectronicIndexContext";
 import * as useExplorerModule from "@/Hooks/useExplorer";
 
-// Mock del heroicons para evitar problemas de renderizado
 vi.mock("@heroicons/react/24/outline", () => ({
     EllipsisVerticalIcon: () => <svg data-testid="ellipsis-icon" />,
     ExclamationTriangleIcon: () => <svg data-testid="exclamation-icon" />,
 }));
 
-// Datos de prueba
 const mockFiles = [
     {
         id: 1,
@@ -53,8 +51,7 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         };
 
         vi.spyOn(useExplorerModule, "useExplorer").mockReturnValue(mockUseExplorerValue);
-        
-        // Mock document.getElementById for the dialog
+
         const modalMock = {
             open: false,
             showModal: vi.fn(function() { this.open = true; }),
@@ -74,7 +71,7 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         );
     };
 
-    it("renderiza los archivos correctamente", () => {
+    it("renders files correctly", () => {
         renderComponent();
 
         expect(screen.getByText("Archivo-Prueba-1.pdf")).toBeInTheDocument();
@@ -83,24 +80,20 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         expect(screen.getByText("Dependencia A")).toBeInTheDocument();
     });
 
-    it("renderiza los hashes acortados a 12 caracteres o muestra un guion si no hay hash", () => {
+    it("renders hashes shortened to 12 characters or shows a dash if there is no hash", () => {
         renderComponent();
 
-        // el primer archivo tiene hash e3b0c44298fc1c14...
-        // Los primeros 12 chars son e3b0c44298fc
         expect(screen.getByText("e3b0c44298fc...")).toBeInTheDocument();
 
-        // El segundo archivo no tiene hash, en la tabla se pone "-" pero puede haber multiples guiones
-        // podemos buscar la fila del archivo 2
         const rows = screen.getAllByRole('row');
-        expect(rows.length).toBeGreaterThan(1); // theader + tr
+        expect(rows.length).toBeGreaterThan(1); 
     });
 
-    it("abre el menu de 3 puntitos y funciona 'Ir al archivo'", async () => {
+    it("opens the 3-dot menu and 'Go to file' works", async () => {
         renderComponent();
 
         const ellipsisButtons = screen.getAllByTestId("ellipsis-icon");
-        // click al primer archivo
+        
         fireEvent.click(ellipsisButtons[0].parentElement);
 
         const goToFileBtn = screen.getByText("Ir al archivo");
@@ -111,7 +104,7 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         expect(mockContextValue.openFileInExplorerById).toHaveBeenCalledWith(1);
     });
 
-    it("abre el menu de 3 puntitos y funciona 'Descargar'", async () => {
+    it("opens the 3-dot menu and 'Download' works", async () => {
         renderComponent();
 
         const ellipsisButtons = screen.getAllByTestId("ellipsis-icon");
@@ -126,20 +119,17 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         expect(mockUseExplorerValue.downloadZip).toHaveBeenCalled();
     });
 
-    it("abre el menu de 3 puntitos, selecciona 'Mover a la papelera', y confirma", async () => {
+    it("opens the 3-dot menu and 'Move to trash' works', y confirma", async () => {
         renderComponent();
 
-        // Abrir menu del primer archivo
         const ellipsisButtons = screen.getAllByTestId("ellipsis-icon");
         fireEvent.click(ellipsisButtons[0].parentElement);
 
-        // Click a Mover a la papelera en el menu
         const moveToTrashBtn = screen.getByText("Mover a la papelera");
         fireEvent.click(moveToTrashBtn);
 
-        // Verificar que el boton "Mover a papelera" se muestra y darle click
         const confirmBtns = screen.getAllByText("Mover a papelera");
-        const confirmBtn = confirmBtns[confirmBtns.length - 1]; // El botón final
+        const confirmBtn = confirmBtns[confirmBtns.length - 1]; 
         fireEvent.click(confirmBtn);
 
         await waitFor(() => {
@@ -150,13 +140,13 @@ describe("ElectronicIndex - IndexTable Frontend API", () => {
         });
     });
 
-    it("muestra mensaje de carga", () => {
+    it("shows loading message", () => {
         mockContextValue.loading = true;
         renderComponent();
         expect(screen.getByText("Cargando archivos...")).toBeInTheDocument();
     });
 
-    it("muestra mensaje de error", () => {
+    it("shows error message", () => {
         mockContextValue.error = "Error al cargar archivos";
         renderComponent();
         expect(screen.getByText("Error al cargar archivos")).toBeInTheDocument();

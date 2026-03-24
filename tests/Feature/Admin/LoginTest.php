@@ -61,5 +61,4 @@ test('login requires email and password', function () {
     $response->assertSessionHasErrors(['email', 'password']);
 });
 
-
 ?>

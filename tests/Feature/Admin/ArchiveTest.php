@@ -40,7 +40,6 @@ beforeEach(function () {
     );
     $this->admin->assignRole('Admin');
 
-    // Archived PQR
     $this->archivedPqr1 = PQR::create([
         'sender_name' => 'John Doe',
         'description' => 'Test PQR 1',
@@ -71,7 +70,6 @@ beforeEach(function () {
         'document' => '222'
     ]);
 
-    // Unarchived PQR
     $this->pendingPqr = PQR::create([
         'sender_name' => 'Pending Name',
         'description' => 'Test pending PQR',
@@ -94,12 +92,10 @@ test('Admin can list all archived PQRS regardless of sheet or dependency', funct
     $response->assertStatus(200);
     
     $data = collect($response->json('data'));
-    
-    // Should see both archived PQRs
+
     expect($data->pluck('id'))->toContain($this->archivedPqr1->id);
     expect($data->pluck('id'))->toContain($this->archivedPqr2->id);
-    
-    // Should NOT see pending (unarchived) PQRS
+
     expect($data->pluck('id'))->not->toContain($this->pendingPqr->id);
 });
 

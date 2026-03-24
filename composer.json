@@ -16,6 +16,7 @@
         "laravel/sanctum": "*",
         "laravel/tinker": "^2.10.1",
         "laraveles/spanish": "^1.5",
+        "maatwebsite/excel": "^3.1",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.23",
         "tightenco/ziggy": "^2.0",
@@ -100,3 +101,4 @@
     "minimum-stability": "stable",
     "prefer-stable": true
 }
+

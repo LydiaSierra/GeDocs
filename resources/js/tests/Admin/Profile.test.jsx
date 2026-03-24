@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 window.route = (name) => `/${name}`;
 
 vi.mock('@inertiajs/react', () => ({
@@ -43,7 +42,6 @@ vi.mock('@/Layouts/SettingsLayout', () => ({
     default: ({ children }) => <div data-testid="settings-layout">{children}</div>
 }));
 
-
 describe('Profile and Menu Tests - Admin (Frontend)', () => {
 
     beforeEach(() => {
@@ -57,11 +55,9 @@ describe('Profile and Menu Tests - Admin (Frontend)', () => {
                 <ProfileSettingsPage mustVerifyEmail={false} status={null} />
             </UserContext.Provider>
         );
-        
-        // Admin SHOULD see Delete Account section
+
         expect(screen.getByText('Eliminar Cuenta')).toBeInTheDocument();
-        
-        // Edit sections are visible
+
         expect(screen.getByRole('heading', { name: 'Información de Perfil' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Cambiar Contraseña' })).toBeInTheDocument();
     });
@@ -74,7 +70,6 @@ describe('Profile and Menu Tests - Admin (Frontend)', () => {
             </UserContext.Provider>
         );
 
-        // Can see all management options
         expect(screen.getByText('Instructores')).toBeInTheDocument();
         expect(screen.getByText('Aprendices')).toBeInTheDocument();
         expect(screen.getByText('Fichas')).toBeInTheDocument();

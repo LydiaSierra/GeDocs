@@ -1,8 +1,9 @@
 // InputSearch provides the search input and related controls for filtering files and folders in the archive explorer. It also includes view toggles and quick actions.
-import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon, TableCellsIcon } from "@heroicons/react/24/outline";
 import React from "react";
 import { usePage, router } from "@inertiajs/react";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
+import axios from "axios";
 
 import { toast } from "sonner";
 import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
@@ -10,7 +11,8 @@ import { useExplorerData, useExplorerUI } from "@/Hooks/useExplorer";
 export const InputSearch = ({ handleSearch }) => {
     const { gridView, toggleGridView, showDropFolders, toggleDropFolders, setInputSearchTerm, inputSearchTerm } = useExplorerUI()
     const { currentFolder, activeSheetId, deleteSelection, globalSearch } = useExplorerData();
-    const url = usePage().url;
+    const { url, props } = usePage();
+    const hasExcelPermission = props.auth?.user?.roles?.some(role => role.name === 'Admin' || role.name === 'Instructor');
 
     return (
         <div id="inbox-search" className="flex w-full flex-col md:flex-row justify-between items-center gap-4">
@@ -50,34 +52,34 @@ export const InputSearch = ({ handleSearch }) => {
                     <div className="flex  gap-2">
                         {/* Filter button */}
                         <button
-                            className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300 inline-block  
+                            className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300 inline-block
                             ${showDropFolders
-                                    ? "text-white bg-primary active:bg-primary/50"
-                                    : "bg-base-200  active:bg-gray-300 hover:bg-gray-300"
-                                }`}
+                                ? "text-white bg-primary active:bg-primary/50"
+                                : "bg-base-200  active:bg-gray-300 hover:bg-gray-300"
+                            }`}
                             onClick={toggleDropFolders}
                         >
                             <Bars3Icon
                                 className={`size-7  ${showDropFolders
                                     ? "text-white"
                                     : "text-gray-400"
-                                    }`}
+                                }`}
                             />
                         </button>
 
                         <button
                             className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
                             ${gridView
-                                    ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
-                                    : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
-                                }`}
+                                ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
+                                : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
+                            }`}
                             onClick={toggleGridView}
                         >
                             <Squares2X2Icon
                                 className={`size-7 ${gridView
                                     ? "text-white"
                                     : "text-gray-400"
-                                    }`}
+                                }`}
                             />
                         </button>
                     </div>
@@ -139,6 +141,34 @@ export const InputSearch = ({ handleSearch }) => {
 
                                     Crear PDF
                                 </button>
+
+                                {hasExcelPermission && (
+                                    <button
+                                        className="p-3 flex items-center gap-5 hover:bg-base-300/30 w-full rounded-md border-b border-gray-100"
+                                        onClick={async () => {
+                                            const toastId = toast.loading("Generando Excel...");
+                                            try {
+                                                const response = await axios.get('/api/export', { responseType: 'blob' });
+                                                const fileUrl = window.URL.createObjectURL(new Blob([response.data]));
+                                                const link = document.createElement('a');
+                                                link.href = fileUrl;
+                                                link.setAttribute('download', `pqrs_report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                                                document.body.appendChild(link);
+                                                link.click();
+                                                link.remove();
+                                                toast.dismiss(toastId);
+                                                toast.success("Excel generado exitosamente");
+                                            } catch (error) {
+                                                console.error(error);
+                                                toast.dismiss(toastId);
+                                                toast.error("Error al generar Excel: Válida que poseas permisos y la información exista.");
+                                            }
+                                        }}
+                                    >
+                                        <TableCellsIcon className="size-5" />
+                                        Generar Excel
+                                    </button>
+                                )}
                             </ul>
                         </div>
 
