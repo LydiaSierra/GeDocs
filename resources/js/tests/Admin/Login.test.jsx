@@ -4,10 +4,8 @@ import Login from '@/Pages/Auth/Login';
 import { toast } from 'sonner';
 import { useForm } from '@inertiajs/react';
 
-// Mock de ziggy-js route
 global.route = vi.fn((name) => `/${name}`);
 
-// Mock de sonner
 vi.mock('sonner', () => ({
     toast: {
         error: vi.fn(),
@@ -17,7 +15,6 @@ vi.mock('sonner', () => ({
     }
 }));
 
-// Mock de @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     Head: () => null,
     Link: ({ children }) => <a href="#">{children}</a>,
@@ -28,16 +25,15 @@ vi.mock('@inertiajs/react', () => ({
     }
 }));
 
-// Mock de GuestLayout
 vi.mock('@/Layouts/GuestLayout', () => ({
     default: ({ children }) => <div>{children}</div>
 }));
 
-describe('Pruebas del Frontend de Login', () => {
+describe('Frontend Login Tests', () => {
     let mockData, mockSetData, mockPost, mockReset;
 
     beforeAll(() => {
-        // jsdom/happy-dom no soportan los métodos de dialog por defecto
+        
         HTMLDialogElement.prototype.showModal = vi.fn();
         HTMLDialogElement.prototype.close = vi.fn();
     });
@@ -94,7 +90,7 @@ describe('Pruebas del Frontend de Login', () => {
     });
 
     it('displays backend errors when passed through useForm errors', () => {
-        // Simulamos que el backend ya respondió con errores (el componente los toma de errors)
+        
         useForm.mockReturnValue({
             data: { email: "usuario@test.com", password: "password", remember: false },
             setData: mockSetData,
@@ -118,7 +114,6 @@ describe('Pruebas del Frontend de Login', () => {
         mockData.email = "test@test.com";
         mockData.password = "wrong";
 
-        // Simulamos que al postear, la ruta llama a onError
         mockPost.mockImplementation((url, options) => {
             if (options && options.onError) {
                 options.onError({ email: "error falso" });
@@ -135,9 +130,7 @@ describe('Pruebas del Frontend de Login', () => {
     });
 
     it('triggers the password recovery function and calls password.email', () => {
-        // useForm para el Login form y Modal form es compartido en nuestro Mock básico,
-        // esto está bien para una prueba aislada
-        
+
         render(<Login status="" canResetPassword={true} />);
         
         // Abrir el modal
@@ -156,16 +149,14 @@ describe('Pruebas del Frontend de Login', () => {
         const modalForm = emailInput.closest('form');
         fireEvent.submit(modalForm);
 
-        // Debería postear a la ruta mockeada de password.email, que es /password.email
         expect(mockPost).toHaveBeenCalledWith('/password.email', expect.any(Object));
     });
 
     it('successfully posts to the login route and expects redirect to dashboard (/)', async () => {
-        // Llenamos los datos para un login exitoso
+        
         mockData.email = "admin@test.com";
         mockData.password = "password123";
 
-        // Simulamos el post exitoso
         mockPost.mockImplementation((url, options) => {
             if (options && options.onStart) options.onStart();
             if (options && options.onSuccess) options.onSuccess();
@@ -177,7 +168,6 @@ describe('Pruebas del Frontend de Login', () => {
         const btn = screen.getByRole('button', { name: /Iniciar Sesion/i });
         fireEvent.click(btn);
 
-        // Verificamos que se llame a post con la ruta que el backend redirige a '/'
         expect(mockPost).toHaveBeenCalledWith('/login', expect.any(Object));
     });
 });

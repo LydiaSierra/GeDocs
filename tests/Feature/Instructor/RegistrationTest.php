@@ -1,16 +1,14 @@
 <?php
-// importations
+
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 
-//render of registration
 test('Registration screen can be rendered', function () {
     $response = $this->get('/register');
     $response->assertStatus(200);
 });
 
-//registration of instructor
 test('instructor can register, is left pending and redirected to login', function () {
     Role::firstOrCreate(['name' => 'Instructor']);
     Role::firstOrCreate(['name' => 'Admin']);
@@ -38,8 +36,6 @@ test('instructor can register, is left pending and redirected to login', functio
     $response->assertSessionHas('status', 'Instructor. Tu cuenta sera revisada por el administrador');
 });
 
-
-//notification to admin when an instructor registers
 test('admin receives notification when an instructor registers', function () {
     Notification::fake();
 
@@ -61,7 +57,7 @@ test('admin receives notification when an instructor registers', function () {
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
-    //verify that the admin receives the notification
+    
     Notification::assertSentTo(
         [$admin],
         \App\Notifications\NewUserRegistered::class

@@ -4,10 +4,8 @@ import Register from '@/Pages/Auth/Register';
 import { toast } from 'sonner';
 import { useForm } from '@inertiajs/react';
 
-// Mock de ziggy-js route
 global.route = vi.fn().mockReturnValue('/register');
 
-// Mock de sonner
 vi.mock('sonner', () => ({
     toast: {
         error: vi.fn(),
@@ -16,19 +14,17 @@ vi.mock('sonner', () => ({
     }
 }));
 
-// Mock de @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     Head: () => null,
     Link: ({ children }) => <a href="#">{children}</a>,
     useForm: vi.fn(),
 }));
 
-// Mock de componentes que podrían requerir configuraciones especiales
 vi.mock('@/Layouts/GuestLayout', () => ({
     default: ({ children }) => <div>{children}</div>
 }));
 
-describe('Pruebas del Registro', () => {
+describe('Registration Tests', () => {
     let mockData, mockSetData, mockPost, mockReset;
 
     beforeEach(() => {
@@ -94,8 +90,7 @@ describe('Pruebas del Registro', () => {
         });
 
         render(<Register sheets={mockSheets} />);
-        
-        // No debe aparecer la etiqueta o select de ficha
+
         expect(screen.queryByLabelText(/^Ficha/i)).not.toBeInTheDocument();
     });
     it('throws frontend validation toasts using Sonner when submitted incomplete', () => {
@@ -104,7 +99,6 @@ describe('Pruebas del Registro', () => {
         const btn = screen.getByRole('button', { name: /Registrarse/i });
         fireEvent.click(btn);
 
-        // Como todos los campos están vacíos, falla rápido en el tipo de documento
         expect(toast.error).toHaveBeenCalledWith("Seleccione un tipo de documento");
         expect(mockPost).not.toHaveBeenCalled();
     });
@@ -123,8 +117,7 @@ describe('Pruebas del Registro', () => {
         });
 
         render(<Register sheets={mockSheets} />);
-        
-        // Localizamos que los textos de error existan bajo los inputs
+
         expect(screen.getByText("Este correo electrónico ya está en uso.")).toBeInTheDocument();
         expect(screen.getByText("Este número de documento ya está registrado.")).toBeInTheDocument();
     });

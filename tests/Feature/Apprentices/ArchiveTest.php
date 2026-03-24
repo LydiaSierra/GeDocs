@@ -38,12 +38,11 @@ beforeEach(function () {
             'password' => bcrypt('password123'), 
             'document_type' => 'CC', 
             'document_number' => '777777',
-            'dependency_id' => $this->dependency1->id // Assigned to dependency 1
+            'dependency_id' => $this->dependency1->id 
         ]
     );
     $this->apprentice->assignRole('Aprendiz');
 
-    // Archived PQR belonging to assigned dependency
     $this->archivedPqrAssigned = PQR::create([
         'sender_name' => 'Assigned Sender',
         'description' => 'Belongs to assigned dependency',
@@ -59,7 +58,6 @@ beforeEach(function () {
         'document' => '111'
     ]);
 
-    // Archived PQR belonging to unassigned dependency
     $this->archivedPqrUnassigned = PQR::create([
         'sender_name' => 'Unassigned Sender',
         'description' => 'Does not belong to assigned dependency',
@@ -82,10 +80,8 @@ test('Apprentice can only list archived PQRS of their assigned dependency', func
     $response->assertStatus(200);
     
     $data = collect($response->json('data'));
-    
-    // Should see PQR of assigned dependency
+
     expect($data->pluck('id'))->toContain($this->archivedPqrAssigned->id);
-    
-    // Should NOT see PQR of unassigned dependency
+
     expect($data->pluck('id'))->not->toContain($this->archivedPqrUnassigned->id);
 });

@@ -15,7 +15,6 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
 });
 
-// Helper for testing
 function createAdminUserForDependencyTest()
 {
     $user = User::factory()->create([
@@ -27,7 +26,6 @@ function createAdminUserForDependencyTest()
     return $user;
 }
 
-// --- TEST 1: LISTING DEPENDENCIES ---
 it('allows admin to list dependencies with their sheet numbers', function () {
     $admin = createAdminUserForDependencyTest();
     
@@ -56,7 +54,6 @@ it('allows admin to list dependencies with their sheet numbers', function () {
     ]);
 });
 
-// --- TEST 2: CREATION AND FOLDERS ---
 it('allows admin to create a new dependency and automatically generates its folders', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '333444']);
@@ -75,7 +72,6 @@ it('allows admin to create a new dependency and automatically generates its fold
         'sheet_number_id' => $sheet->id
     ]);
 
-    // Validate current year folder creation
     $currentYear = date('Y');
     $this->assertDatabaseHas('folders', [
         'name' => $currentYear,
@@ -86,7 +82,6 @@ it('allows admin to create a new dependency and automatically generates its fold
 
     $yearFolder = Folder::where('name', $currentYear)->where('sheet_number_id', $sheet->id)->first();
 
-    // Validate specific section folder
     $this->assertDatabaseHas('folders', [
         'name' => 'Recursos Humanos',
         'parent_id' => $yearFolder->id,
@@ -96,7 +91,6 @@ it('allows admin to create a new dependency and automatically generates its fold
     ]);
 });
 
-// --- TEST 3: VALIDATION AND UNIQUENESS ---
 it('prevents creating a dependency with a duplicate name in the same sheet', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '555666']);
@@ -117,7 +111,6 @@ it('prevents creating a dependency with a duplicate name in the same sheet', fun
     $response->assertJsonValidationErrors(['name']);
 });
 
-// --- TEST 4: UPDATE DEPENDENCY ---
 it('allows admin to update a dependency name', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '777888']);
@@ -138,7 +131,6 @@ it('allows admin to update a dependency name', function () {
     ]);
 });
 
-// --- TEST 5: PREVENT RENAMING VENTANILLA UNICA ---
 it('prevents renaming Ventanilla Unica', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '999000']);
@@ -159,7 +151,6 @@ it('prevents renaming Ventanilla Unica', function () {
     ]);
 });
 
-// --- TEST 6: PREVENT DELETING VENTANILLA UNICA ---
 it('prevents deleting Ventanilla Unica', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '111333']);
@@ -177,7 +168,6 @@ it('prevents deleting Ventanilla Unica', function () {
     ]);
 });
 
-// --- TEST 7: DELETE DEPENDENCY ---
 it('allows admin to delete a dependency', function () {
     $admin = createAdminUserForDependencyTest();
     $sheet = Sheet_number::create(['number' => '222444']);
