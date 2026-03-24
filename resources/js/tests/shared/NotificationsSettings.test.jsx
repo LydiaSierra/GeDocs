@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 vi.mock('axios', () => {
     return {
         default: {
@@ -20,7 +19,7 @@ vi.mock('axios', () => {
     };
 });
 
-import api from '@/lib/axios'; // Since NotificationsContext uses api from "@/lib/axios"
+import api from '@/lib/axios'; 
 vi.mock('@/lib/axios', () => {
     return {
         default: {
@@ -68,7 +67,7 @@ const mockNotifications = [
                 status: "active"
             }
         },
-        read_at: new Date().toISOString(), // Leído
+        read_at: new Date().toISOString(), 
         created_at: new Date().toISOString()
     },
     {
@@ -86,7 +85,7 @@ const mockNotifications = [
                 status: "rejected"
             }
         },
-        read_at: null, // Sin leer
+        read_at: null, 
         created_at: new Date().toISOString()
     },
     {
@@ -132,14 +131,14 @@ describe('Notifications Frontend Tests', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // default response for fetch
+        
         api.get.mockResolvedValue({
             data: { success: true, notifications: mockNotifications }
         });
         mockUserRole = 'Admin';
     });
 
-    it('Render complete lists for Admin (Solo ve instructores)', async () => {
+    it('Render complete lists for Admin', async () => {
         mockUserRole = 'Admin';
         renderComponent();
         
@@ -147,20 +146,18 @@ describe('Notifications Frontend Tests', () => {
             expect(screen.getByText('Instructor Activo')).toBeInTheDocument();
             expect(screen.getByText('Instructor Reachazado')).toBeInTheDocument();
         });
-        
-        // Admin shouldn't see Aprendiz
+
         expect(screen.queryByText('Aprendiz Pendiente')).not.toBeInTheDocument();
     });
 
-    it('Render complete lists for Instructor (Solo ve aprendices)', async () => {
+    it('Render complete lists for Instructor', async () => {
         mockUserRole = 'Instructor';
         renderComponent();
         
         await waitFor(() => {
             expect(screen.getByText('Aprendiz Pendiente')).toBeInTheDocument();
         });
-        
-        // Instructor shouldn't see Instructors
+
         expect(screen.queryByText('Instructor Activo')).not.toBeInTheDocument();
     });
 
@@ -169,11 +166,10 @@ describe('Notifications Frontend Tests', () => {
         renderComponent();
         
         await waitFor(() => {
-            // Aceptada
+            
             const spanAceptada = screen.getByText('Aceptada');
             expect(spanAceptada).toHaveClass('bg-green-50 text-green-600');
-            
-            // Rechazada
+
             const spanRechazada = screen.getByText('Rechazada');
             expect(spanRechazada).toHaveClass('bg-red-50 text-red-500');
         });
@@ -182,39 +178,32 @@ describe('Notifications Frontend Tests', () => {
     it('Verify Details Card visibility when notification is clicked', async () => {
         mockUserRole = 'Admin';
         renderComponent();
-        
-        // Esperamos a que cargue
+
         await waitFor(() => expect(screen.getByText('Instructor Reachazado')).toBeInTheDocument());
 
-        // Hacemos click en un item (el Rechazado) id 2 está sin leer, llamará a markAsRead
         api.post.mockResolvedValueOnce({ data: { success: true } });
         
         const listItem = screen.getByText('Instructor Reachazado').closest('li');
         fireEvent.click(listItem);
 
-        // Aparece la tarjeta detallada de Solicitud de Acceso
         await waitFor(() => {
             expect(screen.getByText('Solicitud de Acceso')).toBeInTheDocument();
-            expect(screen.getByText('Usuario rechazado')).toBeInTheDocument(); // detail card rejection text
+            expect(screen.getByText('Usuario rechazado')).toBeInTheDocument(); 
         });
     });
 
     it('Verify Accept functionality triggers PUT endpoint', async () => {
-        mockUserRole = 'Instructor'; // El id 3 es pendiente (Aprendiz)
+        mockUserRole = 'Instructor'; 
         api.put.mockResolvedValueOnce({ data: { success: true } });
         renderComponent();
-        
-        // Esperar fetch
+
         await waitFor(() => expect(screen.getByText('Aprendiz Pendiente')).toBeInTheDocument());
-        
-        // Click en la notificacion de pendiente
-        api.post.mockResolvedValueOnce({ data: { success: true } }); // para mark-as-read
+
+        api.post.mockResolvedValueOnce({ data: { success: true } }); 
         fireEvent.click(screen.getByText('Aprendiz Pendiente').closest('li'));
 
-        // El card se muestra
         await waitFor(() => expect(screen.getByText('Solicitud de Acceso')).toBeInTheDocument());
 
-        // Clic en Aceptar
         const acceptBtn = screen.getByRole('button', { name: /Aceptar/i });
         fireEvent.click(acceptBtn);
 
@@ -224,7 +213,7 @@ describe('Notifications Frontend Tests', () => {
     });
 
     it('Verify Reject functionality triggers DELETE endpoint', async () => {
-        mockUserRole = 'Instructor'; // El id 3 es pendiente
+        mockUserRole = 'Instructor'; 
         api.delete.mockResolvedValueOnce({ data: { success: true } });
         renderComponent();
         
@@ -235,12 +224,11 @@ describe('Notifications Frontend Tests', () => {
 
         await waitFor(() => expect(screen.getByText('Solicitud de Acceso')).toBeInTheDocument());
 
-        // Clic en Rechazar
         const rejectBtn = screen.getByRole('button', { name: /Rechazar/i });
         fireEvent.click(rejectBtn);
 
         await waitFor(() => {
-            // El userId es 12
+            
             expect(api.delete).toHaveBeenCalledWith('/api/users/12');
         });
     });
@@ -253,7 +241,6 @@ describe('Notifications Frontend Tests', () => {
             expect(screen.getByText('Instructor Activo')).toBeInTheDocument();
         });
 
-        // Limpiar mocks para que sea facil contar llamadas
         vi.clearAllMocks();
         api.get.mockResolvedValue({
             data: { success: true, notifications: mockNotifications }

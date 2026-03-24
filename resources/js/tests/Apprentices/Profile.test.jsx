@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 window.route = (name) => `/${name}`;
 
 vi.mock('@inertiajs/react', () => ({
@@ -43,7 +42,6 @@ vi.mock('@/Layouts/SettingsLayout', () => ({
     default: ({ children }) => <div data-testid="settings-layout">{children}</div>
 }));
 
-
 describe('Profile and Menu Tests - Apprentice (Frontend)', () => {
 
     beforeEach(() => {
@@ -57,11 +55,9 @@ describe('Profile and Menu Tests - Apprentice (Frontend)', () => {
                 <ProfileSettingsPage mustVerifyEmail={false} status={null} />
             </UserContext.Provider>
         );
-        
-        // Apprentice SHOULD NOT see Delete Account section
+
         expect(screen.queryByText('Eliminar Cuenta')).not.toBeInTheDocument();
-        
-        // Edit sections are visible
+
         expect(screen.getByRole('heading', { name: 'Información de Perfil' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Cambiar Contraseña' })).toBeInTheDocument();
     });
@@ -74,11 +70,9 @@ describe('Profile and Menu Tests - Apprentice (Frontend)', () => {
             </UserContext.Provider>
         );
 
-        // Can see allowed options
         expect(screen.getByText('Dependencias')).toBeInTheDocument();
         expect(screen.getByText('Informacion de Perfil')).toBeInTheDocument();
 
-        // CANNOT see forbidden management options
         expect(screen.queryByText('Instructores')).not.toBeInTheDocument();
         expect(screen.queryByText('Aprendices')).not.toBeInTheDocument();
         expect(screen.queryByText('Fichas')).not.toBeInTheDocument();

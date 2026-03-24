@@ -8,13 +8,12 @@ use Spatie\Permission\Models\Role;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
-    // Roles
+    
     $roles = ['Admin', 'Instructor', 'Aprendiz', 'Dependencia'];
     foreach ($roles as $role) {
         Role::firstOrCreate(['name' => $role]);
     }
 
-    // Fichas
     $this->sheetAssigned = Sheet_number::create([
         'number' => '123456',
         'start_date' => now()->subMonths(6),
@@ -39,17 +38,14 @@ beforeEach(function () {
     $this->sheetAssigned->update(['ventanilla_unica_id' => $this->dependency->id]);
     $this->sheetUnassigned->update(['ventanilla_unica_id' => $this->dependency->id]);
 
-    // Instructor User
     $this->instructor = User::firstOrCreate(
         ['email' => 'instructor_sent@test.com'],
         ['name' => 'Instructor Sent Test', 'password' => bcrypt('password123'), 'document_type' => 'CC', 'document_number' => '222333']
     );
     $this->instructor->assignRole('Instructor');
-    
-    // Asignar ficha al instructor
+
     $this->instructor->sheetNumbers()->sync([$this->sheetAssigned->id]);
 
-    // PQR en ficha ASIGNADA (Archived = true)
     $this->archivedAssignedPqr = PQR::create([
         'sender_name' => 'Assigned Sender',
         'description' => 'Test PQR Instructor - ASSIGNED ARCHIVED',
@@ -65,7 +61,6 @@ beforeEach(function () {
         'document' => '555'
     ]);
 
-    // PQR en ficha NO ASIGNADA (Archived = true)
     $this->archivedUnassignedPqr = PQR::create([
         'sender_name' => 'Unassigned Sender',
         'description' => 'Test PQR Instructor - UNASSIGNED ARCHIVED',
@@ -87,10 +82,8 @@ test('Instructor can list only archived PQRS corresponding to their assigned she
     
     $response->assertStatus(200);
     $data = collect($response->json('data'));
-    
-    // Verificamos que el Array contiene el PQR de su ficha asignada
+
     expect($data->pluck('id'))->toContain($this->archivedAssignedPqr->id);
-    
-    // NO debe contener el PQR de hojas que no tiene asignadas a su nombre
+
     expect($data->pluck('id'))->not->toContain($this->archivedUnassignedPqr->id);
 });

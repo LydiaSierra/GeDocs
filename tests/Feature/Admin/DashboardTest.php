@@ -30,14 +30,12 @@ beforeEach(function () {
     $this->sheet->ventanilla_unica_id = $this->dependency->id;
     $this->sheet->save();
 
-    // Create Admin
     $this->admin = User::firstOrCreate(
         ['email' => 'admin@test.com'],
         ['name' => 'Admin Test', 'password' => bcrypt('password123'), 'document_type' => 'CC', 'document_number' => '111']
     );
     $this->admin->assignRole('Admin');
 
-    // Create a PQR
     $this->pqr = PQR::create([
         'sender_name' => 'Admin Test Sender',
         'description' => 'Test PQR admin view',

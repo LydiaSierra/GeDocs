@@ -5,7 +5,6 @@ import { UserList } from '@/Components/Users/UserList';
 import { UserContext } from '@/context/UserContext/UserContext';
 import * as InertiaReact from '@inertiajs/react';
 
-// Mock Inertia usePage
 vi.mock('@inertiajs/react', () => ({
     usePage: vi.fn(),
 }));
@@ -49,8 +48,7 @@ describe('InstructorList Component (Frontend)', () => {
         vi.clearAllMocks();
         HTMLDialogElement.prototype.showModal = vi.fn();
         HTMLDialogElement.prototype.close = vi.fn();
-        
-        // Simular que el frontend detecta que estamos en la ruta de instructores
+
         InertiaReact.usePage.mockReturnValue({
             url: "/users/instructor",
             props: { auth: { user: { roles: [{ name: "Admin" }] } } }
@@ -61,7 +59,7 @@ describe('InstructorList Component (Frontend)', () => {
         renderWithContext({
             user: mockUsers,
             loading: false,
-            // UserList setea setContent(Instructor) cuando la URL es /users/instructor
+            
             content: 'Instructor', 
             setContent: mockSetContent,
             fetchUser: mockFetchUser,
@@ -69,20 +67,17 @@ describe('InstructorList Component (Frontend)', () => {
             ShowInformation: mockShowInformation
         });
 
-        // The hook fetchUser should have been called
         expect(mockFetchUser).toHaveBeenCalled();
 
-        // Debería ver al Instructor
         expect(screen.getByText('Instructor Visible')).toBeInTheDocument();
         expect(screen.getByText('987654')).toBeInTheDocument();
         expect(screen.getByText('inst1@test.com')).toBeInTheDocument();
 
-        // NO debería ver al aprendiz, confirmando el filtrado exitoso en el DOM
         expect(screen.queryByText('Apprentice Filtered Out')).not.toBeInTheDocument();
     });
 
     it('shows empty state when no instructors are in the database', () => {
-        // Enviar un user list vacío
+        
         renderWithContext({
             user: [], 
             loading: false,

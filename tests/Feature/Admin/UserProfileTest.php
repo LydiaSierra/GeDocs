@@ -20,7 +20,7 @@ beforeEach(function () {
 });
 
 test('admin can access allowed web routes', function () {
-    // Admin should see Instructors, Apprentices, Sheets, Dependencies
+    
     actingAs($this->admin)->get('/users/instructor')->assertStatus(200);
     actingAs($this->admin)->get('/users/aprendiz')->assertStatus(200);
     actingAs($this->admin)->get('/sheets')->assertStatus(200);
@@ -34,7 +34,7 @@ test('admin can update his own profile details', function () {
     ]);
     
     $response->assertSessionHasNoErrors();
-    $response->assertRedirect('/profile'); // Breeze redirect
+    $response->assertRedirect('/profile'); 
 
     $this->assertDatabaseHas('users', [
         'id' => $this->admin->id,

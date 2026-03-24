@@ -5,7 +5,6 @@ import SheetsSettingsSection from '@/Components/Sheets/SheetsSettingsSection';
 import { SheetsContext } from '@/context/SheetsContext/SheetsContext';
 import api from '@/lib/axios';
 
-// --- MOCKS ---
 vi.mock('@/lib/axios', () => ({
     default: {
         post: vi.fn(),
@@ -14,7 +13,6 @@ vi.mock('@/lib/axios', () => ({
     }
 }));
 
-// Parche global para <dialog> en JSDOM
 beforeAll(() => {
     HTMLDialogElement.prototype.showModal = vi.fn();
     HTMLDialogElement.prototype.close = vi.fn();
@@ -69,15 +67,12 @@ describe('SheetsModule Component Tests', () => {
     it('filters the Sheets table when typing in the search bar', async () => {
         renderWithContext();
 
-        // 3 items loaded initially
         expect(screen.getAllByText('Activa').length).toBeGreaterThan(0);
         expect(screen.getAllByText('Finalizada').length).toBeGreaterThan(0);
 
-        // Search for '200'
         const searchInput = screen.getByPlaceholderText('Buscar por número o estado...');
         fireEvent.change(searchInput, { target: { value: '200' } });
 
-        // '200200' should be visible, others shouldn't
         await waitFor(() => {
             expect(screen.queryByText('100100')).not.toBeInTheDocument();
             expect(screen.getByText('200200')).toBeInTheDocument();
@@ -89,24 +84,20 @@ describe('SheetsModule Component Tests', () => {
         api.post.mockResolvedValueOnce({ data: { id: 99, number: '999999' } });
         renderWithContext();
 
-        // Clic en Nueva ficha
         const createBtn = screen.getByText('Nueva ficha');
         fireEvent.click(createBtn);
 
-        // Se deberia abrir my_modal_2
         expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
 
-        // Rellenar Ficha
         const inputFicha = screen.getByPlaceholderText('Ej: 3002085');
         fireEvent.change(inputFicha, { target: { value: '999999' } });
 
-        // Click Guardar
         const saveBtn = screen.getByText('Guardar');
         fireEvent.click(saveBtn);
 
         await waitFor(() => {
             expect(api.post).toHaveBeenCalledWith('/api/sheets', { number: 999999 });
-            expect(mockFetchSheets).toHaveBeenCalledTimes(2); // 1 on mount + 1 after creation
+            expect(mockFetchSheets).toHaveBeenCalledTimes(2); 
             expect(screen.getByText('Ficha creada con éxito.')).toBeInTheDocument();
         });
     });
@@ -117,7 +108,7 @@ describe('SheetsModule Component Tests', () => {
         openViewModalFromDesktopRow('100100');
 
         await waitFor(() => {
-            expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled(); // my_modal_3
+            expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled(); 
         });
 
         const viewDialog = document.getElementById('my_modal_3');
@@ -162,7 +153,7 @@ describe('SheetsModule Component Tests', () => {
                 state: 'Finalizada'
             });
             expect(screen.getByText('Ficha actualizada correctamente')).toBeInTheDocument();
-            expect(mockFetchSheets).toHaveBeenCalledTimes(2); // Refetch
+            expect(mockFetchSheets).toHaveBeenCalledTimes(2); 
         });
     });
 

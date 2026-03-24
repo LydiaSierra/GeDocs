@@ -5,10 +5,8 @@ import { MailContext } from '@/context/MailContext/MailContext';
 import OutboxSidebar from '@/Components/OutboxSidebar/OutboxSidebar';
 import { MailReader } from '@/Components/MailReader/MailReader';
 
-// Mock de Axios
 vi.mock('axios');
 
-// Mock @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -30,7 +28,6 @@ vi.mock('@inertiajs/react', () => ({
     }
 }));
 
-// Mock Ziggy route helper
 window.route = () => ({
     current: () => 'outbox'
 });
@@ -96,7 +93,7 @@ describe('Outbox (Sent) Tests - Admin Role', () => {
 
     it(' Component SelectDependecyOrNumberSheet renders for Admin in Outbox', () => {
         renderWithMailContext(<OutboxSidebar />);
-        // Buscamos el botón de react-menu
+        
         const buttonElement = screen.getByRole('button', { name: /Ficha y\/o dependencia/i });
         expect(buttonElement).toBeInTheDocument();
     });

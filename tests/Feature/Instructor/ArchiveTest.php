@@ -40,10 +40,8 @@ beforeEach(function () {
     );
     $this->instructor->assignRole('Instructor');
 
-    // Assign instructor to sheet1 ONLY
     $this->instructor->sheetNumbers()->attach($this->sheet1->id);
 
-    // Archived PQR belonging to assigned sheet
     $this->archivedPqrAssigned = PQR::create([
         'sender_name' => 'Assigned Sender',
         'description' => 'Belongs to assigned sheet',
@@ -59,7 +57,6 @@ beforeEach(function () {
         'document' => '111'
     ]);
 
-    // Archived PQR belonging to another sheet
     $this->archivedPqrUnassigned = PQR::create([
         'sender_name' => 'Unassigned Sender',
         'description' => 'Does not belong to assigned sheet',
@@ -82,10 +79,8 @@ test('Instructor can only list archived PQRS of their assigned sheets', function
     $response->assertStatus(200);
     
     $data = collect($response->json('data'));
-    
-    // Should see PQR of assigned sheet
+
     expect($data->pluck('id'))->toContain($this->archivedPqrAssigned->id);
-    
-    // Should NOT see PQR of unassigned sheet
+
     expect($data->pluck('id'))->not->toContain($this->archivedPqrUnassigned->id);
 });

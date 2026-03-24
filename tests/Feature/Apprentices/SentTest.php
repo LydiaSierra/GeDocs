@@ -8,7 +8,7 @@ use Spatie\Permission\Models\Role;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
-    // Configuración Base
+    
     $roles = ['Aprendiz'];
     foreach ($roles as $role) {
         Role::firstOrCreate(['name' => $role]);
@@ -29,14 +29,12 @@ beforeEach(function () {
     
     $this->sheet->update(['ventanilla_unica_id' => $this->dependency->id]);
 
-    // Aprendiz User
     $this->apprentice = User::firstOrCreate(
         ['email' => 'aprendiz_sent@test.com'],
         ['name' => 'Aprendiz Sent Test', 'password' => bcrypt('password123'), 'document_type' => 'CC', 'document_number' => '333444', 'dependency_id' => $this->dependency->id]
     );
     $this->apprentice->assignRole('Aprendiz');
 
-    // Mocks de PQRs "Respondidos" en LA MISMA dependencia del Aprendiz
     $this->archivedOwnDependencyPqr = PQR::create([
         'sender_name' => 'Own Dependency Sender',
         'description' => 'Test PQR Apprentice - ARCHIVED OWN DEP',
@@ -53,24 +51,22 @@ beforeEach(function () {
     ]);
 });
 
-test('Aprendiz only sees archived PQRs of their own dependency via sent module', function () {
+test('Apprentice only sees archived PQRs of their own dependency via sent module', function () {
     $response = actingAs($this->apprentice)->getJson('/api/pqrs?archived=true');
     $response->assertStatus(200);
     
     $data = collect($response->json('data'));
-    
-    // Puede ver el archivado porque pertenece a su dependency_id
+
     expect($data->pluck('id'))->toContain($this->archivedOwnDependencyPqr->id);
 });
 
-test('Aprendiz does not see archived PQRs from other dependencies', function () {
-    // Otra dependencia distinta
+test('Apprentice does not see archived PQRs from other dependencies', function () {
+    
     $otherDependency = Dependency::create([
         'name' => 'Otra Dependencia Aleatoria',
-        'sheet_number_id' => $this->sheet->id // Reusando Ficha
+        'sheet_number_id' => $this->sheet->id 
     ]);
 
-    // PQR Resuelta en ESA otra dependencia
     $archivedOtherDependencyPqr = PQR::create([
         'sender_name' => 'Other Dependency Sender',
         'description' => 'Test PQR Apprentice - ARCHIVED OTHER DEP',
@@ -90,7 +86,6 @@ test('Aprendiz does not see archived PQRs from other dependencies', function () 
     $response->assertStatus(200);
     
     $data = collect($response->json('data'));
-    
-    // NO puede ver el archivado porque el PQR está alojado en $otherDependency->id
+
     expect($data->pluck('id'))->not->toContain($archivedOtherDependencyPqr->id);
 });
