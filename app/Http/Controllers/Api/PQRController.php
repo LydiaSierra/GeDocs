@@ -13,10 +13,15 @@ use App\Mail\PQRResponseMail;
 use App\Models\Dependency;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
 use App\Models\comunication;
 use App\Models\AttachedSupport;
 use App\Models\Sheet_number as SheetNumber;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Folder;
+use App\Models\File;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PQRController extends Controller
 {
@@ -100,8 +105,8 @@ class PQRController extends Controller
         return response()->json([
             'data' => $pqrs,
             'message' => $archived
-            ? 'PQRs archivadas obtenidas exitosamente'
-            : 'PQRs obtenidas exitosamente'
+                ? 'PQRs archivadas obtenidas exitosamente'
+                : 'PQRs obtenidas exitosamente'
         ], 200);
     }
 
@@ -141,8 +146,7 @@ class PQRController extends Controller
 
         if (!empty($validated['dependency_id'])) {
             $targetDependencyId = $validated['dependency_id'];
-        }
-        else {
+        } else {
             $ventanillaUnica = Dependency::find($sheetNumber->ventanilla_unica_id);
             if (!$ventanillaUnica) {
                 return response()->json(['error' => 'Ventanilla única no encontrada'], 404);
@@ -154,7 +158,7 @@ class PQRController extends Controller
 
         if (!empty($validated['response_days']) && empty($validated['response_time'])) {
             $validated['response_time'] = Carbon::now()
-                ->addDays((int)$validated['response_days'])
+                ->addDays((int) $validated['response_days'])
                 ->toDateString();
         }
 
@@ -180,10 +184,10 @@ class PQRController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('pqr_attachments', 'public');
-                $hash = hash('adler32',time());
+                $hash = hash('adler32', time());
                 $pqrID = $pqr->id;
-                if($pqrID<99){
-                    if($pqrID<9){
+                if ($pqrID < 99) {
+                    if ($pqrID < 9) {
                         $pqrID = "00$pqrID";
                     }
                     $pqrID = "0$pqrID";
@@ -195,7 +199,7 @@ class PQRController extends Controller
                     'type' => $file->getClientOriginalExtension(),
                     'size' => $file->getSize(),
                     'origin' => 'REC',
-                    'hash'=>$hash,
+                    'hash' => $hash,
                     'no_radicado' => $pqrID,
                 ]);
             }
@@ -223,7 +227,7 @@ class PQRController extends Controller
             'dependency',
             'attachedSupports', // Soportes generales
             'sheetNumber',
-            'comunications' => function($query) {
+            'comunications' => function ($query) {
                 $query->orderBy('created_at', 'asc')->with('attachedSupports');
             }
         ])->find($id);
@@ -302,7 +306,7 @@ class PQRController extends Controller
         }
 
         if (isset($validated['response_days'])) {
-            $pqr->response_days = (int)$validated['response_days'];
+            $pqr->response_days = (int) $validated['response_days'];
             $pqr->response_time = Carbon::now()
                 ->addDays($pqr->response_days)
                 ->toDateString();
@@ -312,6 +316,10 @@ class PQRController extends Controller
 
         $pqr->fill($validated);
         $pqr->save();
+
+        if (isset($validated['dependency_id'])) {
+            $this->syncPqrReceiptPdf($pqr, $request);
+        }
 
         return response()->json([
             'message' => 'PQR actualizada exitosamente',
@@ -371,12 +379,10 @@ class PQRController extends Controller
                 if ($emailRecipient) {
                     Mail::to($emailRecipient)->send(new PQRResponseMail($pqr, null, null));
                     Log::info('Email enviado exitosamente a: ' . $emailRecipient);
-                }
-                else {
+                } else {
                     //Log::warning('No hay email para enviar la respuesta de PQR ID: ' . $pqr->id);
                 }
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Log::error('Error enviando email: ' . $e->getMessage());
             }
 
@@ -387,8 +393,7 @@ class PQRController extends Controller
                 'response_date' => $pqr->response_date,
             ], 200);
 
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json(['error' => 'Error interno: ' . $e->getMessage()], 500);
         }
     }
@@ -479,8 +484,7 @@ class PQRController extends Controller
                 'message' => 'PQR finalizada y cerrada exitosamente'
             ], 200);
 
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error finalizando PQR: ' . $e->getMessage());
             return response()->json(['error' => 'Error interno del servidor: ' . $e->getMessage()], 500);
@@ -494,9 +498,12 @@ class PQRController extends Controller
      */
     public function getResponseData(string $id): JsonResponse
     {
-        $pqr = PQR::with(['dependency', 'comunications' => function($q) {
-            $q->orderBy('created_at', 'desc');
-        }])->find($id);
+        $pqr = PQR::with([
+            'dependency',
+            'comunications' => function ($q) {
+                $q->orderBy('created_at', 'desc');
+            }
+        ])->find($id);
 
         if (!$pqr) {
             return response()->json(['error' => 'PQR no encontrada'], 404);
@@ -504,11 +511,182 @@ class PQRController extends Controller
 
         return response()->json([
             'data' => [
-                'communication' => $pqr->comunications->first() ?? (object)[],
+                'communication' => $pqr->comunications->first() ?? (object) [],
                 'pqr' => $pqr,
                 'dependency' => $pqr->dependency,
             ],
             'message' => 'Detalles de respuesta obtenidos'
         ]);
+    }
+
+    /**
+     * Sincroniza (crea o mueve/actualiza) el PDF de constancia de recibido de la PQR.
+     */
+    private function syncPqrReceiptPdf(PQR $pqr, Request $request)
+    {
+        try {
+            $pqr->load(['sheetNumber', 'dependency', 'attachedSupports']);
+
+            // 1. Identificar si ya existe un recibo previo
+            $receiptSupport = $pqr->attachedSupports()->where('origin', 'RECIBO')->first();
+            $oldPath = $receiptSupport ? $receiptSupport->path : null;
+
+            // 2. Encontrar la carpeta de la dependencia para el año actual
+            $sheetId = $pqr->sheet_number_id;
+            $currentYear = now()->year;
+
+            $yearFolder = Folder::where('sheet_number_id', $sheetId)
+                ->where('year', $currentYear)
+                ->whereNull('parent_id')
+                ->where('active', true)
+                ->first() ?: Folder::where('sheet_number_id', $sheetId)
+                    ->whereNull('parent_id')
+                    ->where('active', true)
+                    ->latest()
+                    ->first();
+
+            $targetFolder = null;
+            if ($yearFolder && $pqr->dependency) {
+                $targetFolder = Folder::where('parent_id', $yearFolder->id)
+                    ->where('name', $pqr->dependency->name)
+                    ->where('active', true)
+                    ->first() ?: Folder::where('parent_id', $yearFolder->id)
+                        ->where('name', 'ventanilla unica')
+                        ->where('active', true)
+                        ->first();
+            }
+
+            if (!$targetFolder) return;
+
+            $folderPrefix = $targetFolder->getFullHierarchyCode();
+            $year = now()->year;
+            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $fileName = "{$folderPrefix}-REC-{$year}-{$pqrNumber}.pdf";
+            $storagePath = "folders/{$targetFolder->id}/{$fileName}";
+            $absolutePath = storage_path('app/public/' . $storagePath);
+
+            // 3. Preparar datos para el template (siempre refrescar contenido)
+            $attachmentsNames = $pqr->attachedSupports()->where('origin', 'REC')->get()->pluck('name')->implode(', ');
+            
+            $data = [
+                'document_type' => 'carta',
+                'codigo' => "REC-{$pqrNumber}",
+                'lugar' => "Bogotá D.C.",
+                'fecha' => now()->format('d/m/Y'),
+                'tratamiento' => "Ciudadano(a)",
+                'nombres' => $pqr->sender_name,
+                'cargo' => 'Solicitante',
+                'empresa' => 'N/A',
+                'direccion' => $pqr->email ?? 'No proporcionado',
+                'ciudad' => 'N/A',
+                'asunto' => "CONSTANCIA DE RECIBIDO DE PQR - " . strtoupper($pqr->request_type),
+                'saludo' => "Cordial saludo,",
+                'texto' => "Se confirma el recibido satisfactorio de su solicitud con los siguientes detalles:\n\n" .
+                           "Radicado No: " . $pqrNumber . "\n" .
+                           "Tipo de Solicitud: " . $pqr->request_type . "\n" .
+                           "Asunto: " . $pqr->affair . "\n" .
+                           "Asignado a: " . ($pqr->dependency ? $pqr->dependency->name : 'Ventanilla Única') . "\n\n" .
+                           "Descripción: " . $pqr->description . "\n\n" .
+                           "Puede consultar el estado de su solicitud con el número de radicado proporcionado.",
+                'firma_nombres' => 'SISTEMA GEDOCS',
+                'firma_cargo' => 'Gestión Documental',
+                'anexo' => $attachmentsNames ? "Soportes adjuntos: " . $attachmentsNames : "",
+                'pie_pagina' => optional($request->user())->pdf_footer_text ?? "SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y'),
+                'no_radicado' => $pqrNumber,
+                'atendido' => 'Sistema Automático',
+                'hora' => now()->format('H:i:s'),
+                'archivado_en' => $targetFolder->name
+            ];
+
+            $logoDataUri = $this->resolveLogoDataUri($request);
+
+            // Asegurar directorio
+            if (!file_exists(dirname($absolutePath))) {
+                mkdir(dirname($absolutePath), 0755, true);
+            }
+
+            $qrUrl = asset('storage/' . $storagePath);
+            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
+
+            // Generar PDF
+            $pdf = Pdf::loadView('pdf.template', [
+                'data' => $data,
+                'logoDataUri' => $logoDataUri,
+                'qrCodeDataUri' => $qrCodeDataUri,
+            ]);
+            $pdf->setPaper('letter', 'portrait');
+            $pdfContent = $pdf->output();
+
+            // 4. Manejo de archivos (Eliminar antiguo si cambió de ubicación)
+            if ($oldPath && $oldPath !== $storagePath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            Storage::disk('public')->put($storagePath, $pdfContent);
+            $hashString = hash('sha256', $pdfContent);
+
+            // 5. Sincronizar AttachedSupport (origin='RECIBO')
+            $pqr->attachedSupports()->updateOrCreate(
+                ['origin' => 'RECIBO'],
+                [
+                    'name' => 'Constancia de Recibido ' . $pqrNumber,
+                    'path' => $storagePath,
+                    'type' => 'pdf',
+                    'size' => strlen($pdfContent),
+                    'hash' => $hashString,
+                    'no_radicado' => $pqrNumber,
+                ]
+            );
+
+            // 6. Sincronizar File en el Explorer
+            $explorerFile = $oldPath ? File::where('path', $oldPath)->first() : null;
+            
+            if ($explorerFile) {
+                $explorerFile->update([
+                    'folder_id' => $targetFolder->id,
+                    'name' => str_replace('.pdf', '', $fileName) . "-" . substr($hashString, 0, 10),
+                    'path' => $storagePath,
+                    'size' => strlen($pdfContent),
+                    'hash' => $hashString,
+                ]);
+            } else {
+                File::create([
+                    'name' => str_replace('.pdf', '', $fileName) . "-" . substr($hashString, 0, 10),
+                    'path' => $storagePath,
+                    'extension' => 'pdf',
+                    'mime_type' => 'application/pdf',
+                    'size' => strlen($pdfContent),
+                    'active' => true,
+                    'folder_id' => $targetFolder->id,
+                    'file_code' => $pqrNumber,
+                    'hash' => substr($hashString, 0, 10),
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error syncing PQR receipt PDF: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resuelve el Logo de la institución para el PDF.
+     */
+    private function resolveLogoDataUri(Request $request): string
+    {
+        $savedLogoPath = optional($request->user())->pdf_logo_path;
+        if ($savedLogoPath && Storage::disk('public')->exists($savedLogoPath)) {
+            $fullSavedLogoPath = Storage::disk('public')->path($savedLogoPath);
+            $savedMimeType = mime_content_type($fullSavedLogoPath) ?: 'image/png';
+            $savedContent = base64_encode(file_get_contents($fullSavedLogoPath));
+            return "data:{$savedMimeType};base64,{$savedContent}";
+        }
+
+        $defaultLogoPath = public_path('SENA-LOGO.png');
+        if (file_exists($defaultLogoPath)) {
+            $content = base64_encode(file_get_contents($defaultLogoPath));
+            return "data:image/png;base64,{$content}";
+        }
+
+        return "";
     }
 }

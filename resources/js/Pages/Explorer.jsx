@@ -155,7 +155,7 @@ export default function Explorer() {
                             </div>
 
                             {/* RIGHT COLUMN: Years List */}
-                            {(!currentFolder || archivedMode) && (
+                            {(!currentFolder || archivedMode) && !filters?.dependency_id && (
                                 <div className="flex-1 flex flex-col h-full bg-white relative">
                                     {permissionError ? (
                                         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
@@ -166,7 +166,7 @@ export default function Explorer() {
                                             <p className="max-w-xs mt-3 text-sm font-bold text-gray-600 leading-relaxed bg-red-50 px-4 py-2 rounded-xl">
                                                 {permissionError}
                                             </p>
-                                            <button 
+                                            <button
                                                 onClick={handleBackToSheets}
                                                 className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:underline"
                                             >
@@ -354,7 +354,7 @@ export default function Explorer() {
 
 
                             { /* ====== FOLDER EXPLORER VIEW ====== */}
-                            {((currentFolder || filters?.buscador) && !archivedMode) && (
+                            {((currentFolder || filters?.buscador || filters?.dependency_id) && !archivedMode) && (
                                 <div className="min-w-1/2 flex flex-col flex-1 min-h-0 bg-white">
                                     <div className="hidden lg:flex items-center justify-between mb-0 p-4 shrink-0 border-b border-gray-100 sticky top-0 bg-white z-20">
                                         <div className="flex items-center gap-3">

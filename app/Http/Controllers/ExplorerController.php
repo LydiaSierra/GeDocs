@@ -14,6 +14,7 @@ class ExplorerController extends Controller
     {
         $folderId = $request->query('folder_id');
         $sheetId = $request->query('sheet_id');
+        $dependencyId = $request->query('dependency_id');
         $buscador = $request->query('buscador');
         $permissionError = null;
 
@@ -56,7 +57,7 @@ class ExplorerController extends Controller
         }
 
         // Automatic creation of current year folder if at root of a valid sheet
-        if (!$permissionError && $sheetId && !$folderId && !$buscador) {
+        if (!$permissionError && $sheetId && !$folderId && !$buscador && !$dependencyId) {
             $currentYear = date('Y');
             $yearExists = Folder::where('sheet_number_id', $sheetId)
                 ->where('year', $currentYear)
@@ -85,6 +86,26 @@ class ExplorerController extends Controller
                 $filesQuery->whereHas('folder', function ($q) use ($sheetId) {
                     $q->where('sheet_number_id', $sheetId);
                 });
+            }
+        } elseif ($dependencyId) {
+            // Filter by dependency: show active files linked to active PQRs of this dependency
+            $foldersQuery->whereRaw('1 = 0'); // Hide folders
+
+            // Get IDs of active (non-archived) PQRs for this dependency
+            $pqrQuery = \App\Models\PQR::where('dependency_id', $dependencyId)
+                ->where('archived', false);
+            if ($sheetId) {
+                $pqrQuery->where('sheet_number_id', $sheetId);
+            }
+            $pqrIds = $pqrQuery->pluck('id');
+
+            // Zero-pad IDs to match the file_code format (e.g. 1 => "001")
+            $pqrCodes = $pqrIds->map(fn($id) => str_pad((string)$id, 3, '0', STR_PAD_LEFT))->values()->toArray();
+
+            if (empty($pqrCodes)) {
+                $filesQuery->whereRaw('1 = 0');
+            } else {
+                $filesQuery->whereIn('file_code', $pqrCodes);
             }
         } else {
             if ($folderId) {
@@ -155,7 +176,7 @@ class ExplorerController extends Controller
             }),
             "allFolders" => $allFolders->get(),
             "currentFolder" => $currentFolder,
-            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id']),
+            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id', 'dependency_id']),
             "permissionError" => $permissionError
         ]);
     }
