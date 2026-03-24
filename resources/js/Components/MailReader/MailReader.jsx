@@ -48,16 +48,18 @@ export function MailReader() {
     const [responseUrl, setResponseUrl] = useState("");
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
-    const getDeadlineColor = (createdDateStr, responseDateStr) => {
-        if (!createdDateStr || !responseDateStr) return "text-gray-700";
+    const getDeadlineColor = (mail) => {
+        if (!mail.response_time) return "text-gray-700";
         const now = new Date();
-        const created = new Date(createdDateStr);
-        const deadline = new Date(responseDateStr);
-        const totalDuration = deadline.getTime() - created.getTime();
+        const deadline = new Date(mail.response_time);
+        
+        const responseDays = mail.response_days || 15;
+        const totalDuration = responseDays * 24 * 60 * 60 * 1000;
         const timeRemaining = deadline.getTime() - now.getTime();
+        
         const remainingPct = totalDuration > 0 ? (timeRemaining / totalDuration) * 100 : 0;
-        if (remainingPct > 80) return "text-primary";
-        if (remainingPct > 40) return "text-[#F0DA30]";
+        if (remainingPct >= 80) return "text-primary";
+        if (remainingPct > 40 && remainingPct < 80) return "text-[#F0DA30]";
         return "text-red-600";
     };
 
@@ -201,6 +203,10 @@ export function MailReader() {
         );
     }
 
+    const isResponded = currentMail.response_status === "responded" || currentMail.response_status === "closed" || !!currentMail.response_date;
+    const isExpired = currentMail.response_time && !currentMail.response_date && new Date() > new Date(currentMail.response_time);
+    const disableDependencyChange = isResponded || isExpired;
+
     // ─── Render ────────────────────────────────────────────────────────────────
     return (
         <div
@@ -251,12 +257,12 @@ export function MailReader() {
                             ID: {currentMail.id}
                         </span>
                         
-                        {(currentMail.response_status === "responded" ||
+                        {/* {(currentMail.response_status === "responded" ||
                             currentMail.response_status === "closed") && (
                             <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase">
                                     Respondida
                                 </span>
-                        )}
+                        )} */}
                     <span className="text-sm text-gray-400">
                             {new Date(currentMail.created_at).toLocaleDateString()}
                         </span>
@@ -265,11 +271,13 @@ export function MailReader() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                         {/* Assign dependency (Instructor / Admin only) */}
                         {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
-                            <div className="dropdown dropdown-bottom dropdown-end w-full sm:w-auto">
+                            <div className={disableDependencyChange ? "w-full sm:w-auto" : "dropdown dropdown-bottom dropdown-end w-full sm:w-auto"}>
                                 <div
-                                    tabIndex={0}
+                                    tabIndex={disableDependencyChange ? -1 : 0}
                                     role="button"
-                                    className="btn btn-sm btn-outline border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-primary w-full sm:w-auto flex justify-between sm:justify-center px-4"
+                                    className={`btn btn-sm border-gray-200 flex justify-between sm:justify-center px-4 w-full sm:w-auto ${
+                                        disableDependencyChange ? "btn-disabled bg-gray-100 text-gray-400" : "btn-outline text-gray-600 hover:bg-gray-50 hover:text-primary"
+                                    }`}
                                 >
                                     <span className="truncate">
                                         {currentMail.dependency
@@ -280,45 +288,44 @@ export function MailReader() {
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                     </svg>
                                 </div>
-                                <ul
-                                    tabIndex={0}
-                                    className="dropdown-content z-[20] menu p-2 shadow-lg bg-base-100 rounded-box w-full sm:w-64 max-h-60 overflow-y-auto border border-gray-100"
-                                >
-                                    <li className="menu-title">Seleccionar Dependencia</li>
-                                    {relevantDependencies.map((dep) => (
-                                        <li key={dep.id}>
-                                            <a
-                                                className={
-                                                    currentMail.dependency_id === dep.id
-                                                        ? "bg-primary/10 text-primary font-medium"
-                                                        : ""
-                                                }
-                                                onClick={() => handleAssignDependency(dep.id)}
-                                            >
-                                                {dep.name}
-                                            </a>
-                                        </li>
-                                    ))}
-                                </ul>
+                                {!disableDependencyChange && (
+                                    <ul
+                                        tabIndex={0}
+                                        className="dropdown-content z-[20] menu p-2 shadow-lg bg-base-100 rounded-box w-full sm:w-64 max-h-60 overflow-y-auto border border-gray-100"
+                                    >
+                                        <li className="menu-title">Seleccionar Dependencia</li>
+                                        {relevantDependencies.map((dep) => (
+                                            <li key={dep.id}>
+                                                <a
+                                                    className={
+                                                        currentMail.dependency_id === dep.id
+                                                            ? "bg-primary/10 text-primary font-medium"
+                                                            : ""
+                                                    }
+                                                    onClick={() => handleAssignDependency(dep.id)}
+                                                >
+                                                    {dep.name}
+                                                </a>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                         )}
 
                         {/* Deadline */}
                         {currentMail.response_date ? (
-                            <span className="text-sm font-medium text-[#34A853]">
-                                ¡PQR respondida con éxito!
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase">
+                                Respondida
                             </span>
                         ) : currentMail.response_time ? (
                             new Date() > new Date(currentMail.response_time) ? (
-                                <span className="text-sm font-medium text-red-600">
+                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded border border-red-200 uppercase">
                                     Vencida
                                 </span>
                             ) : (
                                 <span
-                            className={`text-sm font-medium ${getDeadlineColor(
-                                    currentMail.created_at,
-                                    currentMail.response_time
-                                )}`}
+                            className={`text-sm font-medium ${getDeadlineColor(currentMail)}`}
                             >
                                     Fecha límite:{" "}
                                 {new Date(currentMail.response_time).toLocaleDateString()}

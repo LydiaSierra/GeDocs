@@ -5,14 +5,14 @@ import { MailContext } from "@/context/MailContext/MailContext";
 export default function InboxMailCard({ card }) {
     const { selectedMail, setSelectedMail } = useContext(MailContext);
 
-    const getDeadlineColor = (createdDateStr, responseDateStr) => {
-        if (!createdDateStr || !responseDateStr) return "text-gray-500";
+    const getDeadlineColor = (mail) => {
+        if (!mail.response_time) return "text-gray-500";
 
         const now = new Date();
-        const created = new Date(createdDateStr);
-        const deadline = new Date(responseDateStr);
+        const deadline = new Date(mail.response_time);
 
-        const totalDuration = deadline.getTime() - created.getTime();
+        const responseDays = mail.response_days || 15;
+        const totalDuration = responseDays * 24 * 60 * 60 * 1000;
         const timeRemaining = deadline.getTime() - now.getTime();
 
         const remainingPercentage = totalDuration > 0
@@ -76,7 +76,7 @@ export default function InboxMailCard({ card }) {
                             new Date() > new Date(card.response_time) ? (
                                 <div className="font-medium text-red-600">Vencida</div>
                             ) : (
-                                <div className={`font-medium ${getDeadlineColor(card.created_at, card.response_time)}`}>
+                                <div className={`font-medium ${getDeadlineColor(card)}`}>
                                     {new Date(card.response_time).toLocaleDateString()}
                                 </div>
                             )
