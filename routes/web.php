@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExplorerController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PdfController;
 use App\Http\Controllers\ProfileController;
@@ -74,7 +75,7 @@ Route::middleware('auth')->group(function () {
 
 
     //VISTA DE EXPLORADOR
-    Route::get('/explorer', [FolderController::class, 'explorer'])
+    Route::get('/explorer', [ExplorerController::class, 'index'])
         ->name('explorer');
 
     Route::post('/folders', [FolderController::class, 'store'])
@@ -88,6 +89,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/folders/file/download/{file}', [FolderController::class, 'download'])
         ->name('folders.download');
+
+    Route::put('/files/{fileId}', [FolderController::class, 'updateFile'])
+        ->name('files.update');
 
     Route::post('/folders/delete-mixed', [FolderController::class, 'deleteMixed'])
         ->name('folders.deleteMixed');

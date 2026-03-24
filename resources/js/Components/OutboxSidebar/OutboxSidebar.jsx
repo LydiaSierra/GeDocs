@@ -91,15 +91,17 @@ export default function OutboxSidebar() {
                         ))}
                     </div>
                 </div>
-                <div className="flex justify-between p-2 items-center">
+                <div className="flex flex-wrap gap-2 justify-between p-2 lg:px-0 items-center">
                     <h5
                         id="inbox-date"
-                        className="text-start px-2 my-4 font-bold capitalize"
+                        className="text-start px-2 my-2 lg:my-4 font-bold capitalize whitespace-nowrap text-sm xs:text-base"
                     >
                         {currentMonthYear}
                     </h5>
                     
-                    <SelectDependecyOrNumberSheet />
+                    <div className="flex flex-1 justify-end min-w-[140px]">
+                        <SelectDependecyOrNumberSheet />
+                    </div>
                 </div>
             </div>
 

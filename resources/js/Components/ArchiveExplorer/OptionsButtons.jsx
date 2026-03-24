@@ -1,10 +1,6 @@
-// OptionsButtons contains reusable button components for common actions (delete, edit, download, details) used throughout the archive explorer UI.
-import { useExplorerData } from "@/Hooks/useExplorer"
+import { useExplorerData, getSelectedItem } from "@/Hooks/useExplorer"
 import { ArrowDownTrayIcon, InformationCircleIcon, PencilSquareIcon, TrashIcon, ArrowsRightLeftIcon } from "@heroicons/react/24/outline"
 import { toast } from "sonner"
-
-
-
 
 export const DeleteButtonOption = ({ showText = true }) => {
     return (
@@ -16,22 +12,33 @@ export const DeleteButtonOption = ({ showText = true }) => {
         </li>
     )
 }
+
 export const EditButtonOption = ({ showText = true }) => {
-    const { selectedItems, setSelectedItems, folders } = useExplorerData()
+    const { selectedItems } = useExplorerData();
+    const item = getSelectedItem();
+
+    // Only allow editing for folders or files that explicitly allow it (SUB nomenclature)
+    const canEdit = item?.type === 'folder' || item?.can_edit_name;
+
+    if (selectedItems.length === 1 && !canEdit) return null;
 
     return (
-        <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Mover a la papelera">
+        <li className={`${showText ? "" : "tooltip tooltip-bottom"}`} data-tip="Editar">
             <button
                 onClick={() => {
                     if (selectedItems.length !== 1) {
-                        toast.warning('Selecciona solo una carpeta para editar');
+                        toast.warning('Selecciona solo un elemento para editar');
                         return;
                     }
 
-                    document.getElementById('createFolder').showModal();
+                    if (item?.type === 'folder') {
+                        document.getElementById('createFolder').showModal();
+                    } else {
+                        document.getElementById('modalEditFile').showModal();
+                    }
                 }
                 }
-                className={`${selectedItems?.length !== 1 ? "opacity-50 pointer-events-none" : "opacity-100 active:bg-red-300"} ${showText ? "flex w-full items-center gap-2 p-3 border-b border-base-300 rounded-md" : "inline-block p-1  rounded-full "} hover:bg-base-300 transition-colors cursor-pointer`}
+                className={`${selectedItems?.length !== 1 ? "opacity-50 pointer-events-none" : "opacity-100 active:bg-base-300"} ${showText ? "flex w-full items-center gap-2 p-3 border-b border-base-300 rounded-md" : "inline-block p-1  rounded-full "} hover:bg-base-300 transition-colors cursor-pointer`}
             >
                 <PencilSquareIcon className="w-5 h-5 text-gray-600" />
                 {showText && "Editar"}

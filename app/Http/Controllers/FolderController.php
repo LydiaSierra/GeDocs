@@ -29,6 +29,7 @@ use App\Models\Folder;
  * Represents the "files" table and its relationships.
  */
 use App\Models\File;
+use App\Models\Sheet_number;
 
 /**
  * Storage facade.
@@ -66,95 +67,7 @@ class FolderController extends Controller
      * - Ordered by newest first
      */
 
-    public function explorer(Request $request)
-    {
-        $folderId = $request->query('folder_id');
-        $sheetId = $request->query('sheet_id');
-        $buscador = $request->query('buscador');
-
-        $foldersQuery = Folder::where("active", true);
-        $allFolders = Folder::where("active", true)->get();
-
-        // Global Search
-        if ($buscador) {
-            $folders = Folder::where('active', true)
-                ->where('name', 'LIKE', "%{$buscador}%")
-                ->get();
-
-            $files = File::where('active', true)
-                ->where('name', 'LIKE', "%{$buscador}%")
-                ->get()
-                ->map(fn($file) => [
-                    "id" => $file->id,
-                    "name" => $file->name,
-                    "extension" => $file->extension,
-                    "size" => $file->size,
-                    "url" => asset("storage/" . $file->path),
-                    "folder_id" => $file->folder_id,
-                    "created_at" => $file->created_at,
-                    "updated_at" => $file->updated_at,
-                ]);
-
-            return Inertia::render('Explorer', [
-                "folders" => $folders,
-                "files" => $files,
-                "allFolders" => $allFolders,
-                "currentFolder" => null,
-                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-            ]);
-        }
-
-        if ($sheetId) {
-            $foldersQuery->where('sheet_number_id', $sheetId);
-        }
-
-        if ($folderId) {
-            $folder = Folder::where('id', $folderId)
-                ->where('active', true)
-                ->firstOrFail();
-
-            $folders = $folder->children()
-                ->where("active", true)
-                ->get();
-
-            $files = $folder->files()
-                ->where("active", true)
-                ->get()
-                ->map(function ($file) {
-                    return [
-                        "id" => $file->id,
-                        "name" => $file->name,
-                        "extension" => $file->extension,
-                        "size" => $file->size,
-                        "url" => asset("storage/" . $file->path),
-                        "folder_id" => $file->folder_id,
-                        "created_at" => $file->created_at,
-                        "updated_at" => $file->updated_at,
-                    ];
-                });
-
-            return Inertia::render('Explorer', [
-                "folders" => $folders,
-                "files" => $files,
-                "allFolders" => $allFolders,
-                "currentFolder" => $folder,
-                "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-            ]);
-        }
-
-        $folders = $foldersQuery
-            ->whereNull("parent_id")
-            ->get();
-
-        return Inertia::render('Explorer', [
-            "folders" => $folders,
-            "files" => [],
-            "allFolders" => $allFolders,
-            "currentFolder" => null,
-            "filters" => $request->only(['buscador', 'folder_id', 'sheet_id'])
-        ]);
-    }
-
+  
 
 
 
@@ -246,18 +159,34 @@ class FolderController extends Controller
                 return back()->withErrors(['files' => 'No files provided']);
             }
 
+            // Build folder prefix (hierarchical codes)
+            $folderCodes = [];
+            $tempFolder = $folder;
+            while ($tempFolder) {
+                $folderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $folderPrefix = implode('-', array_reverse($folderCodes));
+
             /**
              * Loop through each uploaded file
              * and store it individually.
              */
             foreach ($request->file('files') as $file) {
-
                 // Used to build a standardized file name
                 $fileYear = date("Y");
-                $folderCode = $folder->folder_code ?? "000";
+                $originalName = $file->getClientOriginalName();
 
-                // New file name format
-                $newName = "{$fileYear}-Ex-{$folderCode}-{$file->getClientOriginalName()}";
+                // Generate sequence (max of all files)
+                $maxCode = (int) \App\Models\File::max('file_code');
+                $sequence = str_pad($maxCode + 1, 3, "0", STR_PAD_LEFT);
+
+                // Generate hash following REAL file content
+                $hash = hash_file('sha256', $file->getRealPath());
+                $shortHash = substr($hash, 0, 10);
+
+                // New file name format including sequence and short hash
+                $newName = "{$folderPrefix}-SUB-{$fileYear}-{$sequence}-{$shortHash}-{$originalName}";
 
                 // Store file in public disk
                 $path = $file->storeAs("folders/{$folderId}", $newName, 'public');
@@ -271,8 +200,9 @@ class FolderController extends Controller
                     "size" => $file->getSize(),
                     "folder_id" => $folderId,
                     "active" => true,
+                    "file_code" => $sequence,
+                    "hash" => $hash,
                 ]);
-
 
                 // Prepare response data
                 $uploadedFiles[] = [
@@ -286,8 +216,9 @@ class FolderController extends Controller
                     "created_at" => $newFile->created_at,
                     "updated_at" => $newFile->updated_at,
                     "url" => asset("storage/" . $newFile->path),
+                    "file_code" => $newFile->file_code,
+                    "hash" => $newFile->hash,
                 ];
-
             }
 
             return back();
@@ -399,17 +330,39 @@ class FolderController extends Controller
         }
 
         if (!empty($fileIds)) {
+            // Build target folder prefix (hierarchical codes)
+            $targetFolderCodes = [];
+            $tempFolder = $targetFolder;
+            while ($tempFolder) {
+                $targetFolderCodes[] = $tempFolder->folder_code ?? '000';
+                $tempFolder = $tempFolder->parent;
+            }
+            $targetFolderPrefix = implode('-', array_reverse($targetFolderCodes));
+
             $files = File::whereIn('id', $fileIds)->get();
             foreach ($files as $file) {
-                $parts = explode('-', $file->name, 4);
-                if (count($parts) >= 4 && is_numeric($parts[0]) && $parts[1] === 'Ex') {
-                    $originalName = $parts[3];
-                } else {
-                    $originalName = $file->name;
+                $originalName = $file->name;
+
+                // Try to extract original name from new format (PREFIX-SUB-YEAR-SEQUENCE-HASH-ORIGINALNAME)
+                if (strpos($file->name, '-SUB-') !== false) {
+                    $parts = explode('-SUB-', $file->name, 2);
+                    if (count($parts) === 2) {
+                        $afterSub = explode('-', $parts[1], 4); // [YEAR, SEQUENCE, HASH, ORIGINALNAME]
+                        if (count($afterSub) === 4) {
+                            $originalName = $afterSub[3];
+                        }
+                    }
+                } 
+                // Try to extract from old format (YEAR-Ex-CODE-ORIGINALNAME)
+                else {
+                    $parts = explode('-', $file->name, 4);
+                    if (count($parts) >= 4 && is_numeric($parts[0]) && $parts[1] === 'Ex') {
+                        $originalName = $parts[3];
+                    }
                 }
 
                 $fileYear = $file->created_at->format('Y');
-                $newName = "{$fileYear}-Ex-{$targetFolderCode}-{$originalName}";
+                $newName = "{$targetFolderPrefix}-SUB-{$fileYear}-{$file->file_code}-" . substr($file->hash, 0, 10) . "-{$originalName}";
 
                 $oldPath = $file->path;
                 $newPath = "folders/{$targetFolderId}/{$newName}";
@@ -703,5 +656,68 @@ class FolderController extends Controller
             ->get();
 
         return response()->json($folders);
+    }
+
+    /**
+     * Update file metadata (specifically the name).
+     */
+    public function updateFile(Request $request, $fileId)
+    {
+        $file = File::findOrFail($fileId);
+
+        $validated = $request->validate([
+            "name" => "required|string",
+        ]);
+
+        $pureName = $validated['name'];
+
+        // Extract parts from current name: {prefix}-SUB-{year}-{fileCode}-{hash}-{originalName}
+        $currentName = $file->name;
+        if (!str_contains($currentName, '-SUB-')) {
+             return back()->withErrors(['name' => 'Este archivo no usa la nomenclatura estandar y no se puede editar de esta manera.']);
+        }
+
+        $parts = explode('-SUB-', $currentName);
+        $prefix = $parts[0];
+        $suffix = $parts[1];
+        $suffixParts = explode('-', $suffix, 4);
+
+        if (count($suffixParts) < 4) {
+             return back()->withErrors(['name' => 'Nomenclatura corrupta.']);
+        }
+
+        // $oldYear = $suffixParts[0];
+        $fileCode = $suffixParts[1];
+        $hash = $suffixParts[2];
+        // $oldPureName = $suffixParts[3];
+
+        // Ensure extension
+        $extension = $file->extension;
+        if (!str_ends_with($pureName, '.' . $extension)) {
+            $pureName .= '.' . $extension;
+        }
+
+        // Reconstruct name: PREFIX-SUB-YEAR-FILECODE-HASH-PURENAME
+        $newName = "{$prefix}-SUB{$file->year}-{$fileCode}-{$hash}-{$pureName}";
+        
+        if ($file->name !== $newName) {
+            $oldPath = $file->path;
+            $newPath = "folders/{$file->folder_id}/{$newName}";
+
+            if (Storage::disk('public')->exists($oldPath)) {
+                // Ensure no collision
+                if (Storage::disk('public')->exists($newPath)) {
+                    return back()->withErrors(['name' => 'Ya existe un archivo con ese nombre en esta carpeta.']);
+                }
+                Storage::disk('public')->move($oldPath, $newPath);
+            }
+
+            $file->update([
+                'name' => $newName,
+                'path' => $newPath
+            ]);
+        }
+
+        return back();
     }
 }

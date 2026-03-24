@@ -1,0 +1,91 @@
+<?php
+
+use App\Models\User;
+use App\Models\PQR;
+use App\Models\Dependency;
+use App\Models\Sheet_number;
+use Spatie\Permission\Models\Role;
+use function Pest\Laravel\actingAs;
+
+beforeEach(function () {
+    $roles = ['Admin', 'Instructor', 'Aprendiz', 'Dependencia'];
+    foreach ($roles as $role) {
+        Role::firstOrCreate(['name' => $role]);
+    }
+
+    $this->sheet1 = Sheet_number::create([
+        'number' => '111111',
+        'start_date' => now()->subMonths(6),
+        'end_date' => now()->addMonths(6),
+        'state' => 'Activa',
+        'ventanilla_unica_id' => 1
+    ]);
+
+    $this->dependency1 = Dependency::create([
+        'name' => 'Dep 1',
+        'sheet_number_id' => $this->sheet1->id
+    ]);
+
+    $this->dependency2 = Dependency::create([
+        'name' => 'Dep 2',
+        'sheet_number_id' => $this->sheet1->id
+    ]);
+
+    $this->apprentice = User::firstOrCreate(
+        ['email' => 'apprentice_archive@test.com'],
+        [
+            'name' => 'Apprentice Archive', 
+            'password' => bcrypt('password123'), 
+            'document_type' => 'CC', 
+            'document_number' => '777777',
+            'dependency_id' => $this->dependency1->id // Assigned to dependency 1
+        ]
+    );
+    $this->apprentice->assignRole('Aprendiz');
+
+    // Archived PQR belonging to assigned dependency
+    $this->archivedPqrAssigned = PQR::create([
+        'sender_name' => 'Assigned Sender',
+        'description' => 'Belongs to assigned dependency',
+        'affair' => 'Assigned Dep',
+        'request_type' => 'Peticion',
+        'state' => true,
+        'archived' => true,
+        'user_id' => $this->apprentice->id,
+        'dependency_id' => $this->dependency1->id,
+        'sheet_number_id' => $this->sheet1->id,
+        'response_status' => 'responded',
+        'document_type' => 'CC',
+        'document' => '111'
+    ]);
+
+    // Archived PQR belonging to unassigned dependency
+    $this->archivedPqrUnassigned = PQR::create([
+        'sender_name' => 'Unassigned Sender',
+        'description' => 'Does not belong to assigned dependency',
+        'affair' => 'Unassigned Dep',
+        'request_type' => 'Peticion',
+        'state' => true,
+        'archived' => true,
+        'user_id' => $this->apprentice->id,
+        'dependency_id' => $this->dependency2->id,
+        'sheet_number_id' => $this->sheet1->id,
+        'response_status' => 'responded',
+        'document_type' => 'CC',
+        'document' => '222'
+    ]);
+});
+
+test('Apprentice can only list archived PQRS of their assigned dependency', function () {
+    $response = actingAs($this->apprentice)->getJson('/api/pqrs?archived=true');
+    
+    $response->assertStatus(200);
+    
+    $data = collect($response->json('data'));
+    
+    // Should see PQR of assigned dependency
+    expect($data->pluck('id'))->toContain($this->archivedPqrAssigned->id);
+    
+    // Should NOT see PQR of unassigned dependency
+    expect($data->pluck('id'))->not->toContain($this->archivedPqrUnassigned->id);
+});

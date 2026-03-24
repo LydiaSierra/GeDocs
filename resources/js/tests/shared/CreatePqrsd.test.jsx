@@ -60,7 +60,7 @@ describe('Form.jsx - Frontend Validations and Toast Tests', () => {
     it('limit the types of files that can be uploaded in frontend', async () => {
         render(<Form />);
         
-        const fileInput = screen.getByLabelText(/Adjuntar Soportes/i).nextElementSibling; // El input file invisible al lado
+        const fileInput = document.querySelector('input[type="file"]');
         expect(fileInput).toHaveAttribute('type', 'file');
         
         // En una plantilla óptima debería tener la limitación 'accept'

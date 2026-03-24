@@ -126,7 +126,7 @@ export default function SheetsTable({ sheets = [] }) {
                                 </td>
                             </tr>
                         ) : (
-                            sheets.map((item) => (
+                            sheets.map((item, index) => (
                                 <tr
                                     key={item.id}
                                     onClick={(event) => handleRowClick(event, item)}
@@ -162,7 +162,7 @@ export default function SheetsTable({ sheets = [] }) {
                                         </span>
                                     </td>
                                     <td className="py-4 px-4 text-right" data-row-action="true">
-                                        <div className="dropdown dropdown-end" data-row-action="true">
+                                        <div className={`dropdown dropdown-end ${index >= sheets.length - 2 && sheets.length > 2 ? 'dropdown-top' : ''}`} data-row-action="true">
                                             <div
                                                 tabIndex={0}
                                                 role="button"

@@ -1,4 +1,5 @@
 import { InputSearch } from "@/Components/ArchiveExplorer/InputSearch";
+import EmptyState from "@/Components/EmptyState";
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/Layouts/DashboardLayout";
 import ContainerFolders from "@/Components/ArchiveExplorer/ContainerFolders";
@@ -13,6 +14,7 @@ import ModalCreateYear from "@/Components/ArchiveExplorer/Modals/ModalCreateYear
 import ModalEditYear from "@/Components/ArchiveExplorer/Modals/ModalEditYear";
 import DependencyScheme from "@/Components/DependencyScheme/DependencyScheme";
 import DropdownFolders from "@/Components/ArchiveExplorer/DropdownFolders";
+import ModalEditFile from "@/Components/ArchiveExplorer/Modals/ModalEditFile";
 
 export default function Explorer() {
     const {
@@ -38,7 +40,7 @@ export default function Explorer() {
     } = useExplorerData();
     const [editingYear, setEditingYear] = useState(null);
     const [showPdfToast, setShowPdfToast] = useState(false);
-    const { sheets, filters, auth } = usePage().props;
+    const { sheets, filters, auth, permissionError } = usePage().props;
 
     const handleSelectSheet = (sheetId) => {
         setActiveSheetId(sheetId);
@@ -103,7 +105,7 @@ export default function Explorer() {
                         <div className="w-8" /> {/* Spacer for centering */}
                     </div>
 
-                    {((!filters?.buscador) || archivedMode) && (
+                    {(
                         /* ====== DUAL COLUMN SELECTION VIEW ====== */
                         <div className="flex flex-col lg:flex-row flex-1 min-h-0 border border-gray-100 lg:rounded-3xl bg-white lg:shadow-xl overflow-hidden lg:mx-4 lg:mb-4 relative">
                             {/* LEFT COLUMN: Sheets (Fichas) List */}
@@ -154,8 +156,25 @@ export default function Explorer() {
 
                             {/* RIGHT COLUMN: Years List */}
                             {(!currentFolder || archivedMode) && (
-                                <div className={`flex-1 flex-col min-h-0 bg-white relative ${!activeSheetId ? 'hidden lg:flex' : 'flex'}`}>
-                                    {!activeSheetId ? (
+                                <div className="flex-1 flex flex-col h-full bg-white relative">
+                                    {permissionError ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
+                                            <div className="size-20 bg-red-50 rounded-3xl shadow-soft flex items-center justify-center mb-6 animate-float">
+                                                <ExclamationTriangleIcon className="size-10 text-red-500" />
+                                            </div>
+                                            <h4 className="font-black text-xl text-red-600 uppercase tracking-widest">Error de Acceso</h4>
+                                            <p className="max-w-xs mt-3 text-sm font-bold text-gray-600 leading-relaxed bg-red-50 px-4 py-2 rounded-xl">
+                                                {permissionError}
+                                            </p>
+                                            <button 
+                                                onClick={handleBackToSheets}
+                                                className="mt-6 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary hover:underline"
+                                            >
+                                                <ArrowLeftCircleIcon className="size-5" />
+                                                Volver a la selección
+                                            </button>
+                                        </div>
+                                    ) : !activeSheetId ? (
                                         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-12 text-center bg-gray-50/20">
                                             <div className="size-20 bg-white/80 rounded-3xl shadow-soft flex items-center justify-center mb-6 animate-float">
                                                 <FolderIcon className="size-10 text-gray-200" />
@@ -224,15 +243,13 @@ export default function Explorer() {
                                                                             <FolderIcon className="size-8 text-amber-400 shrink-0" />
                                                                             <span className="font-bold text-sm truncate">{folder.name}</span>
                                                                         </div>
-                                                                        {auth.user.roles[0] === 'admin' && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
-                                                                                className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors"
-                                                                                title="Restaurar"
-                                                                            >
-                                                                                <ArrowPathIcon className="size-5" />
-                                                                            </button>
-                                                                        )}
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); setSelectedItems([{ id: folder.id, type: 'folder' }]); restoreSelection(); }}
+                                                                            className="p-2 hover:bg-green-50 text-green-600 rounded-xl transition-colors lg:tooltip lg:tooltip-top"
+                                                                            data-tip="Restaurar"
+                                                                        >
+                                                                            <ArrowPathIcon className="size-5" />
+                                                                        </button>
                                                                     </div>
                                                                 ))}
                                                                 {archivedFiles.map(file => (
@@ -261,13 +278,13 @@ export default function Explorer() {
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <div className="grid grid-cols-2 sm:flex gap-4 lg:gap-6 pb-32">
+                                                    <div className="grid grid-cols-2 lg:flex flex-wrap gap-4 lg:gap-6 pb-32">
                                                         {folders.filter(f => !f.parent_id && (f.year || !isNaN(f.name))).map((yearFolder) => (
-                                                            <div key={yearFolder.id} className="relative">
-                                                                <button
-                                                                    onClick={() => openFolder(yearFolder.id, true)}
-                                                                    className="w-full flex flex-col items-center justify-center gap-4 p-10 rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] relative transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2"
-                                                                >
+                                                            <div key={yearFolder.id} className="relative p-10 px-14 flex flex-col items-center justify-center gap-4  rounded-3xl border-2 border-gray-100 bg-white hover:border-primary hover:bg-primary/[0.02] transition-all duration-500 shadow-sm hover:shadow-2xl hover:-translate-y-2"
+                                                                onClick={() => openFolder(yearFolder.id, true)}
+
+                                                            >
+                                                                <button>
                                                                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-all duration-500 transform group-hover:scale-150 group-hover:rotate-12">
                                                                         <CalendarIcon className="size-16 text-primary" />
                                                                     </div>
@@ -337,12 +354,16 @@ export default function Explorer() {
 
 
                             { /* ====== FOLDER EXPLORER VIEW ====== */}
-                            {currentFolder && !archivedMode && (
-                                <div className="flex flex-col flex-1 min-h-0 bg-white">
+                            {((currentFolder || filters?.buscador) && !archivedMode) && (
+                                <div className="min-w-1/2 flex flex-col flex-1 min-h-0 bg-white">
                                     <div className="hidden lg:flex items-center justify-between mb-0 p-4 shrink-0 border-b border-gray-100 sticky top-0 bg-white z-20">
                                         <div className="flex items-center gap-3">
                                             <button
-                                                onClick={handleBackToSheets}
+                                                onClick={() => {
+                                                    localStorage.removeItem("folder_id");
+                                                    fetchFolders(null, activeSheetId);
+                                                    setHistoryStack([]);
+                                                }}
                                                 className="flex items-center py-1.5 px-3 rounded-xl gap-2 text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-primary hover:bg-primary/5 transition-all group"
                                             >
                                                 <ArrowLeftCircleIcon className="size-5 transition-transform group-hover:-translate-x-1" />
@@ -374,12 +395,12 @@ export default function Explorer() {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 flex flex-col min-h-0 bg-white overflow-y-auto overflow-x-hidden custom-scrollbar relative">
+                                    <div className="flex-1 overflow-y-auto flex flex-col min-h-0 bg-white overflow-x-hidden custom-scrollbar relative">
                                         <div className="px-4 lg:px-6 pt-4 pb-2 shrink-0">
                                             <InputSearch />
                                         </div>
 
-                                        <div className="bg-white overflow-hidden pb-10 flex-1">
+                                        <div className="bg-white overflow-hidden pb-10 flex-1 overflow-y-auto">
                                             <ContainerFolders />
                                         </div>
                                     </div>
@@ -463,6 +484,7 @@ export default function Explorer() {
                     <ModalCreateOrEditFolder />
                     <ModalCreateYear />
                     <ModalEditYear yearData={editingYear} />
+                    <ModalEditFile />
 
 
                 </div>

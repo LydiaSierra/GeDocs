@@ -95,6 +95,7 @@ const UploadModal = () => {
                             document.getElementById('uploadFile').close();
                             setSelectedFiles([])
                             seterror("");
+                            setIsLoading(false);
                         }}
                     >
                         Cancelar
@@ -112,6 +113,7 @@ const UploadModal = () => {
                                     document.getElementById('uploadFile').close();
                                     setSelectedFiles([]);
                                     seterror("");
+                                    setIsLoading(false);
                                 } catch (err) {
                                     seterror(err.message || "Error al subir los archivos");
                                     setIsLoading(false);

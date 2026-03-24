@@ -43,9 +43,7 @@ const MenuOptions = () => {
                     <DetailsButtonOption />
                     {canEdit &&
                         <>
-                            {!selectedItem?.extension &&
-                                <EditButtonOption />
-                            }
+                            <EditButtonOption />
                             <MoveButtonOption />
 
                             <DeleteButtonOption />
