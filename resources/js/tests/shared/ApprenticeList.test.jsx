@@ -5,13 +5,11 @@ import { UserList } from '@/Components/Users/UserList';
 import { UserContext } from '@/context/UserContext/UserContext';
 import * as InertiaReact from '@inertiajs/react';
 
-// Mock Inertia usePage
 vi.mock('@inertiajs/react', () => ({
     usePage: vi.fn(),
     Link: ({ children }) => <div>{children}</div>,
 }));
 
-// Mock ResizeObserver for HeadlessUI/Dialogs if needed
 global.ResizeObserver = class ResizeObserver {
     observe() {}
     unobserve() {}
@@ -84,22 +82,19 @@ describe('UserList Component', () => {
             isSearching: false,
         });
 
-        // The hook fetchUser should have been called
         expect(mockFetchUser).toHaveBeenCalled();
 
-        // Should see the apprentice
         expect(screen.getByText('Apprentice One')).toBeInTheDocument();
         expect(screen.getByText('123456')).toBeInTheDocument();
         expect(screen.getByText('app1@test.com')).toBeInTheDocument();
 
-        // Should NOT see the instructor (since the filter is roles.name === content)
         expect(screen.queryByText('Instructor One')).not.toBeInTheDocument();
     });
 
     it('renders search results correctly', () => {
         renderWithContext({
             user: mockUsers,
-            filteredUser: [mockUsers[0]], // Simulating search found the apprentice
+            filteredUser: [mockUsers[0]], 
             loading: false,
             isSearching: true,
             loadingSearch: false,
@@ -114,7 +109,7 @@ describe('UserList Component', () => {
     it('shows empty state when no users are found during search', () => {
         renderWithContext({
             user: mockUsers,
-            filteredUser: [], // Empty search results
+            filteredUser: [], 
             loading: false,
             isSearching: true,
             loadingSearch: false,

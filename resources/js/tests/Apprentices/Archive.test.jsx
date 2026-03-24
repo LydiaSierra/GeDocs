@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 vi.mock('axios');
 vi.mock('@/lib/axios', () => ({
     default: { get: vi.fn() }
@@ -59,10 +58,8 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
 
-        // Apprentice SHOULD NOT see the select button
         expect(screen.queryByText('Ficha y/o dependencia')).not.toBeInTheDocument();
-        
-        // Check rows
+
         expect(screen.getByText('Pedro Apprentice')).toBeInTheDocument();
     });
 
@@ -73,11 +70,9 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
 
-        // Click the row
         const row = screen.getByText('Petición Archivada Aprendiz').closest('tr');
         fireEvent.click(row);
 
-        // Modal should appear
         expect(screen.getByText('PQR #103')).toBeInTheDocument();
         expect(screen.getByText('Desc Aprendiz')).toBeInTheDocument();
     });
@@ -89,10 +84,8 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
 
-        // Click row
         fireEvent.click(screen.getByText('Petición Archivada Aprendiz').closest('tr'));
 
-        // Click Desarchivar
         const unarchiveBtn = screen.getByRole('button', { name: /Desarchivar/i });
         fireEvent.click(unarchiveBtn);
 

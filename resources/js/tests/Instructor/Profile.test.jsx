@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 window.route = (name) => `/${name}`;
 
 vi.mock('@inertiajs/react', () => ({
@@ -43,7 +42,6 @@ vi.mock('@/Layouts/SettingsLayout', () => ({
     default: ({ children }) => <div data-testid="settings-layout">{children}</div>
 }));
 
-
 describe('Profile and Menu Tests - Instructor (Frontend)', () => {
 
     beforeEach(() => {
@@ -57,11 +55,9 @@ describe('Profile and Menu Tests - Instructor (Frontend)', () => {
                 <ProfileSettingsPage mustVerifyEmail={false} status={null} />
             </UserContext.Provider>
         );
-        
-        // Instructor SHOULD NOT see Delete Account section
+
         expect(screen.queryByText('Eliminar Cuenta')).not.toBeInTheDocument();
-        
-        // Edit sections are visible
+
         expect(screen.getByRole('heading', { name: 'Información de Perfil' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Cambiar Contraseña' })).toBeInTheDocument();
     });
@@ -74,15 +70,12 @@ describe('Profile and Menu Tests - Instructor (Frontend)', () => {
             </UserContext.Provider>
         );
 
-        // Can see allowed options
         expect(screen.getByText('Aprendices')).toBeInTheDocument();
-        
-        // As requested by the user, Instructor CANNOT see Sheets (Fichas). 
+
         expect(screen.queryByText('Fichas')).not.toBeInTheDocument();
 
         expect(screen.getByText('Dependencias')).toBeInTheDocument();
 
-        // CANNOT see forbidden options
         expect(screen.queryByText('Instructores')).not.toBeInTheDocument();
     });
 });

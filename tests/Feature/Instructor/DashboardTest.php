@@ -34,7 +34,6 @@ beforeEach(function () {
     $this->instructor->assignRole('Instructor');
     $this->instructor->sheetNumbers()->attach($this->sheetAssigned->id);
 
-    // PQR associated with assigned sheet
     $this->pqrAssigned = PQR::create([
         'sender_name' => 'Sender 1',
         'description' => 'Test PQR assigned',
@@ -50,7 +49,6 @@ beforeEach(function () {
         'document' => '555'
     ]);
 
-    // PQR associated with unassigned sheet
     $this->pqrNotAssigned = PQR::create([
         'sender_name' => 'Sender 2',
         'description' => 'Test PQR not assigned',

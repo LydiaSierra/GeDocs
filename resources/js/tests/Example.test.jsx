@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
-describe('Ejemplo de Test Frontend', () => {
-    it('debería funcionar vitest correctamente', () => {
+describe('Frontend Test Example', () => {
+    it('vitest should work correctly', () => {
         expect(1 + 1).toBe(2);
     });
 
-    it('debería poder renderizar un componente simple', () => {
+    it('should be able to render a simple component', () => {
         render(<div>Hola Mundo</div>);
         expect(screen.getByText('Hola Mundo')).toBeInTheDocument();
     });

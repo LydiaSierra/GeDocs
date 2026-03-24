@@ -5,15 +5,12 @@ import { MailContext } from '@/context/MailContext/MailContext';
 import InboxSidebar from '@/Components/InboxSidebar/InboxSidebar';
 import { MailReader } from '@/Components/MailReader/MailReader';
 
-// Mock de Axios
 vi.mock('axios');
 
-// Mock Ziggy route helper
 window.route = () => ({
     current: () => 'inbox'
 });
 
-// Mock de @inertiajs/react con Rol Aprendiz
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -32,7 +29,6 @@ vi.mock('@inertiajs/react', () => ({
     }
 }));
 
-// Datos de prueba limitados a lo que un Aprendiz puede ver
 const mockMailCards = [
     {
         id: 301,
@@ -89,7 +85,7 @@ describe('Dashboard Inbox Tests - Apprentice Role', () => {
         );
 
         expect(screen.getByText('Bandeja de Entrada')).toBeInTheDocument();
-        // Muestra la PQRS correspondiente al aprendiz
+        
         expect(screen.getByText('Petición Aprendiz')).toBeInTheDocument();
     });
 
@@ -98,8 +94,7 @@ describe('Dashboard Inbox Tests - Apprentice Role', () => {
             <MailReader />,
             { selectedMail: 301 } 
         );
-        // The Apprentice should not see the "Seleccionar Dependencia" title or "Asignar Dependencia" option.
-        // En MailReader.jsx: `{(isInstructor || isAdmin) && relevantDependencies.length > 0 && ...}`
+
         const menuTitle = screen.queryByText('Seleccionar Dependencia');
         expect(menuTitle).toBeNull();
         
