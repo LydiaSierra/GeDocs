@@ -18,6 +18,8 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
 - [Herramientas de desarrollo (DevDependencies)](#herramientas-de-desarrollo)
 -[Scripts principales](#scripts-principales)
 
+
+
 - [ROLES](#roles)
   - [Crear Rol](#crear-rol)
   - [Asignar un rol](#asignar-un-rol)
@@ -36,24 +38,24 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
   - [Restringir por permiso](#restringir-por-permiso)
   - [Obtener rol del usuario autenticado](#obtener-rol-del-usuario-autenticado)
 - [NOTIFICACIONES](#notificaciones)
-  - [Crear una notificación](#crear-una-notificacion)
-  - [Ejemplo básico](#ejemplo-basico)
+  - [Crear una notificación](#crear-una-notificación)
+  - [Ejemplo básico](#ejemplo-básico)
   - [Ver notificaciones de un usuario](#ver-notificaciones-de-un-usuario)
-  - [Solo las no leídas](#solo-las-no-leidas)
-  - [Marcar una específica](#marcar-una-especifica)
+  - [Solo las no leídas](#solo-las-no-leídas)
+  - [Marcar una específica](#marcar-una-específica)
   - [Marcar todas](#marcar-todas)
-  - [Eliminar una notificación](#eliminar-una-notificacion)
+  - [Eliminar una notificación](#eliminar-una-notificación)
   - [Enviar notificaciones a varios usuarios](#enviar-notificaciones-a-varios-usuarios)
-  - [Enviar a una colección](#enviar-a-una-coleccion)
+  - [Enviar a una colección](#enviar-a-una-colección)
 - [API ENDPOINTS](#api-endpoints)
   - [API DE USUARIOS](#api-de-usuarios)
   - [API DE ARCHIVOS Y CARPETAS (GeDocs)](#api-de-archivos-y-carpetas-gedocs)
   - [API DE FICHAS](#api-de-fichas)
   - [API DE PQRs](#api-de-pqrs)
   - [COMUNICACIONES](#comunicaciones)
-  - [GENERACIÓN DE PDF](#generacion-de-pdf)
-  - [GENERACIÓN DE QR](#generacion-de-qr)
-  - [API DE NOTIFICACIONES](#api-de-notificaciones-1)
+  - [GENERACIÓN DE PDF](#generación-de-pdf)
+  - [GENERACIÓN DE QR](#generación-de-qr)
+  - [API DE NOTIFICACIONES](#api-de-notificaciones)
   - [Reglas importantes de notificaciones](#reglas-importantes-de-notificaciones)
   - [Mensajes de Error Comunes](#mensajes-de-error-comunes)
 ---
@@ -77,10 +79,12 @@ Sugerencias (PQRS) de manera centralizada, segura y trazable.
 
 ## Backend
 • Laravel (PHP >= 8.1)
+
 ## Frontend
 • Inertia.js
 • React
 • Vite
+
 ## Otros
 • MySQL
 
@@ -160,6 +164,7 @@ Aplicación disponible en:
 http://localhost:8000
 
 # Estructura del proyecto
+```
 
 app/
 ├── Http/                                # Capa de entrada HTTP
@@ -231,7 +236,7 @@ routes/                                # Definición de rutas
 tests/                                 # Pruebas automatizadas
 │
 vendor/                                # Dependencias PHP (Composer)
-
+```
 
 # Comandos útiles
 
