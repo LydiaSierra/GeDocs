@@ -4,20 +4,19 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
 
 ## Índice de contenido
 
-- [Descripción del proyecto](#descripción-del-proyecto)
-- [Características principales](#características-principales)
-- [Arquitectura y tecnologías](#arquitectura-y-tecnologías)
+- [Características principales](#caracteristicas-principales)
+- [Arquitectura y tecnologías](#arquitectura-y-tecnologias)
 - [Requisitos previos](#requisitos-previos)
-- [Instalación](#instalación)
-- [Configuración del entorno](#configuración-del-entorno)
-- [Ejecución del proyecto](#ejecución-del-proyecto)
+- [Instalación](#instalacion)
+- [Configuración del entorno](#configuracion-del-entorno)
+- [Ejecución del proyecto](#ejecucion-del-proyecto)
 - [Estructura del proyecto](#estructura-del-proyecto)
-- [Comandos útiles](#comandos-útiles)
+- [Comandos útiles](#comandos-utiles)
 - [Problemas comunes](#problemas-comunes)
-- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Tecnologías utilizadas](#tecnologias-utilizadas)
 - [Herramientas de desarrollo (DevDependencies)](#herramientas-de-desarrollo-devdependencies)
 - [Scripts principales](#scripts-principales)
-- [Api EndPoints](#api-endpoints)
+- [Api EndPoints](#api-endpoints))
 
 ---
 
