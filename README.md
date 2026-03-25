@@ -4,6 +4,19 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
 
 
 ## Índice de contenido
+- [Descripción del proyecto](#descripción-del-proyecto)
+- [Características principales](#características-principales)
+- [Arquitectura y tecnologías](#arquitectura-y-tecnologías)
+- [Requisitos previos](#requisitos-previos)
+- [Instalación](#instalación)
+- [Configuración del entorno](#configuración-del-entorno)
+- [Ejecución del proyecto](#ejecución-del-proyecto)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Comandos útiles](#comandos-útiles)
+- [Problemas comunes](#problemas-comunes)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Herramientas de desarrollo (DevDependencies)](#herramientas-de-desarrollo)
+-[Scripts principales](#scripts-principales)
 
 - [ROLES](#roles)
   - [Crear Rol](#crear-rol)
@@ -44,6 +57,248 @@ Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarr
   - [Reglas importantes de notificaciones](#reglas-importantes-de-notificaciones)
   - [Mensajes de Error Comunes](#mensajes-de-error-comunes)
 ---
+
+
+# Descripción del proyecto
+
+El Sistema de Gestión Documental con PQRS es una plataforma web diseñada para
+administrar documentos institucionales y gestionar Peticiones, Quejas, Reclamos y
+Sugerencias (PQRS) de manera centralizada, segura y trazable.
+
+# Características principales
+
+• Gestión de documentos digitales.
+• Registro y seguimiento de PQRS.
+• Notificaciones internas.
+• Control de acceso por roles y  permisos.
+• Interfaz moderna con React.
+
+# Arquitectura y tecnologías
+
+## Backend
+• Laravel (PHP >= 8.1)
+## Frontend
+• Inertia.js
+• React
+• Vite
+## Otros
+• MySQL
+
+# Requisitos previos
+
+Asegúrese de tener instalado lo siguiente:
+• PHP >= 8.1
+• Composer >= 2.x
+• Node.js >= 18.x
+• npm >= 9.x
+• Git
+• MySQL >= 8.x 
+
+# Instalación
+
+## 1. Clonar el repositorio
+```
+git clone https://github.com/LydiaSierra/GeDocs.git
+cd GecDosc
+```
+## 2. Instalar dependencias backend
+
+composer install
+
+## 3. Instalar dependencias frontend
+
+npm install
+
+## 4. Instalar paquetes backend
+```
+composer require spatie/laravel-permission
+```
+```
+php artisan vendor:publish --
+provider="Spatie\\Permission\\PermissionServiceProvider"
+```
+```
+composer require barryvdh/laravel-dompdf
+```
+```
+php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
+```
+
+# Configuración del entorno
+
+## 1. Variables de entorno
+
+cp .env.example .env
+
+Cree el archivo .env en la raiz del proyecto.
+
+Copie todo del .env.example y peguelo en el .env creado
+
+## 2. Generar clave de la aplicación
+
+php artisan key:generate
+
+## 3. Migraciones y seeders
+```
+php artisan migrate
+```
+```
+php artisan db:seed
+```
+
+## 4. Enlace de almacenamiento
+```
+php artisan storage:link
+```
+
+# Ejecución del proyecto
+
+```
+composer run dev
+```
+Aplicación disponible en:
+http://localhost:8000
+
+# Estructura del proyecto
+
+app/
+├── Http/                                # Capa de entrada HTTP
+│ ├── Controllers/                       # Controladores de la aplicación
+│ │ ├── Api/                             # Controladores API (JSON)
+│ │ │ └── AuthController.php             # Autenticación vía API
+│ │ │
+│ │ ├── Controller.php                   # Controlador base
+│ │ ├── DependencyController.php         # Gestión de dependencias
+│ │ ├── ExplorerController.php           # Render de vista Explorer
+│ │ ├── FolderController.php             # Gestión de carpetas documentales
+│ │ ├── NotificationController.php       # Notificaciones del sistema
+│ │ ├── PdfController.php                # Generación de documentos PDF
+│ │ ├── ProfileController.php            # Perfil de usuario
+│ │ ├── SheetController.php              # Gestión de fichas
+│ │ └── UserController.php               # Gestión de usuarios
+│ │
+│ ├── Middleware/                        # Middlewares HTTP
+│ │ └── HandleInertiaRequests.php        # Middleware Inertia
+│ │
+│ ├── Requests/                          # Form Requests (validaciones)
+│ └── Resources/                         # API Resources (transformación de datos)
+│
+├── Models/                              # Modelos Eloquent
+│ ├── User.php # Modelo de usuario
+│ └── ...                                # Otros modelos del dominio
+│
+├── Notifications/                       # Notificaciones (mail, database, etc.)
+├── Providers/                           # Service Providers
+│ └── AppServiceProvider.php             # Configuración global
+│
+├── Policies/                            # Políticas de autorización
+│
+config/                                  # Archivos de configuración
+├── auth.php
+├── database.php
+├── services.php
+└── ...
+│
+database/                               # Persistencia
+├── factories/                          # Factories para testing
+├── migrations/                         # Migraciones de base de datos
+└── seeders/                            # Seeders
+│
+lang/                                   # Traducciones
+├── es/
+└── en/
+│
+public/                                # Archivos públicos
+│
+resources/                             # Frontend (Inertia + React)
+├── js/
+│ ├── Components/                      # Componentes reutilizables
+│ ├── Context/                         # Contextos globales
+│ ├── Layouts/                         # Layouts de la aplicación
+│ ├── Pages/                           # Páginas Inertia
+│ ├── lib/
+│ │ └── axios.js                       # Configuración global de Axios
+│ ├── app.jsx                          # Punto de entrada React
+│ └── bootstrap.js                     # Inicialización frontend
+│
+├── views/
+│ └── app.blade.php                    # Vista base Inertia
+│
+routes/                                # Definición de rutas
+├── web.php                            # Rutas web (Inertia)
+└── api.php                            # Rutas API
+│
+tests/                                 # Pruebas automatizadas
+│
+vendor/                                # Dependencias PHP (Composer)
+
+
+# Comandos útiles
+
+```
+php artisan optimize:clear
+php artisan migrate:fresh --seed
+npm run build
+```
+
+# Problemas comunes
+
+• Pantalla en blanco: verificar que npm run dev esté activo
+• Error de permisos: revisar carpetas storage y bootstrap/cache
+• Error de Vite: limpiar cache y reinstalar dependencias.
+
+# Tecnologías utilizadas
+
+## BACKEND
+- PHP 8.2 Lenguaje backend
+- Laravel 12.x Framework backend
+- Inertia Laravel 2.0 Integración SPA sin API REST
+- Laravel Sanctum * Autenticación
+- Spatie Laravel Permission 6.23 Roles y permisos
+- Laravel DOMPDF 3.1 Generación de documentos PDF
+- Tighten Ziggy 2.0 Rutas de Laravel en frontend
+- Laravel Spanish 1.5 Traducciones al español
+
+## FRONTEND
+
+- React 18.2 Librería UI
+- React DOM 18.2 Renderizado en navegador
+- Inertia.js 0.11.1 Navegación SPA
+- Vite 7.0.7 Bundler y servidor de desarrollo
+- Tailwind CSS 4.1.16 Estilos utilitarios
+- DaisyUI 5.3.10 Componentes UI
+- Headless UI 2.0 Componentes accesibles
+- Heroicons 2.2 Íconos SVG
+- Axios 1.13.2 Cliente HTTP
+- Sonner 2.0.7 Notificaciones (toasts)
+
+# Herramientas de desarrollo
+
+## FRONTEND
+
+- Laravel Vite Plugin 2.0 Integración Vite con Laravel
+- Vite React Plugin 4.2 Soporte React en Vite
+- PostCSS 8.4 Procesamiento CSS
+- Tailwind Forms 0.5 Estilos para formularios
+- Concurrently 9.0 Ejecutar procesos en paralelo
+
+## BACKEND
+
+- Laravel Breeze 2.3 Autenticación base
+- Laravel Sail 1.41 Entorno Docker
+- Laravel Pint 1.24 Formateador de código
+- Pest PHP 3.8 Testing
+- Faker PHP 1.23 Datos de prueba
+- Collision 8.6 Manejo de errores en consola
+
+# Scripts principales
+
+- npm run dev (Ejecuta Vite en modo desarrollo)
+- npm run build (Compila assets para producción)
+- composer setup (Instalación completa del proyecto)
+- composer dev (Backend + colas + frontend en paralelo)
+- composer test (Ejecuta pruebas automatizadas)
+
 
 # ROLES
 
