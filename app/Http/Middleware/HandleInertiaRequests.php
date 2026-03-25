@@ -34,7 +34,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user() ? $request->user()->load("roles") : [],
+                'user' => $request->user() ? $request->user()->load(["roles", 'sheetNumbers' => function ($q) {
+                    $q->active();
+                }]) : [],
             ],
             "notifications" => $request->user() ? $request->user()->notifications : null,
             'flash' => fn() => [
@@ -45,12 +47,12 @@ class HandleInertiaRequests extends Middleware
             "sheets" => $request->user()
                 ? (
                     $request->user()->hasRole("Instructor") || $request->user()->hasRole("Aprendiz")
-                    ? $request->user()->sheetNumbers()->with("dependencies")->get()
-                    : Sheet_number::with("dependencies")->get()
+                    ? $request->user()->sheetNumbers()->active()->with("dependencies")->get()
+                    : Sheet_number::active()->with("dependencies")->get()
                 )
                 : [],
 
-            "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers->pluck('id'))->get() : Dependency::all()) : [],
+            "dependencies" => $request->user() ? ($request->user()->hasRole("Instructor") ? Dependency::whereIn('sheet_number_id', $request->user()->sheetNumbers()->active()->pluck('sheet_numbers.id'))->get() : Dependency::all()) : [],
         ];
     }
 }

@@ -140,9 +140,9 @@ class PQRController extends Controller
             ], 422);
         }
 
-        $sheetNumber = SheetNumber::where('number', $validated['number'])->first();
+        $sheetNumber = SheetNumber::active()->where('number', $validated['number'])->first();
         if (!$sheetNumber) {
-            return response()->json(['error' => 'Ficha técnica no encontrada'], 404);
+            return response()->json(['error' => 'Ficha técnica no encontrada o no se encuentra activa'], 404);
         }
 
 
@@ -697,6 +697,7 @@ class PQRController extends Controller
             $content = base64_encode(file_get_contents($defaultLogoPath));
             return "data:image/png;base64,{$content}";
         }
+        return "";
     }
 
     /**

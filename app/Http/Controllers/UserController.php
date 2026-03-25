@@ -17,7 +17,9 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $authUser = $request->user();
-        $query = User::with('roles', "sheetNumbers");
+        $query = User::with(['roles', 'sheetNumbers' => function ($q) {
+            $q->active();
+        }]);
         if ($authUser->hasRole("Instructor")) {
             $sheetIds = $authUser->sheetNumbers()->pluck('sheet_numbers.id')->toArray();
             $query->whereHas('sheetNumbers', function ($q) use ($sheetIds) {
@@ -57,7 +59,9 @@ class UserController extends Controller
         $user = User::create($validate);
         $user->assignRole($validate["role"]);
         $user->load('roles');
-        $user->load('sheetNumbers');
+        $user->load(['roles', 'sheetNumbers' => function ($q) {
+            $q->active();
+        }]);
         return response()->json(['success' => true, 'message' => 'Usuario creado correctamente', 'data' => $user]);
     }
 
@@ -68,9 +72,13 @@ class UserController extends Controller
     {
         $authUser = $request->user();
         if (!$authUser->hasRole("Admin") && !$authUser->hasRole("Aprendiz")) {
-            $user = User::role("Aprendiz")->with('roles', "sheetNumbers")->find($id);
+            $user = User::role("Aprendiz")->with(['roles', 'sheetNumbers' => function ($q) {
+                $q->active();
+            }])->find($id);
         } else {
-            $user = User::with('roles', "sheetNumbers")->find($id);
+            $user = User::with(['roles', 'sheetNumbers' => function ($q) {
+                $q->active();
+            }])->find($id);
         }
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Usuario no encontrado'], 404);
@@ -84,7 +92,9 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $authUser = $request->user();
-        $user = User::with('sheetNumbers')->find($id);
+        $user = User::with(['sheetNumbers' => function ($q) {
+            $q->active();
+        }])->find($id);
         if (!$user) {
             return redirect()->back()->with(['success' => false, 'message' => 'Usuario no encontrado']);
         }
@@ -124,7 +134,9 @@ class UserController extends Controller
             }
             $user->sheetNumbers()->sync($validate['sheet_numbers']);
         }
-        $user->load('roles', 'sheetNumbers', 'dependency');
+        $user->load(['roles', 'sheetNumbers' => function ($q) {
+            $q->active();
+        }, 'dependency']);
         return response()->json(['success' => true, 'message' => 'Usuario actualizado correctamente', 'data' => $user]);
     }
 
@@ -139,7 +151,9 @@ class UserController extends Controller
                 return redirect()->back()->with(['success' => false, 'message' => "Filtro '$key' no está permitido"]);
             }
         }
-        $query = User::with('roles', "sheetNumbers");
+        $query = User::with(['roles', 'sheetNumbers' => function ($q) {
+            $q->active();
+        }]);
         foreach ($request->query() as $key => $value) {
             $query->where($key, "LIKE", "%{$value}%");
         }

@@ -15,7 +15,7 @@ class SheetUserController extends Controller
         $user = $request->user();
         $sheets_id = null;
         if($user && $user->hasRole('Instructor')){
-            $sheets_id = $user->sheetNumbers;
+            $sheets_id = $user->sheetNumbers()->active()->get();
         }
         if (!$sheets_id) {
             return response()->json(['success' => false, 'message' => 'El usuario no tiene fichas asignadas'], 404);

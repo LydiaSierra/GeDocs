@@ -18,7 +18,10 @@ class Sheet_number extends Model
         "state"
     ];
 
-    //
+    public function scopeActive($query)
+    {
+        return $query->whereNotIn('state', ['Cancelada', 'Finalizada']);
+    }
 
     public function users()
     {
