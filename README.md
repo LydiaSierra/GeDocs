@@ -2,7 +2,6 @@
 
 Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarrollado con Laravel, Inertia.js, React.
 
-## Índice de contenido
 
 ## Índice de contenido
 
