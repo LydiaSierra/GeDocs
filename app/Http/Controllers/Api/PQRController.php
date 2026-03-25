@@ -22,6 +22,8 @@ use App\Models\Folder;
 use App\Models\File;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use setasign\Fpdi\Fpdi;
+
 
 class PQRController extends Controller
 {
@@ -184,7 +186,15 @@ class PQRController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
                 $path = $file->store('pqr_attachments', 'public');
+
+                // Si es un PDF, generamos la carátula con QR y lo guardamos en el explorador
+                if ($file->getClientOriginalExtension() === 'pdf') {
+                    $this->mergeCoverPageWithQr($path, $pqr);
+                    $this->saveAttachmentToExplorer($path, $pqr, $file->getClientOriginalName());
+                }
+
                 $hash = hash('adler32', time());
+
                 $pqrID = $pqr->id;
                 if ($pqrID < 99) {
                     if ($pqrID < 9) {
@@ -197,11 +207,12 @@ class PQRController extends Controller
                     'name' => $file->getClientOriginalName(),
                     'path' => $path,
                     'type' => $file->getClientOriginalExtension(),
-                    'size' => $file->getSize(),
+                    'size' => Storage::disk('public')->size($path), // Usamos el tamaño final (post-QR)
                     'origin' => 'REC',
                     'hash' => $hash,
                     'no_radicado' => $pqrID,
                 ]);
+
             }
         }
 
@@ -686,7 +697,206 @@ class PQRController extends Controller
             $content = base64_encode(file_get_contents($defaultLogoPath));
             return "data:image/png;base64,{$content}";
         }
+    }
 
-        return "";
+    /**
+     * Crea una página con el QR e información de radicado
+     */
+    private function mergeCoverPageWithQr(string $path, PQR $pqr)
+    {
+        try {
+            $absolutePath = Storage::disk('public')->path($path);
+            if (!file_exists($absolutePath)) return;
+
+            $qrUrl = asset('storage/' . $path);
+            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $requestType = strtoupper($pqr->request_type);
+            $loadDate = now()->format('d/m/Y H:i:s');
+
+            // 1. Generar la página de radicado con DomPDF (formato SVG)
+            
+            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(150)->margin(0)->generate($qrUrl));
+
+            $html = "
+            <html>
+            <head>
+                <style>
+                    @page { margin: 0; }
+                    body { font-family: 'Helvetica', 'Arial', sans-serif; margin: 0; padding: 0px; color: #1a1a1a; }
+                    .header-box { 
+                        width: 100%; 
+                        padding: 20px; 
+                        box-sizing: border-box; 
+                    }
+                    .qr-container { 
+                        display: inline-block; 
+                        width: 100px; 
+                        vertical-align: middle; 
+                    }
+                    .details-container { 
+                        display: inline-block; 
+                        vertical-align: middle; 
+                        margin-left: 15px;
+                        font-size: 8pt;
+                    }
+                    .detail-item { margin: 2px 0; }
+                    .bold { font-weight: bold; }
+                    .image-qr { width: 90px; height: 90px; }
+                </style>
+            </head>
+            <body>
+                <div class='header-box'>
+                    <div class='qr-container'>
+                        <img src='$qrCodeDataUri' class='image-qr'>
+                    </div>
+                    <div class='details-container'>
+                        <div class='detail-item'><span class='bold'>Radicado No.</span> $pqrNumber</div>
+                        <div class='detail-item'><span class='bold'>Tipo de Solicitud:</span> $requestType</div>
+                        <div class='detail-item'><span class='bold'>Fecha y Hora de Carga:</span> $loadDate</div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+
+            $pdfCover = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('letter', 'portrait');
+            $coverContent = $pdfCover->output();
+            
+            $tempCoverPath = storage_path('app/temp_cover_' . uniqid() . '.pdf');
+            file_put_contents($tempCoverPath, $coverContent);
+
+            // 2. Fusionar Original + qr
+            $oMerger = \Webklex\PDFMerger\Facades\PDFMergerFacade::init();
+            $oMerger->addPDF($absolutePath, 'all');
+            $oMerger->addPDF($tempCoverPath, 'all');
+            $oMerger->merge();
+            
+            // Sobrescribir el original
+            $oMerger->save($absolutePath);
+
+            // Limpiar temporal
+            if (file_exists($tempCoverPath)) unlink($tempCoverPath);
+
+        } catch (\Exception $e) {
+            Log::error('Error al generar carátula minimalista con QR: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Genera un QR en formato PNG 
+     */
+    private function generateQrPngUsingGd($url)
+    {
+        try {
+            // Generamos SVG base 1:1 para obtener la matriz de puntos
+            $svg = QrCode::format('svg')->size(1)->margin(0)->generate($url);
+            
+            if (!preg_match('/viewBox="0 0 (\d+) \d+"/', $svg, $vb)) return null;
+            $res = (int)$vb[1]; // Resolución del QR (ej: 21 para version 1)
+            
+            // Crear imagen GD
+            $imgSize = $res * 10; // Escalamos a 10px por módulo para calidad
+            $img = imagecreatetruecolor($imgSize, $imgSize);
+            $white = imagecolorallocate($img, 255, 255, 255);
+            $black = imagecolorallocate($img, 0, 0, 0);
+            imagefilledrectangle($img, 0, 0, $imgSize, $imgSize, $white);
+            
+            if (preg_match('/d="([^"]+)"/', $svg, $matches)) {
+                // Parsear comandos del path (M x y ...)
+                $parts = explode('M', $matches[1]);
+                foreach ($parts as $part) {
+                    if (preg_match('/^([\d.]+)\s+([\d.]+)/', $part, $c)) {
+                        $qx = (int)$c[1];
+                        $qy = (int)$c[2];
+                        imagefilledrectangle($img, $qx * 10, $qy * 10, ($qx * 10) + 9, ($qy * 10) + 9, $black);
+                    }
+                }
+            }
+            
+            $tmpPath = storage_path('app/temp_qr_' . uniqid() . '.png');
+            imagepng($img, $tmpPath);
+            imagedestroy($img);
+            
+            return $tmpPath;
+        } catch (\Exception $e) {
+            Log::error('Error generando PNG QR via GD: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Guarda una copia del adjunto en el Explorador de Archivos (Carpeta Ventanilla Única).
+     */
+    private function saveAttachmentToExplorer(string $path, PQR $pqr, string $originalName)
+    {
+        try {
+            $sheetId = $pqr->sheet_number_id;
+            $currentYear = now()->year;
+
+            // 1. Localizar carpeta del año para esta ficha
+            $yearFolder = Folder::where('sheet_number_id', $sheetId)
+                ->where('year', $currentYear)
+                ->whereNull('parent_id')
+                ->where('active', true)
+                ->first();
+
+            if (!$yearFolder) return;
+
+            // 2. Localizar carpeta Ventanilla Única o la del destinatario
+            $targetFolder = Folder::where('parent_id', $yearFolder->id)
+                ->where('name', 'like', '%ventanilla unica%') // Búsqueda flexible
+                ->where('active', true)
+                ->first() ?: Folder::where('parent_id', $yearFolder->id)
+                    ->where('name', 'ventanilla unica')
+                    ->where('active', true)
+                    ->first();
+
+            // Si no existe, intentamos buscarla de forma genérica
+            if (!$targetFolder) {
+                $targetFolder = Folder::where('parent_id', $yearFolder->id)
+                    ->where('active', true)
+                    ->where(function($q) {
+                        $q->where('name', 'like', '%ventanilla%')
+                          ->orWhere('name', 'like', '%unica%');
+                    })
+                    ->first();
+            }
+
+            if (!$targetFolder) return;
+
+            $folderPrefix = $targetFolder->getFullHierarchyCode();
+            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $hash = hash_file('sha256', Storage::disk('public')->path($path));
+            $shortHash = substr($hash, 0, 10);
+            
+            // Construir nombre siguiendo patrón: CODCARPETAS-REC-AÑO-RADICADO-HASH.pdf
+            $explorerFileName = "{$folderPrefix}-REC-{$currentYear}-{$pqrNumber}-{$shortHash}.pdf";
+            $storagePath = "folders/{$targetFolder->id}/{$explorerFileName}";
+            
+            // Asegurar directorio
+            if (!file_exists(dirname(Storage::disk('public')->path($storagePath)))) {
+                mkdir(dirname(Storage::disk('public')->path($storagePath)), 0755, true);
+            }
+
+            // Copiar el archivo (que ya tiene el QR)
+            Storage::disk('public')->copy($path, $storagePath);
+
+            // Registrar en la tabla Files (Explorador)
+            File::create([
+                'name' => str_replace('.pdf', '', $explorerFileName),
+                'path' => $storagePath,
+                'extension' => 'pdf',
+                'mime_type' => 'application/pdf',
+                'size' => Storage::disk('public')->size($storagePath),
+                'active' => true,
+                'folder_id' => $targetFolder->id,
+                'file_code' => $pqrNumber,
+                'hash' => $shortHash,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error guardando adjunto de PQR en el explorador: ' . $e->getMessage());
+        }
     }
 }
+
