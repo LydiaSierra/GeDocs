@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { usePage } from "@inertiajs/react";
-import axios from "axios";
 import ArchiveMailModal from "@/Components/ArchiveMailModal/ArchiveMailModal";
 import api from "@/lib/axios.js";
 import { ArrowPathIcon, MagnifyingGlassIcon, DocumentTextIcon } from "@heroicons/react/24/solid";
@@ -67,12 +66,6 @@ export default function ArchiveTable() {
         setFilteredMails(filtered);
     }, [searchTerm, mails, activeScopeFilter, role, userDependencyId]);
 
-    const unarchiveMail = async (id) => {
-        await axios.patch(`/api/pqrs/${id}`, { archived: false });
-        setMails(prev => prev.filter(mail => mail.id !== id));
-        setSelectedMail(null);
-    };
-
     return (
         <>
             <div className="mb-4 w-full flex flex-col md:flex-row justify-between items-center gap-4">
@@ -117,9 +110,8 @@ export default function ArchiveTable() {
                         <table className="w-full table-fixed md:table-auto border-collapse">
                             <thead className="sticky top-0 z-10 bg-white border-b border-gray-300">
                                 <tr className="text-gray-600 uppercase text-[10px] md:text-sm">
-                                    <th className="py-4 px-2 md:px-4 text-left font-bold w-[65%] md:w-auto">Asunto / ID</th>
+                                    <th className="py-4 px-2 md:px-4 text-left font-bold w-[75%] md:w-auto">Asunto / ID</th>
                                     <th className="hidden lg:table-cell px-4 text-left font-bold">Solicitante / Tipo</th>
-                                    <th className="px-2 md:px-4 text-center md:text-left font-bold w-[35%] md:w-auto">Estado</th>
                                     <th className="hidden sm:table-cell px-4 text-right font-bold">Fecha</th>
                                     <th className="w-8 md:hidden"></th>
                                 </tr>
@@ -155,20 +147,6 @@ export default function ArchiveTable() {
                                                 <span className="text-[10px] text-gray-400 capitalize truncate">{mail.request_type}</span>
                                             </div>
                                         </td>
-                                        <td className="px-2 md:px-4 text-center md:text-left">
-                                            <span className={`inline-flex items-center gap-1.5 text-[10px] md:text-xs font-bold uppercase tracking-wider ${
-                                                mail.response_status === 'Finalizado'
-                                                ? 'text-green-600'
-                                                : 'text-amber-600'
-                                            }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${
-                                                    mail.response_status === 'Finalizado'
-                                                    ? 'bg-green-500'
-                                                    : 'bg-amber-500'
-                                                }`} />
-                                                {mail.response_status}
-                                            </span>
-                                        </td>
                                         <td className="hidden sm:table-cell px-4 text-right text-xs md:text-sm text-gray-500 tabular-nums">
                                             {new Date(mail.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                         </td>
@@ -199,7 +177,6 @@ export default function ArchiveTable() {
                 <ArchiveMailModal
                     mail={selectedMail}
                     onClose={() => setSelectedMail(null)}
-                    onUnarchive={unarchiveMail}
                 />
                 
             )}
