@@ -5,14 +5,22 @@ import { MailContext } from "@/context/MailContext/MailContext";
 export default function InboxMailCard({ card }) {
     const { selectedMail, setSelectedMail } = useContext(MailContext);
 
-    const getDeadlineColor = (createdDateStr, responseDateStr) => {
-        if (!createdDateStr || !responseDateStr) return "text-gray-500";
+    const getDeadlineColor = (createdDateStr, responseDateStr, responseDays) => {
+        if (!responseDateStr) return "text-gray-500";
 
         const now = new Date();
-        const created = new Date(createdDateStr);
         const deadline = new Date(responseDateStr);
 
-        const totalDuration = deadline.getTime() - created.getTime();
+        let totalDuration;
+        if (responseDays) {
+            totalDuration = responseDays * 24 * 60 * 60 * 1000;
+        } else if (createdDateStr) {
+            const created = new Date(createdDateStr);
+            totalDuration = deadline.getTime() - created.getTime();
+        } else {
+            return "text-gray-500";
+        }
+
         const timeRemaining = deadline.getTime() - now.getTime();
 
         const remainingPercentage = totalDuration > 0
@@ -20,7 +28,7 @@ export default function InboxMailCard({ card }) {
             : 0;
 
         if (remainingPercentage > 80) return "text-primary";
-        if (remainingPercentage > 40) return "text-[#F0DA30]";
+        if (remainingPercentage > 40 && remainingPercentage <= 80) return "text-[#F0DA30]";
         return "text-red-600";
     };
 
@@ -76,7 +84,7 @@ export default function InboxMailCard({ card }) {
                             new Date() > new Date(card.response_time) ? (
                                 <div className="font-medium text-red-600">Vencida</div>
                             ) : (
-                                <div className={`font-medium ${getDeadlineColor(card.created_at, card.response_time)}`}>
+                                <div className={`font-medium ${getDeadlineColor(card.created_at, card.response_time, card.response_days)}`}>
                                     {new Date(card.response_time).toLocaleDateString()}
                                 </div>
                             )

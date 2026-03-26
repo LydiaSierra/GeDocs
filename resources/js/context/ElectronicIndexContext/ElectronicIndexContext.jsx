@@ -3,6 +3,7 @@ import{
     useState,
     useEffect,
     useCallback,
+    useMemo,
 } from "react";
 import { router } from "@inertiajs/react";
 import { toast } from "sonner";
@@ -24,6 +25,11 @@ export function ElectronicIndexProvider ({ children, authUserId = null, authUser
     const [activeYear, setActiveYearState] = useState(() => {
         const saved = localStorage.getItem("active_sheet_year");
         return saved ? Number(saved) : new Date().getFullYear();
+    });
+
+    const [activeDependencyFolderId, setActiveDependencyFolderIdState] = useState(() => {
+        const saved = localStorage.getItem("active_dependency_folder_id");
+        return saved ? Number(saved) : null;
     });
 
     const fetchExplorerNode = useCallback(async ({ sheetId, folderId = null }) => {
@@ -162,6 +168,33 @@ export function ElectronicIndexProvider ({ children, authUserId = null, authUser
         }
     }, [setActiveSheetId, setActiveYear]);
 
+    const setActiveDependencyFolderId = useCallback((dependencyFolderId) => {
+        if (dependencyFolderId === null || dependencyFolderId === undefined || dependencyFolderId === "") {
+            setActiveDependencyFolderIdState(null);
+            localStorage.removeItem("active_dependency_folder_id");
+            return;
+        }
+
+        const numericDependencyFolderId = Number(dependencyFolderId);
+        if (Number.isNaN(numericDependencyFolderId)) {
+            setActiveDependencyFolderIdState(null);
+            localStorage.removeItem("active_dependency_folder_id");
+            return;
+        }
+
+        setActiveDependencyFolderIdState(numericDependencyFolderId);
+        localStorage.setItem("active_dependency_folder_id", String(numericDependencyFolderId));
+    }, []);
+
+    const scopedFiles = useMemo(() => {
+        if (!activeDependencyFolderId) return [];
+
+        return rawFiles.filter((file) => {
+            const pathIds = Array.isArray(file?.folder_path_ids) ? file.folder_path_ids : [];
+            return pathIds.some((pathId) => Number(pathId) === Number(activeDependencyFolderId));
+        });
+    }, [rawFiles, activeDependencyFolderId]);
+
     const canEdit = authUserRole === "Admin" || authUserRole === "Instructor";
 
     const downloadFileById = useCallback(async (fileId) => {
@@ -281,14 +314,16 @@ export function ElectronicIndexProvider ({ children, authUserId = null, authUser
     return(
         <ElectronicIndexContext.Provider value={{
             rawFiles,
-            scopedFiles: rawFiles,
+            scopedFiles,
             loading,
             error,
             activeSheetId,
             activeYear,
+            activeDependencyFolderId,
             setActiveSheetId,
             setActiveYear,
             setActiveScope,
+            setActiveDependencyFolderId,
             loadExplorerFiles,
             canEdit,
             downloadFileById,

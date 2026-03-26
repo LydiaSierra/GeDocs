@@ -43,16 +43,23 @@ export function MailReader() {
     const [responseUrl, setResponseUrl] = useState("");
 
     // ─── Helpers ───────────────────────────────────────────────────────────────
-    const getDeadlineColor = (createdDateStr, responseDateStr) => {
-        if (!createdDateStr || !responseDateStr) return "text-gray-700";
+    const getDeadlineColor = (createdDateStr, responseDateStr, responseDays) => {
+        if (!responseDateStr) return "text-gray-700";
         const now = new Date();
-        const created = new Date(createdDateStr);
         const deadline = new Date(responseDateStr);
-        const totalDuration = deadline.getTime() - created.getTime();
+        let totalDuration;
+        if (responseDays) {
+            totalDuration = responseDays * 24 * 60 * 60 * 1000;
+        } else if (createdDateStr) {
+            const created = new Date(createdDateStr);
+            totalDuration = deadline.getTime() - created.getTime();
+        } else {
+            return "text-gray-700";
+        }
         const timeRemaining = deadline.getTime() - now.getTime();
         const remainingPct = totalDuration > 0 ? (timeRemaining / totalDuration) * 100 : 0;
         if (remainingPct > 80) return "text-primary";
-        if (remainingPct > 40) return "text-[#F0DA30]";
+        if (remainingPct > 40 && remainingPct <= 80) return "text-[#F0DA30]";
         return "text-red-600";
     };
 
@@ -178,6 +185,12 @@ export function MailReader() {
         );
     }
 
+    const disableActions = 
+        currentMail.response_status === "responded" || 
+        currentMail.response_status === "closed" || 
+        !!currentMail.response_date || 
+        (currentMail.response_time && !currentMail.response_date && new Date() > new Date(currentMail.response_time));
+
     // ─── Render ────────────────────────────────────────────────────────────────
     return (
         <div
@@ -225,7 +238,7 @@ export function MailReader() {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
                         {/* Assign dependency (Instructor / Admin only) */}
                         {(isInstructor || isAdmin) && relevantDependencies.length > 0 && (
-                            <div className="dropdown dropdown-bottom dropdown-end w-full sm:w-auto">
+                            <div className={`dropdown dropdown-bottom dropdown-end w-full sm:w-auto ${disableActions ? 'pointer-events-none opacity-60' : ''}`}>
                                 <div
                                     tabIndex={0}
                                     role="button"
@@ -253,7 +266,7 @@ export function MailReader() {
                                                         ? "bg-primary/10 text-primary font-medium"
                                                         : ""
                                                 }
-                                                onClick={() => handleAssignDependency(dep.id)}
+                                                onClick={(  ) => handleAssignDependency(dep.id)}
                                             >
                                                 {dep.name}
                                             </a>
@@ -266,7 +279,7 @@ export function MailReader() {
                         {/* Deadline */}
                         {currentMail.response_date ? (
                             <span className="text-sm font-medium text-[#34A853]">
-                                ¡PQR respondida con éxito!
+                                {/* ¡PQR respondida con éxito! */}
                             </span>
                         ) : currentMail.response_time ? (
                             new Date() > new Date(currentMail.response_time) ? (
@@ -277,7 +290,8 @@ export function MailReader() {
                                 <span
                             className={`text-sm font-medium ${getDeadlineColor(
                                     currentMail.created_at,
-                                    currentMail.response_time
+                                    currentMail.response_time,
+                                    currentMail.response_days
                                 )}`}
                             >
                                     Fecha límite:{" "}
