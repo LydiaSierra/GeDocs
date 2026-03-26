@@ -30,8 +30,7 @@ function createInstructorUserForNotification(string $role, array $attributes = [
 it('allows instructor to list notifications', function () {
     $instructor = createInstructorUserForNotification('Instructor');
     $aprendiz = createInstructorUserForNotification('Aprendiz', ['name' => 'Nuevo Aprendiz']);
-    
-    // Trigger notification
+
     $instructor->notify(new NewUserRegistered($aprendiz));
 
     $response = $this->actingAs($instructor)
@@ -71,22 +70,18 @@ it('allows instructor to filter unread and read notifications', function () {
     $instructor->notify(new NewUserRegistered($aprendiz1));
     $instructor->notify(new NewUserRegistered($aprendiz2));
 
-    // Get unread
     $responseUnread = $this->actingAs($instructor->fresh())->getJson('/api/notifications/filter/unread');
     $responseUnread->assertStatus(200);
     expect(count($responseUnread->json('notifications')))->toBe(2);
 
-    // Mark one as read
     $notificationId = $responseUnread->json('notifications.0.id');
     $responseMark = $this->actingAs($instructor->fresh())->postJson("/api/notifications/{$notificationId}/mark-as-read");
     $responseMark->assertStatus(200);
 
-    // Get read
     $responseRead = $this->actingAs($instructor->fresh())->getJson('/api/notifications/filter/read');
     $responseRead->assertStatus(200);
     expect(count($responseRead->json('notifications')))->toBe(1);
 
-    // Get unread again
     $responseUnreadRefresh = $this->actingAs($instructor->fresh())->getJson('/api/notifications/filter/unread');
     $responseUnreadRefresh->assertStatus(200);
     expect(count($responseUnreadRefresh->json('notifications')))->toBe(1);
@@ -100,20 +95,17 @@ it('allows instructor to update apprentice status via notification', function ()
     
     $notification = $instructor->notifications()->first();
 
-    // Accept user
     $response = $this->actingAs($instructor)
         ->putJson("/api/notifications/update/{$notification->id}/active");
 
     $response->assertStatus(200);
     $response->assertJsonFragment(['success' => true]);
 
-    // Check DB for User status update
     $this->assertDatabaseHas('users', [
         'id' => $aprendiz->id,
         'status' => 'active'
     ]);
 
-    // Check notification data update
     $updatedNotification = $instructor->notifications()->first();
     expect($updatedNotification->data['user']['status'])->toBe('active');
 });
@@ -125,7 +117,6 @@ it('rejects an invalid state change for an apprentice via notification', functio
     $instructor->notify(new NewUserRegistered($aprendiz));
     $notification = $instructor->notifications()->first();
 
-    // Invalid state
     $response = $this->actingAs($instructor)
         ->putJson("/api/notifications/update/{$notification->id}/invalid-status");
 
@@ -134,6 +125,6 @@ it('rejects an invalid state change for an apprentice via notification', functio
 
     $this->assertDatabaseHas('users', [
         'id' => $aprendiz->id,
-        'status' => 'pending' // Still pending
+        'status' => 'pending' 
     ]);
 });

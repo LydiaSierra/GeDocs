@@ -4,10 +4,8 @@ import Register from '@/Pages/Auth/Register';
 import { toast } from 'sonner';
 import { useForm } from '@inertiajs/react';
 
-// Mock de ziggy-js route
 global.route = vi.fn().mockReturnValue('/register');
 
-// Mock de sonner
 vi.mock('sonner', () => ({
     toast: {
         error: vi.fn(),
@@ -16,19 +14,17 @@ vi.mock('sonner', () => ({
     }
 }));
 
-// Mock de @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     Head: () => null,
     Link: ({ children }) => <a href="#">{children}</a>,
     useForm: vi.fn(),
 }));
 
-// Mock de componentes que podrían requerir configuraciones especiales
 vi.mock('@/Layouts/GuestLayout', () => ({
     default: ({ children }) => <div>{children}</div>
 }));
 
-describe('Pruebas del Registro de Aprendiz', () => {
+describe('Apprentice Registration Tests', () => {
     let mockData, mockSetData, mockPost, mockReset;
 
     beforeEach(() => {
@@ -67,11 +63,11 @@ describe('Pruebas del Registro de Aprendiz', () => {
         { id: 2, number: 'Ficha-67890' }
     ];
 
-    it(' show the select of sheets when the selected role is Apprentice', () => {
+    it('shows the select of sheets when the selected role is Apprentice', () => {
         render(<Register sheets={mockSheets} />);
         
         expect(screen.getByLabelText(/^Ficha/i)).toBeInTheDocument();
-        // Verificamos que se renderizan las opciones de las fichas mockeadas
+        
         expect(screen.getByText('Ficha-12345')).toBeInTheDocument();
         expect(screen.getByText('Ficha-67890')).toBeInTheDocument();
     });
@@ -82,13 +78,12 @@ describe('Pruebas del Registro de Aprendiz', () => {
         const btn = screen.getByRole('button', { name: /Registrarse/i });
         fireEvent.click(btn);
 
-        // Como technical_sheet_id está vacío y el rol es Aprendiz, el frontend frena el envío
         expect(toast.error).toHaveBeenCalledWith("Seleccione su ficha");
         expect(mockPost).not.toHaveBeenCalled();
     });
 
-    it('call post if all dates are filled', () => {
-        // Llenamos la ficha simulando el estado listo
+    it('calls post if all fields are filled', () => {
+        
         mockData.technical_sheet_id = "1";
         
         useForm.mockReturnValue({
@@ -104,11 +99,9 @@ describe('Pruebas del Registro de Aprendiz', () => {
         
         const btn = screen.getByRole('button', { name: /Registrarse/i });
         fireEvent.click(btn);
-        
-        // El frontend no lanza ningún toast de error
+
         expect(toast.error).not.toHaveBeenCalled();
-        
-        // Verifica que se haya llamado al post en la ruta adecuada
+
         expect(mockPost).toHaveBeenCalledWith('/register', expect.any(Object));
     });
 });

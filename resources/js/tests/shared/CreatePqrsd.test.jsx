@@ -1,13 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import Form from '@/Pages/Form'; // Ajusta la ruta a tu componente Form.jsx
+import Form from '@/Pages/Form'; 
 import { toast } from 'sonner';
 
-// Mock de Axios
 vi.mock('axios');
 
-// Mock de Sonner
 vi.mock('sonner', () => ({
     toast: {
         error: vi.fn(),
@@ -15,7 +13,6 @@ vi.mock('sonner', () => ({
     }
 }));
 
-// Mock de @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -32,8 +29,7 @@ vi.mock('@inertiajs/react', () => ({
     Link: ({ children, href, className }) => <a href={href} className={className}>{children}</a>,
 }));
 
-// Mock Ziggy route helper
-window.route = () => 'inbox'; // O retorna un obj si necesita route().current()
+window.route = () => 'inbox'; 
 
 describe('Form.jsx - Frontend Validations and Toast Tests', () => {
 
@@ -41,7 +37,7 @@ describe('Form.jsx - Frontend Validations and Toast Tests', () => {
         vi.clearAllMocks();
     });
 
-    it('1. Renderiza los campos iniciales correctamente', () => {
+    it('renders the initial fields correctly', () => {
         render(<Form />);
         
         expect(screen.getByText('Diligenciar PQRS')).toBeInTheDocument();
@@ -51,8 +47,7 @@ describe('Form.jsx - Frontend Validations and Toast Tests', () => {
         expect(screen.getByLabelText(/Asunto/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Descripción/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Correo Electrónico/i)).toBeInTheDocument();
-        
-        // El botón de enviar debe estar deshabilitado hasta aceptar tratamiento de datos
+
         const submitBtn = screen.getByRole('button', { name: /Enviar PQRS/i });
         expect(submitBtn).toBeDisabled();
     });
@@ -62,9 +57,7 @@ describe('Form.jsx - Frontend Validations and Toast Tests', () => {
         
         const fileInput = document.querySelector('input[type="file"]');
         expect(fileInput).toHaveAttribute('type', 'file');
-        
-        // En una plantilla óptima debería tener la limitación 'accept'
-        // Esto fallará si el frontend carece de un atributo "accept" que restrinja tipos
+
         expect(fileInput).toHaveAttribute('accept', expect.stringMatching(/\.pdf|\.doc|\.jpg|\.png/));
     });
 });

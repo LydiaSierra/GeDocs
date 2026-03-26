@@ -4,7 +4,6 @@ import { DependenciesContext } from '@/context/DependenciesContext/DependenciesC
 import DependenciesSettingsSection from '@/Components/Dependencies/DependenciesSettingsSection';
 import { toast } from 'sonner';
 
-// Mock sonner
 vi.mock('sonner', () => ({
     toast: {
         success: vi.fn(),
@@ -12,7 +11,6 @@ vi.mock('sonner', () => ({
     }
 }));
 
-// Mock @inertiajs/react
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -23,7 +21,6 @@ vi.mock('@inertiajs/react', () => ({
     }),
 }));
 
-// Mock Axios
 vi.mock('@/lib/axios', () => {
     return {
         default: {
@@ -60,8 +57,7 @@ const renderWithContext = (ui, contextOverrides = {}) => {
 };
 
 describe('Frontend Dependencies Module Tests - Admin', () => {
-    
-    // Mock HTMLDialogElement methods because JSDOM doesn't support them
+
     beforeAll(() => {
         HTMLDialogElement.prototype.showModal = function() { this.open = true; };
         HTMLDialogElement.prototype.close = function() { this.open = false; };
@@ -163,7 +159,6 @@ describe('Frontend Dependencies Module Tests - Admin', () => {
 
         fireEvent.change(renameInputs[0], { target: { value: 'Dependencia Nueva' }});
 
-        // Buscar botón "Guardar" de esa fila
         const saveBtns = screen.getAllByRole('button', { name: /Guardar/i });
         fireEvent.click(saveBtns[0]);
 

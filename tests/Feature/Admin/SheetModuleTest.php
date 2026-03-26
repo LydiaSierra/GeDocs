@@ -16,9 +16,6 @@ beforeEach(function () {
     $this->seed(RoleSeeder::class);
 });
 
-/**
- * Helper para crear usuarios con un rol específico.
- */
 function createUserAdminWithRole(string $role, array $attributes = [])
 {
     $defaultAttributes = [
@@ -32,27 +29,22 @@ function createUserAdminWithRole(string $role, array $attributes = [])
     return $user;
 }
 
-// --- TEST 1: RESTRICCIÓN DE ROLES ---
 it('prevents non-admin users from creating, editing or deleting sheets', function () {
     $instructor = createUserAdminWithRole('Instructor');
     $aprendiz = createUserAdminWithRole('Aprendiz');
 
-    // Intentar POST
     $responsePostInst = $this->actingAs($instructor)->postJson('/api/sheets', ['number' => '12345']);
     $responsePostApr = $this->actingAs($aprendiz)->postJson('/api/sheets', ['number' => '12345']);
 
-    $responsePostInst->assertForbidden(); // 403
-    $responsePostApr->assertForbidden(); // 403
+    $responsePostInst->assertForbidden(); 
+    $responsePostApr->assertForbidden(); 
 
-    // Verificar con un registro existente (Delete)
     $sheet = Sheet_number::create(['number' => '99999']);
     $responseDeleteInst = $this->actingAs($instructor)->deleteJson("/api/sheets/{$sheet->id}");
-    
-    // Debería proteger incluso si el rol falla
+
     $responseDeleteInst->assertForbidden();
 });
 
-// --- TEST 2: FLUJO DE CREACIÓN PERFECTO (FICHA -> VENTANILLA -> CARPETAS) ---
 it('allows admin to create a sheet and automatically generates dependencies and folders', function () {
     $admin = createUserAdminWithRole('Admin');
     
@@ -63,32 +55,26 @@ it('allows admin to create a sheet and automatically generates dependencies and 
     $response = $this->actingAs($admin)
         ->postJson('/api/sheets', $payload);
 
-    // Debe salir bien y retornar la ficha creada (Normalmente un 201 Created)
     $response->assertStatus(201);
-    
-    // Extrer el ID de la ficha creada de la respuesta
+
     $createdSheetId = $response->json('id');
 
-    // 1. Validar que la ficha existe
     $this->assertDatabaseHas('sheet_numbers', [
         'id' => $createdSheetId,
         'number' => '250100',
     ]);
 
-    // 2. Validar que se creó la Ventanilla Unica y está enlazada
     $this->assertDatabaseHas('dependencies', [
         'name' => 'Ventanilla Unica',
         'sheet_number_id' => $createdSheetId
     ]);
 
-    // 3. Validar Ficha conectada al ID de su ventanilla
     $ventanilla = Dependency::where('sheet_number_id', $createdSheetId)->first();
     $this->assertDatabaseHas('sheet_numbers', [
         'id' => $createdSheetId,
         'ventanilla_unica_id' => $ventanilla->id
     ]);
 
-    // 4. Validar Carpetas Anuales (Padre e hija Ventanilla)
     $currentYear = date('Y');
     
     $this->assertDatabaseHas('folders', [
@@ -108,23 +94,18 @@ it('allows admin to create a sheet and automatically generates dependencies and 
     ]);
 });
 
-// --- TEST 3: UNICIDAD DE LA FICHA ---
 it('prevents creating a sheet with a duplicate number', function () {
     $admin = createUserAdminWithRole('Admin');
-    
-    // Creamos la ficha inicial
+
     Sheet_number::create(['number' => '111222']);
 
-    // Intentamos duplicarla
     $response = $this->actingAs($admin)
         ->postJson('/api/sheets', ['number' => '111222']);
 
-    // Debe saltar validación de Unicidad
     $response->assertStatus(422)
              ->assertJsonValidationErrors(['number']);
 });
 
-// --- TEST 4: ACTUALIZACIÓN DE FICHA ---
 it('allows admin to edit an existing sheet number and state', function () {
     $admin = createUserAdminWithRole('Admin');
     $sheet = Sheet_number::create(['number' => '555555']);
@@ -146,7 +127,6 @@ it('allows admin to edit an existing sheet number and state', function () {
     ]);
 });
 
-// --- TEST 5: ELIMINACIÓN DE FICHA ---
 it('allows admin to successfully delete a sheet', function () {
     $admin = createUserAdminWithRole('Admin');
     $sheet = Sheet_number::create(['number' => '777777']);

@@ -34,7 +34,6 @@ beforeEach(function () {
     $this->aprendiz->dependency_id = $this->dependencyAssigned->id;
     $this->aprendiz->save();
 
-    // PQR associated with assigned dependency
     $this->pqrAssigned = PQR::create([
         'sender_name' => 'Sender 1',
         'description' => 'Test PQR assigned to my dependency',
@@ -50,7 +49,6 @@ beforeEach(function () {
         'document' => '555'
     ]);
 
-    // PQR associated with other dependency
     $this->pqrOther = PQR::create([
         'sender_name' => 'Sender 2',
         'description' => 'Test PQR isolated',
@@ -67,7 +65,7 @@ beforeEach(function () {
     ]);
 });
 
-test('Aprendiz can see their PQRS ONLY if part of dependency or responsible', function () {
+test('Apprentice can see their PQRS ONLY if part of dependency or responsible', function () {
     $response = actingAs($this->aprendiz)->getJson('/api/pqrs');
     $response->assertStatus(200);
     

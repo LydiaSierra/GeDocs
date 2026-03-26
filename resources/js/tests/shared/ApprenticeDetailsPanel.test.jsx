@@ -5,7 +5,6 @@ import UserDetailsPanel from '@/Components/Users/UserDetailsPanel';
 import { UserContext } from '@/context/UserContext/UserContext';
 import * as InertiaReact from '@inertiajs/react';
 
-// Mock axios
 vi.mock('@/lib/axios', () => ({
     default: {
         get: vi.fn().mockResolvedValue({ data: { fichas: [], sheets: [] } }),
@@ -15,7 +14,6 @@ vi.mock('@/lib/axios', () => ({
     }
 }));
 
-// Mock sonner directly
 vi.mock('sonner', () => ({
     toast: {
         error: vi.fn(),
@@ -51,7 +49,7 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // HTMLDialogs aren't fully supported in JSDOM, we mock its visual methods
+        
         HTMLDialogElement.prototype.showModal = vi.fn();
         HTMLDialogElement.prototype.close = vi.fn();
 
@@ -84,12 +82,11 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
             edit: false,
         });
 
-        // Verifying details in the Panel (not the edit form)
         expect(screen.getByText('Detalles de Usuario')).toBeInTheDocument();
         expect(screen.getAllByText('Carlos Perez')[0]).toBeInTheDocument();
         expect(screen.getByText('100200300')).toBeInTheDocument();
         expect(screen.getByText('carlos@sena.edu.co')).toBeInTheDocument();
-        // Modal shouldn't show the Edit Inputs yet
+        
         expect(screen.queryByDisplayValue('Carlos Perez')).not.toBeInTheDocument();
     });
 
@@ -106,16 +103,14 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
     });
 
     it('renders edit form correctly and validates empty/wrong inputs with Sonner', async () => {
-        // Render in Edit Mode
+        
         renderWithContext({
             idSelected: mockApprentice,
             edit: true,
         });
 
-        // The form has "Guardar Cambios"
         const saveButton = screen.getByText('Guardar Cambios');
 
-        // Validation 1: Nombre < 3
         const nameInput = screen.getByDisplayValue('Carlos Perez');
         fireEvent.change(nameInput, { target: { value: 'Ca' } });
         fireEvent.click(saveButton);
@@ -123,7 +118,6 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
             expect(toast.error).toHaveBeenCalledWith('El nombre debe tener al menos 3 caracteres');
         });
 
-        // Restore name, Validation 2: Correo Inválido
         fireEvent.change(nameInput, { target: { value: 'Carlos P' } });
         const emailInput = screen.getByDisplayValue('carlos@sena.edu.co');
         fireEvent.change(emailInput, { target: { value: 'carlos_sin_arroba_sena.edu.co' } });
@@ -132,10 +126,9 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
             expect(toast.error).toHaveBeenCalledWith('Ingrese un correo electrónico válido');
         });
 
-        // Restore email, Validation 3: Documento > 10
         fireEvent.change(emailInput, { target: { value: 'carlos2@sena.edu.co' } });
         const docInput = screen.getByDisplayValue('100200300');
-        fireEvent.change(docInput, { target: { value: '12345678901' } }); // 11 chars
+        fireEvent.change(docInput, { target: { value: '12345678901' } }); 
         fireEvent.click(saveButton);
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith('El número de documento no puede tener más de 10 caracteres');
@@ -150,12 +143,11 @@ describe('UserDetailsPanel & Edit Component Tests', () => {
             edit: true,
         });
 
-        // Just clicking Save with existing valid data should succeed
         const saveButton = screen.getByText('Guardar Cambios');
         fireEvent.click(saveButton);
 
         await waitFor(() => {
-             // 8 params: nombre, documento, numero, email, estado, id, sheets, dependency
+             
             expect(mockUpdateInfo).toHaveBeenCalledWith(
                 'Carlos Perez',
                 'CC',

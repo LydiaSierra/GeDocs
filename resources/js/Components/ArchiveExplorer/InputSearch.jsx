@@ -1,5 +1,5 @@
 // InputSearch provides the search input and related controls for filtering files and folders in the archive explorer. It also includes view toggles and quick actions.
-import { ArrowUpTrayIcon, Bars3Icon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon, TableCellsIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, Bars3Icon, BuildingOfficeIcon, DocumentPlusIcon, MagnifyingGlassIcon, PlusIcon, XMarkIcon, TableCellsIcon } from "@heroicons/react/24/outline";
 import React from "react";
 import { usePage, router } from "@inertiajs/react";
 import { Squares2X2Icon } from "@heroicons/react/24/solid";
@@ -13,38 +13,70 @@ export const InputSearch = ({ handleSearch }) => {
     const { currentFolder, activeSheetId, deleteSelection, globalSearch } = useExplorerData();
     const { url, props } = usePage();
     const hasExcelPermission = props.auth?.user?.roles?.some(role => role.name === 'Admin' || role.name === 'Instructor');
+    // Get dependencies for the active sheet
+    const activeDependencies = activeSheetId
+        ? (props.sheets?.find(s => s.id === activeSheetId)?.dependencies ?? [])
+        : [];
+    const currentDependencyId = props.filters?.dependency_id ?? "";
+
+    const handleDependencyChange = (e) => {
+        const depId = e.target.value;
+        const params = { sheet_id: activeSheetId };
+        if (depId) params.dependency_id = depId;
+        router.get(route('explorer'), params, { preserveState: true });
+    };
 
     return (
         <div id="inbox-search" className="flex w-full flex-col md:flex-row justify-between items-center gap-4">
-            {/* Search field */}
-            <form onSubmit={(e) => {
-                e.preventDefault();
-                globalSearch(inputSearchTerm);
-            }} className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full md:w-96 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
-                <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2" />
-                <input
-                    placeholder="Buscar..."
-                    type="text"
-                    className="bg-transparent border-none focus:outline-none w-full text-sm"
-                    value={inputSearchTerm}
-                    onChange={(e) => {
-                        setInputSearchTerm(e.target.value);
-                        if (e.target.value.trim() === "") {
-                            globalSearch("");
-                        }
-                    }}
-                />
-
-                {inputSearchTerm && (
-                    <XMarkIcon
-                        className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer"
-                        onClick={() => {
-                            setInputSearchTerm("");
-                            globalSearch("");
+            {/* Search + Dependency filter group */}
+            <div className="flex flex-col sm:flex-row items-stretch gap-2 w-full md:w-auto">
+                {/* Search field */}
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    globalSearch(inputSearchTerm);
+                }} className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full sm:w-72 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                    <MagnifyingGlassIcon className="size-5 text-gray-500 mr-2 shrink-0" />
+                    <input
+                        placeholder="Buscar..."
+                        type="text"
+                        className="bg-transparent border-none focus:outline-none w-full text-sm"
+                        value={inputSearchTerm}
+                        onChange={(e) => {
+                            setInputSearchTerm(e.target.value);
+                            if (e.target.value.trim() === "") {
+                                globalSearch("");
+                            }
                         }}
                     />
+                    {inputSearchTerm && (
+                        <XMarkIcon
+                            className="size-5 text-gray-400 hover:text-gray-600 cursor-pointer shrink-0"
+                            onClick={() => {
+                                setInputSearchTerm("");
+                                globalSearch("");
+                            }}
+                        />
+                    )}
+                </form>
+
+                {/* Dependency select — only visible when a sheet is selected */}
+                {activeSheetId && activeDependencies.length > 0 && (
+                    <div className="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-lg w-full sm:w-56 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                        <BuildingOfficeIcon className="size-5 text-gray-400 mr-2 shrink-0" />
+                        <select
+                            id="dependency-filter"
+                            value={currentDependencyId}
+                            onChange={handleDependencyChange}
+                            className="bg-transparent border-none focus:outline-none w-full text-sm text-gray-700 cursor-pointer outline-none ring-0 h-full"
+                        >
+                            <option value="">Todas las dependencias</option>
+                            {activeDependencies.map((dep) => (
+                                <option key={dep.id} value={dep.id}>{dep.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 )}
-            </form>
+            </div>
 
 
             {url.startsWith("/explorer") &&
@@ -54,32 +86,32 @@ export const InputSearch = ({ handleSearch }) => {
                         <button
                             className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300 inline-block
                             ${showDropFolders
-                                ? "text-white bg-primary active:bg-primary/50"
-                                : "bg-base-200  active:bg-gray-300 hover:bg-gray-300"
-                            }`}
+                                    ? "text-white bg-primary active:bg-primary/50"
+                                    : "bg-base-200  active:bg-gray-300 hover:bg-gray-300"
+                                }`}
                             onClick={toggleDropFolders}
                         >
                             <Bars3Icon
                                 className={`size-7  ${showDropFolders
                                     ? "text-white"
                                     : "text-gray-400"
-                                }`}
+                                    }`}
                             />
                         </button>
 
                         <button
                             className={`p-4 rounded-md hover:cursor-pointer transition-colors duration-300
                             ${gridView
-                                ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
-                                : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
-                            }`}
+                                    ? "bg-primary text-white active:bg-primary/50 lg:hover:bg-primary"
+                                    : "bg-base-200  active:bg-gray-300 lg:hover:bg-gray-300"
+                                }`}
                             onClick={toggleGridView}
                         >
                             <Squares2X2Icon
                                 className={`size-7 ${gridView
                                     ? "text-white"
                                     : "text-gray-400"
-                                }`}
+                                    }`}
                             />
                         </button>
                     </div>

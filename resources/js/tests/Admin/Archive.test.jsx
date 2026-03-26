@@ -8,7 +8,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-// Mocks
 vi.mock('axios');
 vi.mock('@/lib/axios', () => ({
     default: { get: vi.fn() }
@@ -58,10 +57,8 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Admin')).toBeInTheDocument();
         });
 
-        // Admin should see the select button
         expect(screen.getByText('Ficha y/o dependencia')).toBeInTheDocument();
-        
-        // Check rows
+
         expect(screen.getByText('Juan Admin')).toBeInTheDocument();
         expect(screen.getByText('Finalizado')).toBeInTheDocument();
     });
@@ -73,11 +70,9 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Admin')).toBeInTheDocument();
         });
 
-        // Click the row
         const row = screen.getByText('Petición Archivada Admin').closest('tr');
         fireEvent.click(row);
 
-        // Modal should appear
         expect(screen.getByText('PQR #101')).toBeInTheDocument();
         expect(screen.getByText('Desc Admin')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Desarchivar/i })).toBeInTheDocument();
@@ -90,10 +85,8 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
             expect(screen.getByText('Petición Archivada Admin')).toBeInTheDocument();
         });
 
-        // Click row
         fireEvent.click(screen.getByText('Petición Archivada Admin').closest('tr'));
 
-        // Click Desarchivar
         const unarchiveBtn = screen.getByRole('button', { name: /Desarchivar/i });
         fireEvent.click(unarchiveBtn);
 
@@ -101,7 +94,6 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
             expect(axios.patch).toHaveBeenCalledWith('/api/pqrs/101', { archived: false });
         });
 
-        // Ensure it is removed from list
         expect(screen.queryByText('Petición Archivada Admin')).not.toBeInTheDocument();
     });
 });

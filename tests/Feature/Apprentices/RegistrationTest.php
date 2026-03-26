@@ -1,17 +1,15 @@
 <?php
-// importations
+
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\Sheet_number;
 
-//render of registration
 test('Registration screen can be rendered', function () {
     $response = $this->get('/register');
     $response->assertStatus(200);
 });
 
-//registration of apprentice
 test('apprentice can register, is left pending and redirected to login', function () {
     Role::firstOrCreate(['name' => 'Aprendiz']);
     Role::firstOrCreate(['name' => 'Instructor']);
@@ -45,8 +43,6 @@ test('apprentice can register, is left pending and redirected to login', functio
     $response->assertSessionHas('status', 'Aprendiz. Tu cuenta sera revisada por el instructor de la ficha que seleccionaste');
 });
 
-
-//notification to instructor when an apprentice registers
 test('instructor receives notification when an apprentice registers', function () {
     Notification::fake();
 
@@ -75,13 +71,11 @@ test('instructor receives notification when an apprentice registers', function (
         'password' => 'password',
         'password_confirmation' => 'password',
     ]);
-    //verify that the instructor receives the notification
+    
     Notification::assertSentTo(
         [$instructor],
         \App\Notifications\NewUserRegistered::class
     );
 });
-
-
 
 ?>
