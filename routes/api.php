@@ -99,7 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
         '/me',
         function (Request $request) {
             return response()->json([
-                'user' => $request->user()->load('roles')
+                'user' => $request->user()->load(['roles', 'sheetNumbers' => function ($q) {
+                    $q->active();
+                }])
             ]);
         }
     );

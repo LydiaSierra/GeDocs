@@ -72,7 +72,7 @@ function UserEditPanel() {
                 const res = await api.get("/api/sheetsNumber");
                 setSheets(res.data.fichas || []);
             } else {
-                const res = await api.get("/api/sheets");
+                const res = await api.get("/api/sheets?active_only=true");
                 setSheets(res.data.sheets || []);
             }
 

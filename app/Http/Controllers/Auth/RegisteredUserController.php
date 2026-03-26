@@ -18,7 +18,7 @@ class RegisteredUserController extends Controller
 {
     public function create()
     {
-        $sheets = Sheet_number::whereHas('users', function ($q) {
+        $sheets = Sheet_number::active()->whereHas('users', function ($q) {
             $q->whereHas('roles', function ($r) {
                 $r->where('name', 'Instructor');
             });

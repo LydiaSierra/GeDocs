@@ -161,17 +161,6 @@ export function PdfCommunicationModal({
                         </p>
                         <div className="grid grid-cols-3 gap-3">
                             <div>
-                                <label className={labelClass}>Código</label>
-                                <input
-                                    type="text"
-                                    name="codigo"
-                                    placeholder="Ej: GD-001"
-                                    value={form.codigo}
-                                    onChange={handleChange}
-                                    className={inputClass}
-                                />
-                            </div>
-                            <div>
                                 <label className={labelClass}>Fecha de Elaboración</label>
                                 <input
                                     type="date"

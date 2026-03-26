@@ -172,11 +172,7 @@ export function MailReader() {
             setMailCards((prev) =>
                 prev.map((mail) =>
                     mail.id === currentMail.id
-                        ? {
-                              ...mail,
-                              dependency: response.data.data.dependency,
-                              dependency_id: response.data.data.dependency_id,
-                          }
+                        ? { ...mail, ...response.data.data }
                         : mail
                 )
             );

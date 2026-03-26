@@ -18,10 +18,15 @@ class SheetController extends Controller
      * Users are separated into "Instructors" and "Aprendices" (Students)
      * based on their assigned Spatie roles.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Load all sheets with their related users
-        $sheets = Sheet_number::with('users')->get();
+        $query = Sheet_number::with('users');
+
+        if ($request->has('active_only')) {
+            $query->active();
+        }
+
+        $sheets = $query->get();
 
         
         return response()->json([

@@ -94,6 +94,10 @@ const SelectDependecyOrNumberSheet = ({
         return null;
     }
 
+    if (role === 'Aprendiz') {
+        return null;
+    }
+
     if (!scopedSheets.length) {
         return null;
     }
