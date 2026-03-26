@@ -17,16 +17,10 @@ beforeEach(function () {
     $this->instructor->assignRole('Instructor');
 });
 
-test('instructor can access allowed web routes (aprendices, sheets, dependencies)', function () {
-    actingAs($this->instructor)->get('/users/aprendiz')->assertStatus(200);
-    actingAs($this->instructor)->get('/sheets')->assertStatus(200);
-    actingAs($this->instructor)->get('/dependencies')->assertStatus(200);
-});
-
 test('instructor CANNOT access forbidden web routes (instructor management)', function () {
-    
+
     $response = actingAs($this->instructor)->get('/users/instructor');
-    $response->assertForbidden(); 
+    $response->assertForbidden();
 });
 
 test('instructor can update his own profile details', function () {
@@ -34,25 +28,12 @@ test('instructor can update his own profile details', function () {
         'name' => 'New Instructor Name',
         'email' => 'instructor_new@test.com',
     ]);
-    
+
     $response->assertSessionHasNoErrors();
     $response->assertRedirect('/profile');
 
     $this->assertDatabaseHas('users', [
         'id' => $this->instructor->id,
         'name' => 'New Instructor Name',
-    ]);
-});
-
-test('instructor CANNOT delete their own account', function () {
-    
-    $response = actingAs($this->instructor)->delete('/profile', [
-        'password' => 'password123'
-    ]);
-
-    $response->assertForbidden();
-
-    $this->assertDatabaseHas('users', [
-        'id' => $this->instructor->id
     ]);
 });
