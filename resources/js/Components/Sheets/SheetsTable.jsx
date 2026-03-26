@@ -90,7 +90,7 @@ export default function SheetsTable({ sheets = [] }) {
                                             : "bg-amber-500"
                                     }`} />
                                     <span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">
-                                        {item.state}
+                                        {item.state} • {item.apprentices_count ?? 0} Alumnos
                                     </span>
                                 </div>
                             </div>
@@ -144,7 +144,7 @@ export default function SheetsTable({ sheets = [] }) {
                                     </td>
                                     <td className="py-4 px-4">
                                         <span className="text-sm text-gray-500">
-                                            20
+                                            {item.apprentices_count ?? 0}
                                         </span>
                                     </td>
                                     <td className="py-4 px-4">
