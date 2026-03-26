@@ -134,17 +134,19 @@
     $footerText = $data['footer_text'] ?? ("SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.");
 @endphp
 
-@if(!empty($qrCodeDataUri))
-    <div class="qr-wrapper">
+<div class="qr-wrapper">
+    @if(!empty($qrCodeDataUri))
         <img src="{{ $qrCodeDataUri }}" alt="QR Code" class="qr-code">
-        <div style="font-size: 8pt; margin-top: 5px; text-align: left;">
-            <div><b>Radicado No.:</b> {{ $data['no_radicado'] ?? '' }}</div>
+    @endif
+    <div style="font-size: 8pt; margin-top: 5px; text-align: left;">
+        <div><b>Radicado No.:</b> {{ $data['no_radicado'] ?? '' }}</div>
+        @if(!empty($qrCodeDataUri))
             <div><b>Atendido:</b> {{ $data['atendido'] ?? '' }}</div>
             <div><b>Hora:</b> {{ $data['hora'] ?? '' }}</div>
             <div><b>Ubicación:</b> {{ $data['archivado_en'] ?? '' }}</div>
-        </div>
+        @endif
     </div>
-@endif
+</div>
 
 @if(!empty($logoDataUri))
     <div class="logo-wrapper">
@@ -154,7 +156,6 @@
 
 @if($documentType === 'carta')
     <div class="section">
-        <div class="line">{{ $data['codigo'] ?? '' }}</div>
         <div class="line">{{ $data['lugar'] ?? '' }} {{ !empty($data['fecha']) ? ' - ' . $data['fecha'] : '' }}</div>
     </div>
 
@@ -167,11 +168,11 @@
         <div class="line">{{ $data['ciudad'] ?? '' }}</div>
     </div>
 
-    <div class="section"><div class="line">{{ $data['asunto'] ?? '' }}</div></div>
+    <div class="section"><div class="line"><span class="bold">Asunto:</span> {{ $data['asunto'] ?? '' }}</div></div>
 
     <div class="section">
         <div class="line">{{ $data['saludo'] ?? '' }}</div>
-        <div class="large-text">{!! nl2br(e($data['texto'] ?? '')) !!}</div>
+        <div class="large-text"><span class="bold">Respuesta:</span><br>{!! nl2br(e($data['texto'] ?? '')) !!}</div>
     </div>
 
     <div class="section"><div class="line">{{ $data['despedida1'] ?? '' }}</div></div>

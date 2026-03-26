@@ -97,9 +97,9 @@ class PdfController extends Controller
             $resolvedFooter = $requestedFooter !== '' ? $requestedFooter : ($savedFooter !== '' ? $savedFooter : $defaultFooter);
             $data['footer_text'] = $resolvedFooter;
 
-            if ($request->user() && $requestedFooter !== '' && $request->user()->pdf_footer_text !== $requestedFooter) {
-                $request->user()->update(['pdf_footer_text' => $requestedFooter]);
-            }
+            $nextEnvNumber = $this->getNextEnvConsecutive();
+            $pqrNumber = str_pad((string) $nextEnvNumber, 3, '0', STR_PAD_LEFT);
+            $data['no_radicado'] = $pqrNumber;
 
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
@@ -112,8 +112,8 @@ class PdfController extends Controller
             // Build folder prefix using hierarchical and specialized separators
             $folderPrefix = $folder->getFullHierarchyCode();
 
-            $baseName = ($safeDocumentType ?: 'documento') . '_' . now()->format('Ymd_His');
-            $newName = "{$folderPrefix}-SUB-{$fileYear}-{$baseName}.pdf";
+            $hash = substr(md5(uniqid()), 0, 8);
+            $newName = "{$folderPrefix}-ENV-{$fileYear}-{$pqrNumber}-{$hash}.pdf";
             $path = "folders/{$folder->id}/{$newName}";
 
             Storage::disk('public')->put($path, $pdf->output());
@@ -125,6 +125,8 @@ class PdfController extends Controller
                 'mime_type' => 'application/pdf',
                 'size' => Storage::disk('public')->size($path),
                 'folder_id' => $folder->id,
+                'file_code' => $pqrNumber,
+                'hash' => $hash,
                 'active' => true,
             ]);
 
@@ -437,8 +439,11 @@ class PdfController extends Controller
 
             // Definir nombre y ruta del archivo de forma definitiva
             $year = now()->year;
-            $pqrNumber = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
-            $fileName = "{$folderPrefix}-ENV-{$year}-{$pqrNumber}.pdf";
+            $nextEnvNumber = $this->getNextEnvConsecutive();
+            $pqrNumber = str_pad((string) $nextEnvNumber, 3, '0', STR_PAD_LEFT);
+            $hash = substr(md5(uniqid()), 0, 8);
+            $fileName = "{$folderPrefix}-ENV-{$year}-{$pqrNumber}-{$hash}.pdf";
+
             $storagePath = 'pdf_responses/' . $fileName;
             $absolutePath = storage_path('app/public/' . $storagePath);
 
@@ -446,7 +451,7 @@ class PdfController extends Controller
             $data['document_type'] = 'carta';
             // Agregar datos para el QR
             $attachedSupport = $pqr->attachedSupports()->where('origin', 'ENV')->latest()->first();
-            $data['no_radicado'] = $attachedSupport ? $attachedSupport->no_radicado : str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+            $data['no_radicado'] = $pqrNumber;
             $data['atendido'] = $pqr->responsible ? $pqr->responsible->name : ($request->user() ? $request->user()->name : '');
             $data['hora'] = now()->format('H:i:s');
 
@@ -464,9 +469,8 @@ class PdfController extends Controller
             $data['footer_text'] = $finalFooter;
             $data['pie_pagina'] = $finalFooter;
 
-            // Generar Código QR que apunta directamente a la descarga del PDF
-            $qrUrl = asset('storage/' . $storagePath);
-            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
+            // Numero de radicado
+            $qrCodeDataUri = null;
 
             // 1. Generar la CARTA (PDF Principal usando la vista template)
             $pdf = Pdf::loadView('pdf.template', [
@@ -516,13 +520,13 @@ class PdfController extends Controller
                 'origin' => 'ENV',
                 'size' => filesize($absolutePath),
                 'hash' => hash_file('sha256', $absolutePath),
-                'no_radicado' => str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT),
+                'no_radicado' => $pqrNumber,
             ]);
 
             // Si se seleccionó una carpeta en el modal, registrar el archivo en el explorador (Files)
             if (!empty($validated['folder_id'])) {
                 $hash = hash_file('sha256', $absolutePath);
-                $fileCode = str_pad((string) $pqr->id, 3, '0', STR_PAD_LEFT);
+                $fileCode = $pqrNumber;
                 $shortHash = substr($hash, 0, 10);
 
                 \App\Models\File::create([
@@ -564,5 +568,30 @@ class PdfController extends Controller
             Log::error('Error en generateAndStore (Carta): ' . $e->getMessage());
             return response()->json(['error' => 'Error al generar la respuesta: ' . $e->getMessage()], 500);
         }
+    }
+    
+    /**
+     * Genera el siguiente número consecutivo global para documentos salientes (ENV).
+     */
+    private function getNextEnvConsecutive()
+    {
+        // 1. Buscar el máximo en Soportes de PQR (origen ENV)
+        $maxAttached = \App\Models\AttachedSupport::where('origin', 'ENV')
+            ->whereNotNull('no_radicado')
+            ->where('no_radicado', 'REGEXP', '^[0-9]+$')
+            ->orderByRaw('CAST(no_radicado AS UNSIGNED) DESC')
+            ->first();
+        
+        $num1 = $maxAttached ? (int)$maxAttached->no_radicado : 0;
+
+        // 2. Buscar el máximo en Archivos del Explorador (file_code)
+        $maxFile = \App\Models\File::whereNotNull('file_code')
+            ->where('file_code', 'REGEXP', '^[0-9]+$')
+            ->orderByRaw('CAST(file_code AS UNSIGNED) DESC')
+            ->first();
+            
+        $num2 = $maxFile ? (int)$maxFile->file_code : 0;
+
+        return max($num1, $num2) + 1;
     }
 }
