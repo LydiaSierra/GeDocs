@@ -79,9 +79,9 @@ class SheetController extends Controller
 
             // Crear carpeta ventanilla unica dentro del año
             Folder::create([
-                'name' => 'ventanilla unica',
+                'name' => 'Ventanilla Única',
                 'parent_id' => $yearFolder->id,
-                'folder_code' => 000,
+                'folder_code' => '000',
                 'department' => 'sección',
                 'sheet_number_id' => $sheetNumber->id,
                 'active' => true,
