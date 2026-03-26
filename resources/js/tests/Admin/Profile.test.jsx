@@ -48,7 +48,7 @@ describe('Profile and Menu Tests - Admin (Frontend)', () => {
         vi.clearAllMocks();
     });
 
-    it('Admin Profile Settings: renders Delete Account form and Edit forms', () => {
+    it('Admin Profile Settings: does NOT render Delete Account form, but renders Edit forms', () => {
         const mockContext = { setContent: vi.fn(), notifications: [] };
         render(
             <UserContext.Provider value={mockContext}>
@@ -56,7 +56,7 @@ describe('Profile and Menu Tests - Admin (Frontend)', () => {
             </UserContext.Provider>
         );
 
-        expect(screen.getByText('Eliminar Cuenta')).toBeInTheDocument();
+        expect(screen.queryByText('Eliminar Cuenta')).not.toBeInTheDocument();
 
         expect(screen.getByRole('heading', { name: 'Información de Perfil' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { name: 'Cambiar Contraseña' })).toBeInTheDocument();

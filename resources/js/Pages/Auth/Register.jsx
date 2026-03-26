@@ -5,7 +5,7 @@ import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export default function Register({ sheets }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -33,7 +33,7 @@ export default function Register({ sheets }) {
         if (!data.role) return toast.error("Seleccione un rol");
         if (data.document_number.length > 10) return toast.error("El número de documento debe tener máximo 10 caracteres");
         if (data.document_number.length < 7) return toast.error("El número de documento debe tener mínimo 7 caracteres");
-        if (data.document_number !== Number) return toast.error("El número de documento debe ser numeros");
+        if (!/^\d+$/.test(data.document_number)) return toast.error("El número de documento debe ser numérico");
 
         if (data.role === "Aprendiz" && !data.technical_sheet_id) {
             return toast.error("Seleccione su ficha");
@@ -64,18 +64,22 @@ export default function Register({ sheets }) {
     };
     return (
         <GuestLayout>
-            <Head title="Register" />
+            <Head title="Registrarse" />
 
-            <form onSubmit={submit}>
-                <h1 className="text-2xl text-green-900 font-bold text-center mb-4">
-                    Registrarse
-                </h1>
+            <form onSubmit={submit} className="space-y-5">
+                <div className="space-y-2 text-center sm:text-left">
+                    <h1 className="text-2xl font-bold text-slate-900">Crear cuenta</h1>
+                    <p className="text-sm text-slate-600">
+                        Completa tus datos para acceder a la plataforma GeDocs.
+                    </p>
+                </div>
 
                 {/* Tipo documento */}
-                <div className="mt-4">
+                <div>
                     <InputLabel
                         htmlFor="type_document"
                         value="Tipo de documento"
+                        className="mb-1.5 text-slate-700"
                     />
                     <select
                         id="type_document"
@@ -83,7 +87,7 @@ export default function Register({ sheets }) {
                         onChange={(e) =>
                             setData("type_document", e.target.value)
                         }
-                        className="mt-1 w-full border border-gray-500 rounded-md p-2"
+                        className="select w-full rounded-lg border-slate-300 bg-white text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
                         <option value="">Seleccione un tipo</option>
                         <option value="CC">Cédula de Ciudadanía</option>
@@ -97,17 +101,21 @@ export default function Register({ sheets }) {
                 </div>
 
                 {/* Documento */}
-                <div className="mt-4">
+                <div>
                     <InputLabel
                         htmlFor="document_number"
                         value="Número de documento"
+                        className="mb-1.5 text-slate-700"
                     />
                     <TextInput
                         id="document_number"
                         value={data.document_number}
-                        className="mt-1 block w-full"
+                        className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                        placeholder="Ej: 1234567890"
+                        inputMode="numeric"
+                        maxLength={10}
                         onChange={(e) =>
-                            setData("document_number", e.target.value)
+                            setData("document_number", e.target.value.replace(/\D/g, ""))
                         }
                     />
                     <InputError
@@ -117,38 +125,40 @@ export default function Register({ sheets }) {
                 </div>
 
                 {/* Nombre */}
-                <div className="mt-4">
-                    <InputLabel htmlFor="name" value="Nombre completo" />
+                <div>
+                    <InputLabel htmlFor="name" value="Nombre completo" className="mb-1.5 text-slate-700" />
                     <TextInput
                         id="name"
                         value={data.name}
-                        className="mt-1 block w-full"
+                        className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                        placeholder="Nombre y apellidos"
                         onChange={(e) => setData("name", e.target.value)}
                     />
                     <InputError message={errors.name} className="mt-2" />
                 </div>
 
                 {/* Email */}
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
+                <div>
+                    <InputLabel htmlFor="email" value="Correo electrónico" className="mb-1.5 text-slate-700" />
                     <TextInput
                         id="email"
                         type="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                        placeholder="correo@ejemplo.com"
                         onChange={(e) => setData("email", e.target.value)}
                     />
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 {/* Rol */}
-                <div className="mt-4">
-                    <InputLabel htmlFor="role" value="Rol" />
+                <div>
+                    <InputLabel htmlFor="role" value="Rol" className="mb-1.5 text-slate-700" />
                     <select
                         id="role"
                         value={data.role}
                         onChange={(e) => setData("role", e.target.value)}
-                        className="mt-1 w-full border border-gray-500 rounded-md p-2"
+                        className="select w-full rounded-lg border-slate-300 bg-white text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
                         <option value="">Seleccione un rol</option>
                         <option value="Aprendiz">Aprendiz</option>
@@ -159,15 +169,15 @@ export default function Register({ sheets }) {
 
                 {/* Ficha */}
                 {data.role === "Aprendiz" && (
-                    <div className="mt-4">
-                        <InputLabel htmlFor="technical_sheet_id" value="Ficha" />
+                    <div>
+                        <InputLabel htmlFor="technical_sheet_id" value="Ficha" className="mb-1.5 text-slate-700" />
                         <select
                             id="technical_sheet_id"
                             value={data.technical_sheet_id}
                             onChange={(e) =>
                                 setData("technical_sheet_id", e.target.value)
                             }
-                            className="mt-1 w-full border border-gray-500 rounded-md p-2"
+                            className="select w-full rounded-lg border-slate-300 bg-white text-slate-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                         >
                             <option value="">Seleccione su ficha</option>
                             {sheets.map((sheet) => (
@@ -184,29 +194,32 @@ export default function Register({ sheets }) {
                 )}
 
                 {/* Password */}
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Contraseña" />
+                <div>
+                    <InputLabel htmlFor="password" value="Contraseña" className="mb-1.5 text-slate-700" />
                     <TextInput
                         id="password"
                         type="password"
                         value={data.password}
-                        className="mt-1 block w-full"
+                        className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                        placeholder="Mínimo 8 caracteres"
                         onChange={(e) => setData("password", e.target.value)}
                     />
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
                 {/* Confirm */}
-                <div className="mt-4">
+                <div>
                     <InputLabel
                         htmlFor="password_confirmation"
                         value="Confirmar contraseña"
+                        className="mb-1.5 text-slate-700"
                     />
                     <TextInput
                         id="password_confirmation"
                         type="password"
                         value={data.password_confirmation}
-                        className="mt-1 block w-full"
+                        className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                        placeholder="Repite tu contraseña"
                         onChange={(e) =>
                             setData("password_confirmation", e.target.value)
                         }
@@ -218,15 +231,15 @@ export default function Register({ sheets }) {
                 </div>
 
                 {/* Actions */}
-                <div className="mt-6 flex items-center justify-end gap-4">
+                <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between">
                     <Link
                         href={route("login")}
-                        className="text-sm text-gray-600 underline hover:text-gray-900"
+                        className="text-center text-sm font-medium text-slate-600 transition hover:text-primary hover:underline sm:text-left"
                     >
                         ¿Ya estás registrado?
                     </Link>
 
-                    <PrimaryButton disabled={processing}>
+                    <PrimaryButton className="h-11 justify-center rounded-lg px-6 text-sm normal-case tracking-normal" disabled={processing}>
                         Registrarse
                     </PrimaryButton>
                 </div>
