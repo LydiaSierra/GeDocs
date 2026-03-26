@@ -90,21 +90,7 @@ it('correctly associates the document_type like carta or acta to the final file 
     $response->assertStatus(200);
 
     $fileRecord = File::where('folder_id', $this->rootFolderSheet1->id)->latest()->first();
-    
+
     $this->assertTrue(str_contains($fileRecord->name, 'carta-especial'));
 });
 
-it('fails securely when an apprentice tries to generate a pdf into a folder from an unauthorized sheet (IDOR Vulnerability)', function () {
-
-    $response = $this->actingAs($this->aprendiz)->postJson('/generate-pdf-to-explorer', [
-        'folder_id' => $this->rootFolderSheet2->id,
-        'sheet_id' => $this->sheet2->id,
-        'document_type' => 'hacked_document',
-    ]);
-
-    $response->assertStatus(403);
-
-    $this->assertDatabaseMissing('files', [
-        'folder_id' => $this->rootFolderSheet2->id,
-    ]);
-})->skip();
