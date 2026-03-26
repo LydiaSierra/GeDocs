@@ -38,7 +38,7 @@ beforeEach(function () {
     $this->sheet2 = Sheet_number::create(['number' => '222222', 'program_id' => 1]);
 
     $this->instructor->sheetNumbers()->attach($this->sheet1->id);
-    $this->aprendiz->sheetNumbers()->attach($this->sheet1->id); 
+    $this->aprendiz->sheetNumbers()->attach($this->sheet1->id);
 
     $this->rootFolderSheet1 = Folder::create([
         'name' => '2024',
@@ -68,7 +68,7 @@ beforeEach(function () {
 it('allows Admin to see all folders in the explorer regardless of sheet', function () {
     $response = $this->actingAs($this->admin)->get('/explorer?sheet_id=' . $this->sheet2->id);
     $response->assertStatus(200);
-    
+
     $response->assertInertia(fn (Assert $page) => $page
         ->component('Explorer')
         ->has('folders')
@@ -81,13 +81,13 @@ it('allows Instructor to see folders for assigned sheets', function () {
 });
 
 it('prevents Instructor from seeing folders for unassigned sheets', function () {
-    $response = $this->actingAs($this->instructor)->get('/explorer?sheet_id=' . $this->sheet2->id); 
+    $response = $this->actingAs($this->instructor)->get('/explorer?sheet_id=' . $this->sheet2->id);
 
     if ($response->status() !== 403) {
-        
+
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Explorer')
-            ->where('folders', []) 
+            ->where('folders', [])
         );
     } else {
         $response->assertForbidden();
@@ -95,11 +95,11 @@ it('prevents Instructor from seeing folders for unassigned sheets', function () 
 });
 
 it('prevents Apprentice from seeing folders for unassigned sheets', function () {
-    $response = $this->actingAs($this->aprendiz)->get('/explorer?sheet_id=' . $this->sheet2->id); 
+    $response = $this->actingAs($this->aprendiz)->get('/explorer?sheet_id=' . $this->sheet2->id);
     if ($response->status() !== 403) {
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Explorer')
-            ->where('folders', []) 
+            ->where('folders', [])
         );
     } else {
         $response->assertForbidden();
@@ -137,7 +137,7 @@ it('updates a folder successfully', function () {
 });
 
 it('uploads files and returns unique hash properties without failing', function () {
-    
+
     $file = UploadedFile::fake()->create('documento.pdf', 100);
 
     $response = $this->actingAs($this->admin)->post("/api/folders/{$this->subFolderSheet1->id}/upload", [
@@ -156,7 +156,7 @@ it('uploads files and returns unique hash properties without failing', function 
     $explorerResponse->assertInertia(fn (Assert $page) => $page
         ->component('Explorer')
         ->has('files', 1, fn (Assert $page) => $page
-            ->has('hash')   
+            ->has('hash')
             ->etc()
         )
     );
@@ -190,11 +190,11 @@ it('downloads multiple items as a mixed ZIP archive', function () {
     ]);
 
     $response->assertStatus(200);
-    
+
     $this->assertTrue(str_contains($response->headers->get('Content-Disposition'), '.zip'));
 });
 
-it('logically deletes folders and files (moves to trash)', function () {
+it('logically deletes folders and files', function () {
     $response = $this->actingAs($this->admin)->post('/api/folders/delete-mixed', [
         'folders' => [$this->subFolderSheet1->id]
     ]);
@@ -207,7 +207,7 @@ it('logically deletes folders and files (moves to trash)', function () {
 });
 
 it('lists archived (trashed) items correctly', function () {
-    
+
     $this->subFolderSheet1->update(['active' => false]);
 
     $response = $this->actingAs($this->admin)->get('/folders/archived?sheet_id=' . $this->sheet1->id);
@@ -215,7 +215,7 @@ it('lists archived (trashed) items correctly', function () {
     $response->assertStatus(200);
     $data = $response->json();
     $this->assertTrue($data['success']);
-    
+
     $this->assertCount(1, $data['folders']);
     $this->assertEquals($this->subFolderSheet1->id, $data['folders'][0]['id']);
 });
@@ -224,7 +224,7 @@ it('restores folders from trash', function () {
     $this->subFolderSheet1->update(['active' => false]);
 
     $response = $this->actingAs($this->admin)->post('/folders/restore-mixed', [
-        'folders' => [$this->subFolderSheet1->id] 
+        'folders' => [$this->subFolderSheet1->id]
     ]);
 
     $response->assertSessionHasNoErrors();
