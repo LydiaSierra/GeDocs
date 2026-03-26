@@ -131,7 +131,8 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             ->select(
                 $table . '.*',
                 'ats.no_radicado as no_radicado_from_join',
-                'fo.folder_code as folder_code_from_join'
+                'fo.folder_code as folder_code_from_join',
+                'ats.hash as hash_from_join'
             )
 
             ->orderByDesc($table . '.created_at');
@@ -327,11 +328,8 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
         $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
         $rolCreador = $p->creator ? ($p->creator->getRoleNames()->first() ?? $PH) : $PH;
 
-        \Log::info('DEBUG FINAL', [
-            'pqr_id' => $p->id,
-            'no_radicado_join' => $p->no_radicado_from_join,
-            'folder_code_join' => $p->folder_code_from_join,
-        ]);
+        $hash = $p->hash_from_join ?? 'N/A';
+
 
         if ($noRadicado === 'N/A') {
             \Log::info('NO RADICADO VACIO', ['pqr_id' => $p->id]);
@@ -351,7 +349,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             $noRadicado,          // A Numero Radicado (from attachedSupports.no_radicado)
             $fechaCreacion,       // B Fecha creación dd/mm/yyyy
             $horaCreacion,        // C Hora creación HH:MM
-            $noRadicado,          // D Cod. Barras (use same no_radicado for now)
+            $hash,          // D Cod. Barras (use same no_radicado for now)
 
             // E
             $folderCode, // E Codigo de la Dependencia (folder_code)
@@ -430,6 +428,14 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
             ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)
             ->setWrapText(true);
+
+        // Column D (Cod. Barras / Hash): keep it narrow and avoid expanding rows
+        $sheet->getColumnDimension('D')->setWidth(18); // fixed modest width
+        $sheet->getStyle('D9:D' . $highestRow)
+            ->getAlignment()
+            ->setWrapText(false)
+            ->setShrinkToFit(true);
+        $sheet->getStyle('D9:D' . $highestRow)->getFont()->setName('Consolas');
 
         // Base font for header
         $sheet->getStyle('A1:V8')->getFont()
