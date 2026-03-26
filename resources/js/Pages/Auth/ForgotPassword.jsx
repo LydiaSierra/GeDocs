@@ -16,39 +16,51 @@ export default function ForgotPassword({ status }) {
 
     return (
         <GuestLayout>
-            <Head title="Forgot Password" />
+            <Head title="Recuperar contrasena" />
 
-            <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email
-                address and we will email you a password reset link that will
-                allow you to choose a new one.
+            <div className="space-y-5">
+                <div className="space-y-2 text-center sm:text-left">
+                    <h1 className="text-2xl font-bold text-slate-900">Recuperar contrasena</h1>
+                    <p className="text-sm text-slate-600">
+                        Ingresa tu correo y te enviaremos un enlace para restablecer tu contrasena.
+                    </p>
+                </div>
+
+                {status && (
+                    <div className="rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm font-medium text-slate-700">
+                        {status}
+                    </div>
+                )}
+
+                <form onSubmit={submit} className="space-y-4">
+                    <div>
+                        <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                            Correo electronico
+                        </label>
+                        <TextInput
+                            id="email"
+                            type="email"
+                            name="email"
+                            value={data.email}
+                            className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                            placeholder="correo@ejemplo.com"
+                            isFocused={true}
+                            onChange={(e) => setData('email', e.target.value)}
+                        />
+                    </div>
+
+                    <InputError message={errors.email} className="mt-2" />
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                        <PrimaryButton
+                            className="h-11 w-full justify-center rounded-lg text-sm normal-case tracking-normal sm:w-auto"
+                            disabled={processing}
+                        >
+                            Enviar enlace de recuperacion
+                        </PrimaryButton>
+                    </div>
+                </form>
             </div>
-
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
-
-            <form onSubmit={submit}>
-                <TextInput
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={data.email}
-                    className="mt-1 block w-full"
-                    isFocused={true}
-                    onChange={(e) => setData('email', e.target.value)}
-                />
-
-                <InputError message={errors.email} className="mt-2" />
-
-                <div className="mt-4 flex items-center justify-end">
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Email Password Reset Link
-                    </PrimaryButton>
-                </div>
-            </form>
         </GuestLayout>
     );
 }

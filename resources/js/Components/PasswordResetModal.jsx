@@ -1,74 +1,90 @@
-import {XMarkIcon} from "@heroicons/react/24/outline";
-import {useEffect, useState} from "react";
-import {useForm} from '@inertiajs/react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useForm } from '@inertiajs/react';
+import InputError from '@/Components/InputError';
+import PrimaryButton from '@/Components/PrimaryButton';
+import TextInput from '@/Components/TextInput';
 
 export default function PasswordResetModal() {
-
-    const [showError, setShowError] = useState(false);
-
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
         email: '',
     });
+
+    const closeModal = () => {
+        document.getElementById('reset_modal').close();
+    };
 
     const submitReset = (e) => {
         e.preventDefault();
 
         post(route('password.email'), {
             onSuccess: () => {
-                document.getElementById("reset_modal").close();
-                }
+                closeModal();
+            },
         });
     };
 
-    useEffect(() => {
-        if (errors.email) {
-            setShowError(true);
-
-            const timer = setTimeout(() => {
-                setShowError(false);
-            }, 3000); // hides after 3 seconds in case of error 
-
-            return () => clearTimeout(timer);
-        }
-    }, [errors]);
-
-
     return (
         <dialog id="reset_modal" className="modal">
-            {showError && (
-                <div className="toast toast-top toast-center">
-                    <div className="alert alert-error">
-                        <span>{errors.email}</span>
-                    </div>
+            <div className="modal-box w-11/12 max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-lg sm:p-7">
+                <button
+                    type="button"
+                    aria-label="Cerrar"
+                    onClick={closeModal}
+                    className="btn btn-ghost btn-sm absolute right-3 top-3 rounded-full"
+                >
+                    <XMarkIcon className="size-5" />
+                </button>
+
+                <div className="space-y-2 pr-8">
+                    <h3 className="text-xl font-bold text-slate-900 sm:text-2xl">Recuperar contraseña</h3>
+                    <p className="text-sm text-slate-600 sm:text-base">
+                        Ingresa tu correo y te enviaremos un enlace de recuperación.
+                    </p>
                 </div>
-            )}
-            <div className="modal-box px-15 py-10">
-                <XMarkIcon className="absolute right-0 top-0 size-5 mr-5 mt-5 cursor-pointer"
-                           onClick={() => document.getElementById("reset_modal").close()}></XMarkIcon>
-                <h3 className="font-bold text-2xl text-center">Recuperar Contraseña</h3>
-                <p className="text-center text-lg">Ingresa tu correo para recuperar contraseña</p>
+
                 {recentlySuccessful && (
-                    <div className="mb-4 text-primary text-sm">
-                        ¡Hemos enviado un enlace de recuperación a tu correo!
+                    <div className="mt-4 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm font-medium text-slate-700">
+                        Hemos enviado el enlace de recuperación a tu correo.
                     </div>
                 )}
-                <div className="modal-action justify-center">
-                    <form onSubmit={submitReset} method="dialog" className="w-full flex flex-col items-center gap-3">
-                        <input
-                            className=" w-full border border-gray-300 rounded-lg px-3 py-3 text-black placeholder:text-gray-600
-                                focus:outline-none focus:ring-2 focus:ring-gray-700"
+
+                <form onSubmit={submitReset} className="mt-5 space-y-4">
+                    <div>
+                        <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+                            Correo electrónico
+                        </label>
+                        <TextInput
                             id="email"
                             type="email"
                             name="email"
                             value={data.email}
-                            placeholder="Ingresa tu correo"
+                            className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                            placeholder="correo@ejemplo.com"
+                            autoComplete="email"
                             onChange={(e) => setData('email', e.target.value)}
                         />
-                        <button className="btn border text-white bg-primary text-lg py-5 rounded-lg w-full">Enviar</button>
-                        <button onClick={() => {document.getElementById("reset_modal").close();}} className="btn border text-primary bg-white border-primary text-lg py-5 rounded-lg w-full">Cerrar</button>
-                    </form>
-                </div>
+                        <InputError message={errors.email} className="mt-2" />
+                    </div>
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-primary bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5 sm:w-auto"
+                        >
+                            Cerrar
+                        </button>
+
+                        <PrimaryButton
+                            type="submit"
+                            disabled={processing}
+                            className="h-11 w-full justify-center rounded-lg text-sm normal-case tracking-normal sm:w-auto"
+                        >
+                            {processing ? 'Enviando...' : 'Enviar enlace'}
+                        </PrimaryButton>
+                    </div>
+                </form>
             </div>
         </dialog>
-    )
+    );
 }
