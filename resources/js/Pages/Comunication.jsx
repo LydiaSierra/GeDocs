@@ -305,7 +305,6 @@ export default function Comunication({ pqrID }) {
                         {/* Contenido Formato Carta */}
                         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <div className="mb-6 space-y-3 sm:space-y-4">
-                                <DocInput name="codigo" placeholder="Código (Ej: GD-001)" className="w-full sm:w-44 text-sm sm:text-[11pt]" />
                                 <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
                                     <DocInput name="lugar" placeholder="Lugar (Municipio)" className="w-full sm:flex-1 sm:min-w-40 text-sm sm:text-[11pt]" defaultValue={dependency.name || ""} />
                                     <DocInput name="fecha" type="date" className="text-gray-600 w-full sm:w-auto text-sm sm:text-[11pt]" defaultValue={new Date().toISOString().split('T')[0]} />
@@ -321,9 +320,17 @@ export default function Comunication({ pqrID }) {
                                 <DocInput name="ciudad" placeholder="Ciudad" className="w-full text-sm sm:text-[11pt]" />
                             </div>
 
-                            <DocInput name="asunto" placeholder="Asunto de la respuesta" className="w-full font-bold mb-4 sm:mb-6 text-sm sm:text-[11pt]" defaultValue={`Respuesta a PQR #${pqr.id}`} />
+                            <div className="flex gap-2 items-center mb-4 sm:mb-6">
+                                <span className="font-bold flex-shrink-0">Asunto:</span>
+                                <DocInput name="asunto" placeholder="Asunto de la respuesta" className="w-full font-bold text-sm sm:text-[11pt]" defaultValue={`Respuesta a PQR #${pqr.id}`} />
+                            </div>
+
                             <DocInput name="saludo" placeholder="Cordial saludo," className="w-full mb-4 sm:mb-6 text-sm sm:text-[11pt]" />
-                            <DocArea name="texto" rows={12} placeholder="Redacte aquí la respuesta detallada a la solicitud..." className="text-justify mb-8 text-sm sm:text-[11pt]" />
+                            <div className="mb-8">
+                                <span className="font-bold block mb-2">Respuesta:</span>
+                                <DocArea name="texto" rows={12} placeholder="Redacte aquí la respuesta detallada a la solicitud..." className="text-justify text-sm sm:text-[11pt]" />
+                            </div>
+
                             <DocInput name="despedida1" placeholder="Atentamente," className="w-full mb-10 sm:mb-16 text-sm sm:text-[11pt]" />
                         </div>
 
@@ -353,7 +360,9 @@ export default function Comunication({ pqrID }) {
 
                         <div className="text-xs sm:text-[9pt] text-gray-400 space-y-2 sm:space-y-1">
                             <DocInput name="anexo" placeholder="Anexos (Opcional)" className="w-full text-xs sm:text-[9pt]" />
-                            <DocInput name="transcriptor" placeholder="Transcriptor / Redactor (Opcional)" className="w-full text-xs sm:text-[9pt]" />
+                            <DocInput name="copia" placeholder="Copia (Opcional)" className="w-full text-xs sm:text-[9pt]" />
+                            <DocInput name="transcriptor" placeholder="Transcriptor (Opcional)" className="w-full text-xs sm:text-[9pt]" />
+                            <DocInput name="redactor" placeholder="Redactor (Opcional)" className="w-full text-xs sm:text-[9pt]" />
                         </div>
 
                         {/* Pie de página editable y centrado */}

@@ -154,9 +154,6 @@
 
         {{-- Código y Fecha --}}
         <div class="info-block">
-            @if(!empty($data['codigo']))
-                <div>Código: {{ $data['codigo'] }}</div>
-            @endif
             <div>{{ $data['lugar'] ?? $data['ciudad'] ?? '' }}, {{ $data['fecha'] ?? '' }}</div>
         </div>
 
