@@ -55,14 +55,14 @@ const File = ({ file }) => {
 
                     {/* OPTIONS BUTTON */}
                     {pendingMoveItems.length === 0 && (
-                        <>
+                        <div className="absolute top-2 right-2 flex items-center">
                             <div className="hidden lg:inline-block">
                                 <MenuOptions />
                             </div>
                             <div className="lg:hidden">
                                 <ButtonDrawerInformation />
                             </div>
-                        </>
+                        </div>
                     )}
 
                 </div>
