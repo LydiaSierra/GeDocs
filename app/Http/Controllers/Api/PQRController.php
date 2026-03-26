@@ -102,7 +102,7 @@ class PQRController extends Controller
             });
         }
 
-        $pqrs = $query->get();
+        $pqrs = $query->orderBy("created_at", "DESC")->get();
 
         return response()->json([
             'data' => $pqrs,
