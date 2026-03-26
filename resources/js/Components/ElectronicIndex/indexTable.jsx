@@ -136,28 +136,28 @@ export default function IndexTable() {
 
     return (
         <div className="w-full overflow-x-auto">
-            <table className="w-full table-fixed md:table-auto border-collapse pb-3">
+            <table className="min-w-full table-auto border-collapse pb-3">
                 <thead className="sticky top-0 z-10 bg-white border-b border-gray-300">
                     <tr className="text-gray-600 uppercase text-[10px] md:text-sm">
-                        <th className="py-4 px-2 md:px-4 text-left font-bold w-[65%] md:w-auto">
+                        <th className="py-4 px-4 text-left font-bold whitespace-nowrap">
                             Radicado
                         </th>
-                        <th className="hidden lg:table-cell px-4 text-left font-bold">
+                        <th className="px-4 text-left font-bold whitespace-nowrap">
                             Fecha Creacion
                         </th>
-                        <th className="px-2 md:px-4 text-center md:text-left font-bold w-[35%] md:w-auto">
+                        <th className="px-4 text-left font-bold whitespace-nowrap">
                             Fecha Incorporacion
                         </th>
-                        <th className="hidden sm:table-cell px-4 text-left font-bold">
+                        <th className="px-4 text-left font-bold whitespace-nowrap">
                             Numero de gestion
                         </th>
-                        <th className="hidden sm:table-cell px-4 text-left font-bold">
+                        <th className="px-4 text-left font-bold whitespace-nowrap">
                             Dependencia
                         </th>
-                        <th className="hidden sm:table-cell px-4 text-left font-bold">
+                        <th className="px-4 text-left font-bold whitespace-nowrap">
                             Hash
                         </th>
-                        <th className="hidden sm:table-cell px-4 text-left font-bold"></th>
+                        <th className="px-4 text-left font-bold whitespace-nowrap"></th>
                     </tr>
                 </thead>
                 <tbody className="bg-white">
@@ -187,31 +187,31 @@ export default function IndexTable() {
 
                     {!loading && !error && visibleRows.map((row) => (
                         <tr key={row.id} className="cursor-pointer border-b border-gray-100 transition-colors bg-white hover:bg-primary/5 select-none">
-                            <td className="py-4 px-2 md:px-4">
+                            <td className="py-4 px-4 whitespace-nowrap">
                                 <div className="flex items-center text-sm gap-2 font-semibold md:gap-3">
                                     {row.radicado}
                                 </div>
                             </td>
-                            <td className="hidden lg:table-cell px-4 text-left text-sm text-gray-500">
+                            <td className="px-4 text-left text-sm text-gray-500 whitespace-nowrap">
                                 {row.createdAt}
                             </td>
-                            <td className="truncate px-2 md:px-4 text-center md:text-left text-sm text-gray-500">
+                            <td className="px-4 text-left text-sm text-gray-500 whitespace-nowrap">
                                 {row.incorporatedAt}
                             </td>
-                            <td className="hidden sm:table-cell px-4 text-left text-sm text-gray-500">
+                            <td className="px-4 text-left text-sm text-gray-500 whitespace-nowrap">
                                 {row.managementNumber}
                             </td>
-                            <td className="hidden sm:table-cell px-4 text-left text-sm text-gray-500">
+                            <td className="px-4 text-left text-sm text-gray-500 whitespace-nowrap">
                                 {row.dependency}
                             </td>
-                            <td className="hidden sm:table-cell px-4 text-left text-sm text-gray-500">
+                            <td className="px-4 text-left text-sm text-gray-500 whitespace-nowrap">
                                 {row.hash && (
                                     <>
                                         {row.hash.substring(0, 12)}...
                                     </>
                                 )}
                             </td>
-                            <td className="hidden sm:table-cell px-4 text-right">
+                            <td className="px-4 text-right whitespace-nowrap">
                                 <button
                                     type="button"
                                     data-file-id={row.id}

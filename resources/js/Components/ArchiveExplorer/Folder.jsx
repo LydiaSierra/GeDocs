@@ -22,7 +22,7 @@ const Folder = ({ folder }) => {
                         const isMoving = pendingMoveItems.some(i => i.id === folder.id && i.type === 'folder');
                         if (!isMoving) openFolder(folder.id, true)
                     }}
-                    className={`cursor-pointer border-b lg:border shadow-sm select-none lg:hover:shadow-md relative transition p-2 flex items-center justify-between rounded-md w-full active:bg-[#E8F9FB] ${isSelected(folder.id, 'folder') ? "bg-primary/30" : "bg-white hover:bg-primary/20"} ${pendingMoveItems.some(i => i.id === folder.id && i.type === 'folder') ? "border-2 border-primary opacity-30 cursor-not-allowed scale-95 pointer-events-none" : ""}`}
+                    className={`cursor-pointer border-b lg:border shadow-sm select-none lg:hover:shadow-md relative transition p-2 rounded-md w-full active:bg-[#E8F9FB] ${isSelected(folder.id, 'folder') ? "bg-primary/30" : "bg-white hover:bg-primary/20"} ${pendingMoveItems.some(i => i.id === folder.id && i.type === 'folder') ? "border-2 border-primary opacity-30 cursor-not-allowed scale-95 pointer-events-none" : ""}`}
                 >
                     {(isMultipleSelection && selectedItems.length > 0) &&
                         <input type="checkbox" name="selected" id={`selected-folder-${folder.id}`} className="checkbox checkbox-primary absolute left-2 top-2 pointer-events-none" checked={isSelected(folder.id, 'folder')} readOnly />
@@ -34,7 +34,7 @@ const Folder = ({ folder }) => {
 
                     {/* Button of options*/}
                     {pendingMoveItems.length === 0 && (
-                        <>
+                        <div className="absolute top-2 right-2 flex items-center">
                             <div className="hidden lg:inline-block">
                                 <MenuOptions />
                             </div>
@@ -43,7 +43,7 @@ const Folder = ({ folder }) => {
                                     <ButtonDrawerInformation />
                                 </div>
                             }
-                        </>
+                        </div>
                     )}
                 </div>
                 :
