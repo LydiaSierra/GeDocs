@@ -6,17 +6,19 @@ import Header from "@/Components/Header/Header";
 import { ElectronicIndexContext } from "@/context/ElectronicIndexContext/ElectronicIndexContext";
 
 export default function ElectronicIndex(){
-    const { setActiveScope, loadExplorerFiles } = useContext(ElectronicIndexContext);
+    const { setActiveScope, setActiveDependencyFolderId, loadExplorerFiles } = useContext(ElectronicIndexContext);
     const { url } = usePage();
 
     const queryParams = useMemo(() => new URLSearchParams(url.split("?")[1] || ""), [url]);
     const querySheetId = queryParams.get("sheet_id");
     const querySheetNumber = queryParams.get("sheet_number");
     const queryYear = queryParams.get("year");
+    const queryDependencyFolderId = queryParams.get("dependency_folder_id");
 
     const activeSheetId = querySheetId || localStorage.getItem("active_sheet_id");
     const activeSheetNumber = querySheetNumber || localStorage.getItem("active_sheet_number");
     const activeYear = queryYear || localStorage.getItem("active_sheet_year") || String(new Date().getFullYear());
+    const activeDependencyFolderId = queryDependencyFolderId || localStorage.getItem("active_dependency_folder_id");
 
     useEffect(() => {
         if (querySheetId) {
@@ -30,7 +32,11 @@ export default function ElectronicIndex(){
         if (queryYear) {
             localStorage.setItem("active_sheet_year", queryYear);
         }
-    }, [querySheetId, querySheetNumber, queryYear]);
+
+        if (queryDependencyFolderId) {
+            localStorage.setItem("active_dependency_folder_id", queryDependencyFolderId);
+        }
+    }, [querySheetId, querySheetNumber, queryYear, queryDependencyFolderId]);
 
     useEffect(() => {
         setActiveScope({
@@ -38,6 +44,10 @@ export default function ElectronicIndex(){
             year: activeYear,
         });
     }, [activeSheetId, activeYear, setActiveScope]);
+
+    useEffect(() => {
+        setActiveDependencyFolderId(activeDependencyFolderId);
+    }, [activeDependencyFolderId, setActiveDependencyFolderId]);
 
     useEffect(() => {
         if (!activeSheetId || !activeYear) return;

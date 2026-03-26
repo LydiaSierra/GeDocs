@@ -106,6 +106,16 @@ export default function ContainerFolders() {
 
     const activeSheet = sheets.find((sheet) => sheet.id === activeSheetId);
 
+    const isDependencyFolder = (() => {
+        if (!currentFolder || !Array.isArray(allFolders) || allFolders.length === 0) {
+            return false;
+        }
+
+        const folderById = new Map(allFolders.map((folder) => [folder.id, folder]));
+        const parent = currentFolder.parent_id ? folderById.get(currentFolder.parent_id) : null;
+        return Boolean(parent && extractYearFromFolder(parent));
+    })();
+
     const currentYear = findYearFromCurrentPath()
         || Number(localStorage.getItem("active_sheet_year"))
         || new Date().getFullYear();
@@ -114,6 +124,7 @@ export default function ContainerFolders() {
         sheet_id: activeSheetId || undefined,
         sheet_number: activeSheet?.number || undefined,
         year: currentYear || undefined,
+        dependency_folder_id: isDependencyFolder ? currentFolder?.id : undefined,
     });
 
 
@@ -157,25 +168,31 @@ export default function ContainerFolders() {
                                     "Modo busqueda "
                             }
                         </h1>
-                        <Link
-                            href={electronicIndexHref}
-                            className="bg-none text-primary font-semibold underline py-2 px-4"
-                            onClick={() => {
-                                if (activeSheetId) {
-                                    localStorage.setItem("active_sheet_id", String(activeSheetId));
-                                }
+                        {isDependencyFolder && (
+                            <Link
+                                href={electronicIndexHref}
+                                className="bg-none text-primary font-semibold underline py-2 px-4"
+                                onClick={() => {
+                                    if (activeSheetId) {
+                                        localStorage.setItem("active_sheet_id", String(activeSheetId));
+                                    }
 
-                                if (activeSheet?.number) {
-                                    localStorage.setItem("active_sheet_number", String(activeSheet.number));
-                                }
+                                    if (activeSheet?.number) {
+                                        localStorage.setItem("active_sheet_number", String(activeSheet.number));
+                                    }
 
-                                if (currentYear) {
-                                    localStorage.setItem("active_sheet_year", String(currentYear));
-                                }
-                            }}
-                        >
-                            Indice
-                        </Link>
+                                    if (currentYear) {
+                                        localStorage.setItem("active_sheet_year", String(currentYear));
+                                    }
+
+                                    if (currentFolder?.id) {
+                                        localStorage.setItem("active_dependency_folder_id", String(currentFolder.id));
+                                    }
+                                }}
+                            >
+                                Indice
+                            </Link>
+                        )}
                     </div>
                 }
 
