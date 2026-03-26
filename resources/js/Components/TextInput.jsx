@@ -20,7 +20,7 @@ export default forwardRef(function TextInput(
         <input
             {...props}
             type={type}
-            className={"input outline-none" + className}
+            className={`input outline-none ${className}`.trim()}
             ref={localRef}
         />
     );

@@ -1,12 +1,10 @@
-import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import PasswordResetModal from "@/Components/PasswordResetModal.jsx";
+import { Head, Link, useForm } from '@inertiajs/react';
+import PasswordResetModal from '@/Components/PasswordResetModal.jsx';
 import { toast } from 'sonner';
 import { usePage } from '@inertiajs/react';
 
@@ -62,66 +60,88 @@ export default function Login({ status, canResetPassword }) {
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Iniciar sesion" />
 
             {status && (
                 <div></div>
             )}
 
-            <form onSubmit={submit}>
-                <h1 className={"text-xl text-primary-content font-bold text-center"}>Iniciar Sesión</h1>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full outline-none"
-                        autoComplete="username"
-                        isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
+            <form onSubmit={submit} className="space-y-5">
+                <div className="space-y-2 text-center sm:text-left">
+                    <h1 className="text-2xl font-bold text-slate-900">Iniciar sesion</h1>
+                    <p className="text-sm text-slate-600">
+                        Accede a GeDocs para continuar con la gestion documental.
+                    </p>
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Contraseña" />
+                <div className="space-y-4">
+                    <div>
+                        <InputLabel htmlFor="email" value="Correo electronico" className="mb-1.5 text-slate-700" />
 
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full outline-none"
-                        autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                    />
+                        <TextInput
+                            id="email"
+                            type="email"
+                            name="email"
+                            value={data.email}
+                            className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                            autoComplete="username"
+                            isFocused={true}
+                            placeholder="correo@ejemplo.com"
+                            onChange={(e) => setData('email', e.target.value)}
+                        />
 
-                    <InputError message={errors.password} className="mt-2" />
+                        <InputError message={errors.email} className="mt-2" />
+                    </div>
+
+                    <div>
+                        <InputLabel htmlFor="password" value="Contrasena" className="mb-1.5 text-slate-700" />
+
+                        <TextInput
+                            id="password"
+                            type="password"
+                            name="password"
+                            value={data.password}
+                            className="block w-full border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+                            autoComplete="current-password"
+                            placeholder="Ingresa tu contrasena"
+                            onChange={(e) => setData('password', e.target.value)}
+                        />
+
+                        <InputError message={errors.password} className="mt-2" />
+                    </div>
                 </div>
 
-                <a
-                    href="#"
-                    className="text-sm text-primary hover:underline cursor-pointer"
-                    onClick={() => document.getElementById('reset_modal').showModal()}
-                >
-                    ¿Olvidaste tu contraseña?
-                </a>
+                <div className="flex items-center justify-end">
+                    <button
+                        type="button"
+                        className="text-sm font-medium text-primary transition hover:underline"
+                        onClick={() => document.getElementById('reset_modal').showModal()}
+                    >
+                        ¿Olvidaste tu contrasena?
+                    </button>
+                </div>
 
-                <div className={"flex justify-center my-4"}>
-
-                    <PrimaryButton className="ms-2 w-full cursor-pointer" disabled={processing}>
-                        Iniciar Sesion
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <PrimaryButton
+                        className="h-11 w-full justify-center rounded-lg text-sm normal-case tracking-normal"
+                        disabled={processing}
+                    >
+                        Iniciar sesion
                     </PrimaryButton>
 
                     <Link
-                        href={route("register")}
-                        className="block text-center ms-2 bg-transparent border border-primary text-primary  px-4 py-2 text-xs font-semibold rounded-md w-full cursor-pointer"
-                        disabled={processing}>
+                        href={route('register')}
+                        className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-primary bg-white px-4 text-sm font-semibold text-primary transition hover:bg-primary/5"
+                        disabled={processing}
+                    >
                         Registrarse
+                    </Link>
+                </div>
+
+                <div className="text-center text-sm text-slate-600 sm:text-left">
+                    ¿Aun no tienes cuenta?{' '}
+                    <Link href={route('register')} className="font-semibold text-primary hover:underline">
+                        Crear cuenta
                     </Link>
                 </div>
             </form>
