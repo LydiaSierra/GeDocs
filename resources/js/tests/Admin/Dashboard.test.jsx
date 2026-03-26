@@ -192,28 +192,4 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
         expect(primaryText).not.toBeNull(); 
     });
 
-    it(' Archive functionality sends patch with Axios', async () => {
-        const setMailCardsMock = vi.fn();
-        const setSelectedMailMock = vi.fn();
-
-        axios.patch.mockResolvedValueOnce({ data: { message: "Archivada" } });
-
-        renderWithMailContext(<MailReader />, {
-            selectedMail: 101,
-            isArchiveView: false,
-            setMailCards: setMailCardsMock,
-            setSelectedMail: setSelectedMailMock
-        });
-
-        const archiveBtn = screen.getByRole('button', { name: /Archivar/i });
-        fireEvent.click(archiveBtn);
-
-        await waitFor(() => {
-            expect(axios.patch).toHaveBeenCalledWith('/api/pqrs/101', {
-                archived: true
-            });
-            
-            expect(setSelectedMailMock).toHaveBeenCalledWith(null);
-        });
-    });
 });

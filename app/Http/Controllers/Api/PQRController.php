@@ -20,6 +20,7 @@ use App\Models\Sheet_number as SheetNumber;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Folder;
 use App\Models\File;
+use App\Services\PqrAutoArchiveService;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use setasign\Fpdi\Fpdi;
@@ -38,11 +39,7 @@ class PQRController extends Controller
             return response()->json(['message' => 'No autenticado'], 401);
         }
 
-        PQR::where('archived', false)
-            ->where('response_status', 'pending')
-            ->whereNotNull('response_time')
-            ->where('response_time', '<', Carbon::now())
-            ->update(['archived' => true]);
+        app(PqrAutoArchiveService::class)->archiveExpiredPending();
 
         // 🔹 Read ?archived=true|false (default: false → inbox)
         $archived = filter_var(
@@ -260,12 +257,8 @@ class PQRController extends Controller
     {
         $user = $request->user();
 
-        //archivar PQRs vencidas cuyo tiempo de respuesta ya expiró
-        PQR::where('archived', false)
-            ->where('response_status', 'pending')
-            ->whereNotNull('response_time')
-            ->where('response_time', '<', Carbon::now())
-            ->update(['archived' => true]);
+        // Archiva PQRs vencidas como fallback en lecturas.
+        app(PqrAutoArchiveService::class)->archiveExpiredPending();
 
         if ($user && $user->hasRole('Instructor')) {
             $pqrs = PQR::with(['creator', 'responsible', 'dependency', 'attachedSupports', 'sheetNumber'])

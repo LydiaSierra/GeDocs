@@ -7,11 +7,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import api from "@/lib/axios.js";
 import {
-    ArchiveBoxIcon,
-    ArrowUturnLeftIcon,
     PaperAirplaneIcon,
-    ArrowUpTrayIcon,
-    DocumentPlusIcon,
     CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { usePage, router, Link } from "@inertiajs/react";
@@ -23,7 +19,6 @@ export function MailReader() {
         selectedMail,
         setSelectedMail,
         setMailCards,
-        isArchiveView,
     } = useContext(MailContext);
 
     // ─── Page props (hooks must be before any early return) ────────────────────
@@ -126,20 +121,6 @@ export function MailReader() {
         }
     };
 
-
-
-    const handleArchiveToggle = async () => {
-        try {
-            await axios.patch(`/api/pqrs/${currentMail.id}`, {
-                archived: !isArchiveView,
-            });
-            setMailCards((prev) => prev.filter((mail) => mail.id !== currentMail.id));
-            setSelectedMail(null);
-        } catch (error) {
-            console.error("Archive error:", error);
-        }
-    };
-
     const handleAssignDate = async (days) => {
         try {
             const response = await axios.patch(`/api/pqrs/${currentMail.id}`, {
@@ -212,23 +193,6 @@ export function MailReader() {
                 >
                     <ArrowLeftIcon className="w-4" />
                     Volver
-                </button>
-
-                <button
-                    onClick={handleArchiveToggle}
-                    className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-primary transition-colors cursor-pointer"
-                >
-                    {isArchiveView ? (
-                        <>
-                            <ArrowUturnLeftIcon className="w-4" />
-                            Desarchivar
-                        </>
-                    ) : (
-                        <>
-                            <ArchiveBoxIcon className="w-4" />
-                            Archivar
-                        </>
-                    )}
                 </button>
             </div>
             

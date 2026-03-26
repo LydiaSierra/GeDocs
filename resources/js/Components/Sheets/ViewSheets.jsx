@@ -54,6 +54,10 @@ export default function ViewSheets({ sheet }) {
                         {sheet?.state}
                     </span>
                 </div>
+                <div className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Aprendices</p>
+                    <p className="text-sm font-semibold text-gray-800">{sheet?.apprentices_count ?? 0}</p>
+                </div>
             </div>
 
             <div className="flex justify-end gap-3">

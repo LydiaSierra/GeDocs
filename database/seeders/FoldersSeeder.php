@@ -46,7 +46,7 @@ class FoldersSeeder extends Seeder
         // Format: [tempKey, name, parentTempKey|null, folder_code, department]
         $folders = [
             // ── Secciones (root of year) ──
-            [1, 'ventanilla unica', null, null, 'sección'],
+            [1, 'Ventanilla Única', null, null, 'sección'],
         ];
 
         // Create each folder, resolving parent IDs through the map

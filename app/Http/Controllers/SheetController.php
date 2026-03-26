@@ -20,7 +20,11 @@ class SheetController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sheet_number::with('users');
+        $query = Sheet_number::withCount(['users as apprentices_count' => function ($query) {
+            $query->whereHas('roles', function($q){
+                $q->where('name', 'Aprendiz');
+            });
+        }]);
 
         if ($request->has('active_only')) {
             $query->active();
@@ -28,7 +32,6 @@ class SheetController extends Controller
 
         $sheets = $query->get();
 
-        
         return response()->json([
             "success" => true,
             "sheets" => $sheets
@@ -96,7 +99,11 @@ class SheetController extends Controller
     public function show(string $id)
     {
         // Search sheet(s) by partial sheet number
-        $sheet = Sheet_number::find($id);
+        $sheet = Sheet_number::withCount(['users as apprentices_count' => function ($query) {
+            $query->whereHas('roles', function($q){
+                $q->where('name', 'Aprendiz');
+            });
+        }])->find($id);
 
         if (!$sheet) {
             return response()->json([

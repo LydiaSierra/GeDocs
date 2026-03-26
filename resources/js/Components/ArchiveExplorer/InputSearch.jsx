@@ -198,7 +198,7 @@ export const InputSearch = ({ handleSearch }) => {
                                         }}
                                     >
                                         <TableCellsIcon className="size-5" />
-                                        Generar Excel
+                                        Generar TRD
                                     </button>
                                 )}
                             </ul>

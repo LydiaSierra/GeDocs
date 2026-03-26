@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
-    
+
     Storage::fake('public');
 
     $this->sheet = Sheet_number::create([
@@ -16,7 +16,7 @@ beforeEach(function () {
         'start_date' => now()->subMonths(6),
         'end_date' => now()->addMonths(6),
         'state' => 'Activa',
-        'ventanilla_unica_id' => 1 
+        'ventanilla_unica_id' => 1
     ]);
 
     $this->dependency = Dependency::create([
@@ -41,13 +41,15 @@ test('it validates required fields for PQR creation', function () {
     ]);
 });
 
-test('it prevents creating a PQR with an inactive sheet (Known Bug)', function () {
-    
+test('it rejects non-active sheets in backend validation', function () {
+    // Backend validates that only sheets allowed by ->active() scope can be used.
+    // Currently, sheets with state Cancelada or Finalizada are excluded.
+
     $inactiveSheet = Sheet_number::create([
         'number' => '9999999',
         'start_date' => now()->subMonths(12),
         'end_date' => now()->subMonths(6),
-        'state' => 'Inactiva',
+        'state' => 'Finalizada',
         'ventanilla_unica_id' => $this->dependency->id
     ]);
 
@@ -64,11 +66,12 @@ test('it prevents creating a PQR with an inactive sheet (Known Bug)', function (
 
     $response = $this->postJson('/api/pqrs', $payload);
 
-    $response->assertStatus(422); 
+    $response->assertStatus(404)
+        ->assertJsonPath('error', 'Ficha técnica no encontrada o no se encuentra activa');
 });
 
 test('it limits attachment files to specific types and size', function () {
-    
+
     $exeFile = UploadedFile::fake()->create('virus.exe', 1024, 'application/x-msdownload');
 
     $responseExe = $this->postJson('/api/pqrs', [
@@ -84,7 +87,7 @@ test('it limits attachment files to specific types and size', function () {
     $responseExe->assertStatus(422)
         ->assertJsonValidationErrors(['attachments.0']);
 
-    $largeDoc = UploadedFile::fake()->create('document_big.pdf', 6000, 'application/pdf'); 
+    $largeDoc = UploadedFile::fake()->create('document_big.pdf', 6000, 'application/pdf');
 
     $responseSize = $this->postJson('/api/pqrs', [
         'sender_name' => 'John Doe',

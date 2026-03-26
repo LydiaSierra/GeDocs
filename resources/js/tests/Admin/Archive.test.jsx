@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
 import api from '@/lib/axios';
 import ArchiveTable from '@/Components/ArchiveTable/ArchiveTable';
 
@@ -8,7 +7,6 @@ if (typeof window !== 'undefined' && typeof window.DOMMatrix === 'undefined') {
     window.DOMMatrix = class DOMMatrix {};
 }
 
-vi.mock('axios');
 vi.mock('@/lib/axios', () => ({
     default: { get: vi.fn() }
 }));
@@ -47,7 +45,6 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         api.get.mockResolvedValue({ data: { data: mockMails } });
-        axios.patch.mockResolvedValue({ data: { message: "Desarchivado" } });
     });
 
     it('Renders table and Select option', async () => {
@@ -60,7 +57,7 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
         expect(screen.getByText('Ficha y/o dependencia')).toBeInTheDocument();
 
         expect(screen.getByText('Juan Admin')).toBeInTheDocument();
-        expect(screen.getByText('Finalizado')).toBeInTheDocument();
+        expect(screen.queryByText('Estado')).not.toBeInTheDocument();
     });
 
     it('Opens modal on row click', async () => {
@@ -75,10 +72,10 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
 
         expect(screen.getByText('PQR #101')).toBeInTheDocument();
         expect(screen.getByText('Desc Admin')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Desarchivar/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Desarchivar/i })).not.toBeInTheDocument();
     });
 
-    it('Unarchives mail correctly', async () => {
+    it('Shows read-only modal content', async () => {
         render(<ArchiveTable />);
         
         await waitFor(() => {
@@ -87,13 +84,7 @@ describe('Archive Module Tests - Admin (Frontend)', () => {
 
         fireEvent.click(screen.getByText('Petición Archivada Admin').closest('tr'));
 
-        const unarchiveBtn = screen.getByRole('button', { name: /Desarchivar/i });
-        fireEvent.click(unarchiveBtn);
-
-        await waitFor(() => {
-            expect(axios.patch).toHaveBeenCalledWith('/api/pqrs/101', { archived: false });
-        });
-
-        expect(screen.queryByText('Petición Archivada Admin')).not.toBeInTheDocument();
+        expect(screen.getByText(/Fecha límite:/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cerrar/i })).toBeInTheDocument();
     });
 });

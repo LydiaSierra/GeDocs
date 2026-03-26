@@ -31,6 +31,9 @@ export default function Register({ sheets }) {
         if (!data.name) return toast.error("Ingrese su nombre completo");
         if (!data.email) return toast.error("Ingrese un email válido");
         if (!data.role) return toast.error("Seleccione un rol");
+        if (data.document_number.length > 10) return toast.error("El número de documento debe tener máximo 10 caracteres");
+        if (data.document_number.length < 7) return toast.error("El número de documento debe tener mínimo 7 caracteres");
+        if (data.document_number !== Number) return toast.error("El número de documento debe ser numeros");
 
         if (data.role === "Aprendiz" && !data.technical_sheet_id) {
             return toast.error("Seleccione su ficha");

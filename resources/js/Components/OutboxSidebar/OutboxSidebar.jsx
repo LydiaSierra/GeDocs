@@ -40,66 +40,72 @@ export default function OutboxSidebar() {
         <div
             className={`
         w-full
-        lg:w-[400px]
-        xl:w-1/3
-        bg-white
+        lg:w-[420px]
+        xl:w-[34%]
+        bg-white/95
+        border border-slate-200
         flex flex-col
-        rounded-lg
+        rounded-2xl
+        shadow-sm
+        overflow-hidden
         h-full
+        min-h-0
         lg:ml-1
-        p-3 pb-[50px] md:pb-3
+        p-0
         transition-all duration-300 ease-in-out
-        flex-shrink-0
+        shrink-0
         ${selectedMail ? "hidden lg:flex" : "flex"}
     `}
         >
-            <div className="w-full flex flex-col">
-                <h2 className="font-bold text-2xl mb-4 text-center text-gray-800">
+            <div className="w-full flex flex-col p-4 md:p-5 bg-linear-to-b from-slate-50 to-white border-b border-slate-100">
+                <h2 className="font-semibold text-xl md:text-2xl mb-4 text-slate-800 tracking-tight">
                     Bandeja de Salida
                 </h2>
 
                 <div id="inbox-search" className="flex gap-2 w-full">
-                    <div className="flex items-center bg-gray-100 px-2 rounded-md flex-1 min-w-0">
+                    <div className="relative flex items-center bg-slate-100/90 px-3 rounded-xl flex-1 min-w-0 border border-slate-200 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all">
+                        <MagnifyingGlassIcon className="size-5 mr-2 shrink-0 text-slate-500" />
                         <input
                             placeholder="Buscar por asunto, id o descripción..."
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="input bg-gray-100 border-none focus:outline-none shadow-none w-full truncate"
+                            className="input bg-transparent border-none focus:outline-none shadow-none w-full truncate px-0 text-sm md:text-base placeholder:text-slate-400"
                         />
-                        <MagnifyingGlassIcon className="size-5 mr-2 shrink-0" />
                     </div>
                 </div>
 
                 <div
                     id="inbox-categories"
-                    className="flex my-2 w-full justify-between items-center"
+                    className="flex mt-3 w-full justify-between items-center"
                 >
-                    <div className="flex gap-2 w-full overflow-x-auto p-1 scrollbar-hide">
+                    <div className="flex gap-2 w-full overflow-x-auto py-1 pr-1 scrollbar-hide">
                         {categories.map((cat) => (
-                            <input
+                            <button
                                 key={cat.value}
-                                className={`btn rounded-xl border-none py-2 px-4 whitespace-nowrap transition-colors ${filters.includes(cat.value)
-                                    ? "bg-primary text-white hover:bg-primary"
-                                    : "bg-gray-100 hover:bg-gray-200"
+                                className={`rounded-full text-xs md:text-sm font-medium py-2 px-4 whitespace-nowrap border transition-all ${filters.includes(cat.value)
+                                    ? "bg-primary text-white border-primary shadow-sm"
+                                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                                     }`}
-                                type="checkbox"
-                                aria-label={cat.label}
-                                checked={filters.includes(cat.value)}
-                                onChange={() => toggleFilter(cat.value)}
-                            />
+                                type="button"
+                                aria-pressed={filters.includes(cat.value)}
+                                onClick={() => toggleFilter(cat.value)}
+                                title={cat.label}
+                            >
+                                {cat.label}
+                            </button>
                         ))}
                     </div>
                 </div>
-                <div className="flex flex-wrap gap-2 justify-between p-2 lg:px-0 items-center">
+                <div className="flex flex-wrap gap-2 justify-between pt-3 items-center">
                     <h5
                         id="inbox-date"
-                        className="text-start px-2 my-2 lg:my-4 font-bold capitalize whitespace-nowrap text-sm xs:text-base"
+                        className="text-start px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 font-semibold capitalize whitespace-nowrap text-xs md:text-sm text-slate-700"
                     >
                         {currentMonthYear}
                     </h5>
                     
-                    <div className="flex flex-1 justify-end min-w-[140px]">
+                    <div className="flex flex-1 justify-end min-w-[150px]">
                         <SelectDependecyOrNumberSheet />
                     </div>
                 </div>
@@ -107,13 +113,13 @@ export default function OutboxSidebar() {
 
             <div
                 id="mail-card-scrollarea"
-                className="p-3 md:pb-3 bg-gray-100 flex-1 overflow-y-auto rounded-md w-full h-full"
+                className="p-3 md:p-4 bg-slate-50/80 flex-1 overflow-y-auto w-full h-full min-h-0"
             >
                 {loading ? (
                     <div className={"flex flex-col gap-2"}>
-                        <div className={"skeleton w-full h-40"}></div>
-                        <div className={"skeleton w-full h-40"}></div>
-                        <div className={"skeleton w-full h-40"}></div>
+                        <div className={"skeleton w-full h-36 rounded-xl"}></div>
+                        <div className={"skeleton w-full h-36 rounded-xl"}></div>
+                        <div className={"skeleton w-full h-32 rounded-xl"}></div>
                     </div>
                 ) : (
                     <>
@@ -122,9 +128,9 @@ export default function OutboxSidebar() {
                                 <InboxMailCard key={card.id} card={card} />
                             ))
                         ) : (
-                            <div className="flex flex-col items-center justify-center p-10 text-gray-400 text-center">
-                                <FunnelIcon className="size-12 mb-2 opacity-20" />
-                                <p>No se encontraron PQRS con estos filtros.</p>
+                            <div className="flex flex-col items-center justify-center p-10 text-slate-400 text-center bg-white border border-dashed border-slate-200 rounded-2xl">
+                                <FunnelIcon className="size-12 mb-2 opacity-30" />
+                                <p className="text-sm md:text-base">No se encontraron PQRS con estos filtros.</p>
                             </div>
                         )}
                     </>
