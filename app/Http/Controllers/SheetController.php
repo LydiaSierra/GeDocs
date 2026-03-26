@@ -81,7 +81,7 @@ class SheetController extends Controller
             Folder::create([
                 'name' => 'ventanilla unica',
                 'parent_id' => $yearFolder->id,
-                'folder_code' => null,
+                'folder_code' => 000,
                 'department' => 'sección',
                 'sheet_number_id' => $sheetNumber->id,
                 'active' => true,
