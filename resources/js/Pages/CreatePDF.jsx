@@ -132,6 +132,8 @@ export default function CreatePDF() {
     const logoInputRef = useRef(null);
     const signatureInputRef = useRef(null);
     const footerModalRef = useRef(null);
+    const confirmGenerateModalRef = useRef(null);
+    const pdfFormRef = useRef(null);
 
     const [actaAsistentes, setActaAsistentes] = useState([""]);
     const [actaInvitados, setActaInvitados] = useState([""]);
@@ -343,6 +345,14 @@ export default function CreatePDF() {
         footerModalRef.current?.close();
     };
 
+    const openConfirmGenerateModal = () => {
+        confirmGenerateModalRef.current?.showModal();
+    };
+
+    const closeConfirmGenerateModal = () => {
+        confirmGenerateModalRef.current?.close();
+    };
+
     const syncActaDesarrolloLength = (nextOrdenDia) => {
         setActaDesarrollo((prev) => {
             const next = [...prev];
@@ -379,8 +389,7 @@ export default function CreatePDF() {
         setActaDesarrollo(next);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const executePdfGeneration = async () => {
         setIsGenerating(true);
         const toastId = toast.loading("Generando PDF...");
 
@@ -389,7 +398,13 @@ export default function CreatePDF() {
                 throw new Error("No se encontro la carpeta destino para guardar el PDF.");
             }
 
-            const form = new FormData(e.target);
+            closeConfirmGenerateModal();
+
+            if (!pdfFormRef.current) {
+                throw new Error("No se encontro el formulario de PDF.");
+            }
+
+            const form = new FormData(pdfFormRef.current);
             form.set("footer_text", footerText);
             form.set("folder_id", targetFolderId);
             if (targetSheetId) {
@@ -423,6 +438,12 @@ export default function CreatePDF() {
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (isGenerating) return;
+        openConfirmGenerateModal();
     };
 
     const handleSaveFooter = async () => {
@@ -526,6 +547,7 @@ export default function CreatePDF() {
 
                 <div className="flex-1 flex items-start justify-center p-6 sm:p-10 pb-16">
                     <form
+                        ref={pdfFormRef}
                         id="pdfForm"
                         onSubmit={handleSubmit}
                         className="bg-white shadow-2xl w-full max-w-[794px] min-h-[1123px] px-14 py-12 leading-relaxed text-[11pt] text-gray-900"
@@ -1043,6 +1065,37 @@ export default function CreatePDF() {
                             className="btn bg-primary text-white border-0 disabled:opacity-50"
                         >
                             {isSavingFooter ? "Guardando..." : "Guardar pie de pagina"}
+                        </button>
+                    </div>
+                </div>
+                <form method="dialog" className="modal-backdrop">
+                    <button>Cerrar</button>
+                </form>
+            </dialog>
+
+            <dialog ref={confirmGenerateModalRef} className="modal">
+                <div className="modal-box max-w-md">
+                    <h3 className="font-bold text-lg mb-3">Confirmar generación</h3>
+                    <p className="text-sm text-gray-600">
+                        ¿Estás seguro que deseas generar este PDF?
+                    </p>
+
+                    <div className="modal-action">
+                        <button
+                            type="button"
+                            onClick={closeConfirmGenerateModal}
+                            className="btn btn-ghost"
+                            disabled={isGenerating}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={executePdfGeneration}
+                            className="btn bg-primary text-white border-0 disabled:opacity-50"
+                            disabled={isGenerating}
+                        >
+                            {isGenerating ? "Generando..." : "Confirmar"}
                         </button>
                     </div>
                 </div>
