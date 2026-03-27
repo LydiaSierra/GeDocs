@@ -46,14 +46,14 @@ HTMLDialogElement.prototype.close = vi.fn(function() { this.open = false; });
 describe('CreatePDF Interface', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        
+
         usePage.mockReturnValue({
             props: {
                 auth: {
                     user: { pdf_footer_text: "Mi pie de pagina predeterminado" }
                 },
 
-                targetFolderId: 999,      
+                targetFolderId: 999,
                 targetSheetId: 3
             }
         });
@@ -61,7 +61,7 @@ describe('CreatePDF Interface', () => {
 
     it('renders default state with active "Carta" document template', () => {
         render(<CreatePDF />);
-        
+
         expect(screen.getByText('Seleccionar tipo de documento')).toBeInTheDocument();
 
         expect(screen.getByPlaceholderText('Tratamiento')).toBeInTheDocument();
@@ -72,31 +72,31 @@ describe('CreatePDF Interface', () => {
 
     it('dynamically re-renders template fields conditionally based on document type (Acta/Circular)', () => {
         render(<CreatePDF />);
-        
+
         const select = screen.getByRole('combobox');
 
         fireEvent.change(select, { target: { value: 'circular' } });
-        
+
         expect(screen.getByPlaceholderText('Titulo')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Grupo destinatario')).toBeInTheDocument();
-        
+
         expect(screen.queryByPlaceholderText('Tratamiento')).not.toBeInTheDocument();
 
         fireEvent.change(select, { target: { value: 'acta' } });
-        
+
         expect(screen.getByText('Asistentes')).toBeInTheDocument();
         expect(screen.getByText('Orden del dia')).toBeInTheDocument();
-        expect(screen.getByText('+ Agregar punto')).toBeInTheDocument(); 
+        expect(screen.getByText('+ Agregar punto')).toBeInTheDocument();
     });
 
     it('allows editing and saving the global generic footer from the dialog modal', async () => {
-        
-        api.post.mockResolvedValueOnce({ 
-            data: { footer_text: "Este es el footer corporativo guardado." } 
+
+        api.post.mockResolvedValueOnce({
+            data: { footer_text: "Este es el footer corporativo guardado." }
         });
-        
+
         render(<CreatePDF />);
-        
+
         const editFooterBtn = screen.getByText('Editar pie de pagina');
         fireEvent.click(editFooterBtn);
 
@@ -109,8 +109,8 @@ describe('CreatePDF Interface', () => {
         fireEvent.click(saveModalBtn);
 
         await waitFor(() => {
-            expect(api.post).toHaveBeenCalledWith('/pdf/footer-preference', { 
-                footer_text: 'Mi nuevo intento corporativo' 
+            expect(api.post).toHaveBeenCalledWith('/pdf/footer-preference', {
+                footer_text: 'Mi nuevo intento corporativo'
             });
         });
 
@@ -120,9 +120,9 @@ describe('CreatePDF Interface', () => {
     });
 
     it('triggers PDF Generation forwarding the IDOR-injected targetFolderId (999) accurately capturing the vulnerability', async () => {
-        
-        api.post.mockResolvedValueOnce({ 
-            data: { folder_id: 999, sheet_id: 3 } 
+
+        api.post.mockResolvedValue({
+            data: { folder_id: 999, sheet_id: 3 }
         });
 
         render(<CreatePDF />);
@@ -130,15 +130,22 @@ describe('CreatePDF Interface', () => {
         const generatePdfBtn = screen.getByText('Generar PDF');
         fireEvent.click(generatePdfBtn);
 
+        // Wait for confirmation modal and click Confirmar button
+        await waitFor(() => {
+            const confirmBtn = screen.getByText('Confirmar');
+            expect(confirmBtn).toBeInTheDocument();
+            fireEvent.click(confirmBtn);
+        });
+
         await waitFor(() => {
             expect(api.post).toHaveBeenCalledWith('/generate-pdf-to-explorer', expect.any(FormData));
         });
-
-        const formData = api.post.mock.calls[0][1];
+        const pdfCall = api.post.mock.calls.find(call => call[0] === '/generate-pdf-to-explorer');
+        const formData = pdfCall[1];
 
         expect(formData.get('folder_id')).toBe("999");
         expect(formData.get('sheet_id')).toBe("3");
-        expect(formData.get('document_type')).toBe("carta"); 
+        expect(formData.get('document_type')).toBe("carta");
 
         await waitFor(() => {
             expect(toast.success).toHaveBeenCalledWith('PDF generado y guardado correctamente');

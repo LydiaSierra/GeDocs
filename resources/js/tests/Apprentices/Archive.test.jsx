@@ -37,12 +37,14 @@ const mockMails = [
         request_type: "Peticion",
         response_status: "Finalizado",
         dependency_id: 1,
+        email: "pedro@test.com",
+        response_time: new Date(Date.now() - 86400000).toISOString(),
         created_at: new Date().toISOString(),
     }
 ];
 
 describe('Archive Module Tests - Apprentice (Frontend)', () => {
-    
+
     beforeEach(() => {
         vi.clearAllMocks();
         api.get.mockResolvedValue({ data: { data: mockMails } });
@@ -50,7 +52,7 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
 
     it('Renders table and DOES NOT show the sheet Select option', async () => {
         render(<ArchiveTable />);
-        
+
         await waitFor(() => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
@@ -63,7 +65,7 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
 
     it('Opens modal on row click', async () => {
         render(<ArchiveTable />);
-        
+
         await waitFor(() => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
@@ -77,14 +79,14 @@ describe('Archive Module Tests - Apprentice (Frontend)', () => {
 
     it('Shows read-only modal content', async () => {
         render(<ArchiveTable />);
-        
+
         await waitFor(() => {
             expect(screen.getByText('Petición Archivada Aprendiz')).toBeInTheDocument();
         });
 
         fireEvent.click(screen.getByText('Petición Archivada Aprendiz').closest('tr'));
 
-        expect(screen.getByText(/Fecha límite:/i)).toBeInTheDocument();
+        expect(screen.getByText(/Fecha límite/i)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /Desarchivar/i })).not.toBeInTheDocument();
     });
 });

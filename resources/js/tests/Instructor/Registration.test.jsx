@@ -29,7 +29,7 @@ describe('Registration Tests', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        
+
         mockData = {
             type_document: "",
             document_number: "",
@@ -65,17 +65,17 @@ describe('Registration Tests', () => {
 
     it('renders all initial form fields', () => {
         render(<Register sheets={mockSheets} />);
-        
+
         expect(screen.getByLabelText(/Tipo de documento/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Número de documento/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Nombre completo/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/^Email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/^Rol/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Correo electrónico/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Rol$/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/^Contraseña/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Confirmar contraseña/i)).toBeInTheDocument();
-        
+
         // Al inicio "Ficha" no debe estar presente porque el rol está vacío
-        expect(screen.queryByLabelText(/^Ficha/i)).not.toBeInTheDocument();
+        expect(screen.queryByLabelText(/^Ficha$/i)).not.toBeInTheDocument();
     });
 
     it('does NOT show the sheet select when the selected role is Instructor', () => {
@@ -95,7 +95,7 @@ describe('Registration Tests', () => {
     });
     it('throws frontend validation toasts using Sonner when submitted incomplete', () => {
         render(<Register sheets={mockSheets} />);
-        
+
         const btn = screen.getByRole('button', { name: /Registrarse/i });
         fireEvent.click(btn);
 
