@@ -119,11 +119,45 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
         $table = (new PQR())->getTable();
 
         $q = PQR::query()
-            ->leftJoin('attached_supports as ats', function ($join) use ($table) {
-                $join->on('ats.pqr_id', '=', $table . '.id')
-                    ->whereIn('ats.origin', ['REC', 'ENV']);
-            })
-            ->leftJoin('files as f', 'f.file_code', '=', 'ats.no_radicado')
+
+
+            ->joinSub(
+                \DB::table('attached_supports')
+                    ->selectRaw('MIN(id) as id, pqr_id')
+                    ->where('origin', 'RECIBO')
+                    ->groupBy('pqr_id'),
+                'ats_sel',
+                function ($join) use ($table) {
+                    $join->on('ats_sel.pqr_id', '=', $table . '.id');
+                }
+            )
+            ->join('attached_supports as ats', 'ats.id', '=', 'ats_sel.id')
+
+
+            ->leftJoinSub(
+                \DB::table('attached_supports')
+                    ->selectRaw('MIN(id) as id, pqr_id')
+                    ->where('origin', 'ENV')
+                    ->groupBy('pqr_id'),
+                'ats_env_sel',
+                function ($join) use ($table) {
+                    $join->on('ats_env_sel.pqr_id', '=', $table . '.id');
+                }
+            )
+            ->leftJoin('attached_supports as ats_env', 'ats_env.id', '=', 'ats_env_sel.id')
+
+
+            ->leftJoinSub(
+                \DB::table('files')
+                    ->selectRaw('file_code, MIN(id) as id, MIN(folder_id) as folder_id')
+                    ->groupBy('file_code'),
+                'f',
+                function ($join) {
+                    $join->on('f.file_code', '=', 'ats.no_radicado');
+                }
+            )
+
+
             ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
 
             ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
@@ -132,10 +166,15 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
                 $table . '.*',
                 'ats.no_radicado as no_radicado_from_join',
                 'fo.folder_code as folder_code_from_join',
-                'ats.hash as hash_from_join'
+                'ats.hash as hash_from_join',
+                'ats_env.no_radicado as env_no_radicado_from_join'
             )
 
             ->orderByDesc($table . '.created_at');
+
+
+
+
 
         // Main filter: by Sheet Number
         if (!empty($this->filters['sheet_number_id'])) {
@@ -155,8 +194,19 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
         // Archived flag
         if (isset($this->filters['archived'])) {
-            // Accepts: true|false|1|0|'true'|'false'
-            $archived = filter_var($this->filters['archived'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            // Accepts: true|false|1|0|'true'|'false' (without relying on FILTER_* constants)
+            $raw = $this->filters['archived'];
+            $archived = null;
+            if (is_bool($raw)) {
+                $archived = $raw;
+            } else {
+                $val = strtolower(trim((string)$raw));
+                if (in_array($val, ['1', 'true', 'yes', 'on'], true)) {
+                    $archived = true;
+                } elseif (in_array($val, ['0', 'false', 'no', 'off'], true)) {
+                    $archived = false;
+                }
+            }
             if ($archived !== null) {
                 $q->where('archived', $archived);
             }
@@ -330,26 +380,19 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
         $hash = $p->hash_from_join ?? 'N/A';
 
+        // Numero radicado para ENV (columna U)
+        $envNoRadicado = $p->env_no_radicado_from_join ?? 'N/A';
 
-        if ($noRadicado === 'N/A') {
-            \Log::info('NO RADICADO VACIO', ['pqr_id' => $p->id]);
-        }
 
-        $file = File::where('file_code', $noRadicado)->first();
-        if (!$file) {
-            \Log::info('FILE NO ENCONTRADO', ['noRadicado' => $noRadicado]);
-        }
 
-        if ($file && !$file->folder) {
-            \Log::info('FILE SIN FOLDER', ['file_id' => $file->id]);
-        }
+
 
         return [
             // A–D
-            $noRadicado,          // A Numero Radicado (from attachedSupports.no_radicado)
+            $noRadicado,          // A Numero Radicado (from attachedSupports.no_radicado RECIBO)
             $fechaCreacion,       // B Fecha creación dd/mm/yyyy
             $horaCreacion,        // C Hora creación HH:MM
-            $hash,          // D Cod. Barras (use same no_radicado for now)
+            $hash,          // D Cod. Barras (from RECIBO hash)
 
             // E
             $folderCode, // E Codigo de la Dependencia (folder_code)
@@ -376,7 +419,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             $PH,                        // T N/A
 
             // U–V respuesta
-            $noRadicado,                // U Hash (again)
+            $envNoRadicado,            // U Numero radicado del soporte con origin = ENV
             $fechaRespuesta,      // V response_date
         ];
     }
@@ -557,54 +600,55 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
     /** @var array<string,mixed> */
     protected array $filters = [];
 
-    public function __construct(array $filters = [])
-    {
-        $this->filters = $filters;
-    }
-
-    // Cache to avoid repeated DB lookups per $noRadicado during one export run
-    protected array $radicadoFolderCache = [];
-
-    /**
-     * Resolve folder_code via $noRadicado using files.file_code -> files.folder_id -> folders.folder_code
-     */
-    protected function resolveFolderCodeByNoRadicado(?string $noRadicado): ?string
-    {
-        try {
-            if (!$noRadicado || $noRadicado === 'N/A') {
-                return null;
-            }
-            if (isset($this->radicadoFolderCache[$noRadicado])) {
-                return $this->radicadoFolderCache[$noRadicado];
-            }
-            $file = File::with('folder')
-                ->where('file_code', $noRadicado)
-                ->first();
-            $code = $file?->folder?->folder_code;
-            // Cache even nulls to minimize repeated misses
-            $this->radicadoFolderCache[$noRadicado] = $code;
-            return $code;
-        } catch (\Throwable $e) {
-            return null;
-        }
-    }
-
     public function query()
     {
+        $table = (new PQR())->getTable();
+
         $q = PQR::query()
-            ->with(['creator', 'responsible', 'dependency', 'sheetNumber', 'attachedSupports'])
-            ->whereNotNull('response_date')
-            ->orderByDesc('response_date');
 
-        // Filter by sheet number if provided
+
+            ->joinSub(
+                \DB::table('attached_supports')
+                    ->selectRaw('MIN(id) as id, pqr_id')
+                    ->where('origin', 'ENV')
+                    ->groupBy('pqr_id'),
+                'ats_env_sel',
+                function ($join) use ($table) {
+                    $join->on('ats_env_sel.pqr_id', '=', $table . '.id');
+                }
+            )
+
+            ->join('attached_supports as ats_env', 'ats_env.id', '=', 'ats_env_sel.id')
+
+
+            ->leftJoin('files as f', function ($join) {
+                $join->on('f.file_code', '=', 'ats_env.no_radicado')
+                    ->whereRaw('f.id = (
+                    SELECT MIN(id)
+                    FROM files
+                    WHERE file_code = ats_env.no_radicado
+                )');
+            })
+
+            ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
+
+            ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
+
+            ->whereNotNull($table . '.response_date')
+
+            ->select(
+                $table . '.*',
+                'ats_env.no_radicado as env_no_radicado',
+                'ats_env.hash as env_hash',
+                'fo.folder_code as folder_code_from_join'
+            )
+
+            ->orderByDesc($table . '.response_date');
+
+        // Filtro opcional
         if (!empty($this->filters['sheet_number_id'])) {
-            $q->where('sheet_number_id', (int) $this->filters['sheet_number_id']);
+            $q->where($table . '.sheet_number_id', (int) $this->filters['sheet_number_id']);
         }
-
-        // Only PQRs with attached supports origin = 'ENV'
-        $q->whereHas('attachedSupports', function (Builder $qq) {
-            $qq->where('origin', 'ENV');
-        });
 
         return $q;
     }
@@ -843,8 +887,13 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         $PH = 'N/A';
 
         // Attached support for ENV origin (first match)
-        $support = $p->attachedSupports ? $p->attachedSupports->firstWhere('origin', 'ENV') : null;
-        $hash = $support->hash ?? $PH;
+        $noRadicado = $p->env_no_radicado ?? $PH;
+        $hash = $p->env_hash ?? $PH;
+
+        $folderCode = $p->folder_code_from_join
+            ?? $this->resolveFolderCodeByNoRadicado($noRadicado)
+            ?? $this->resolveFolderCode($p)
+            ?? $PH;
 
         // Dates and times from PQR creation for B and C
         $fechaCreacion = $p->created_at ? Carbon::parse($p->created_at)->format('d/m/Y') : $PH; // dd/mm/yyyy
@@ -857,9 +906,9 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         $responsableNombre = $responsable->name ?? $PH;
         $rolResponsable = $responsable ? ($responsable->getRoleNames()->first() ?? $PH) : $PH;
 
-        // NRO Racicado
 
-        $noRadicado = $support->no_radicado ?? $PH;
+
+
 
         // Sender (creator) role and name
         $senderNombre = $p->sender_name ?: ($p->creator->name ?? $PH);
@@ -870,7 +919,7 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
             $noRadicado,               // A hash from attachedSupports
             $fechaCreacion,      // B Fecha creación dd/mm/yyyy
             $horaCreacion,       // C Hora creación HH:MM
-            $this->resolveFolderCodeByNoRadicado($noRadicado) ?: ($this->resolveFolderCode($p) ?: $PH), // D Codigo de la Dependencia (folder_code)
+            $folderCode, // D Codigo de la Dependencia (folder_code)
 
             // E–G dependencia/responsable/rol
             $depNombre,          // E Nombre de la Dependencia
@@ -895,8 +944,8 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
             $PH,                         // T N/A
 
             // U–W respuesta
-            $noRadicado,               // U hash again
-            $fechaRespuesta,     // V response_date
+            $PH,               // U hash again
+            $PH,     // V response_date
             $PH,                 // W N/A
         ];
     }
