@@ -33,14 +33,14 @@ describe('Frontend Login Tests', () => {
     let mockData, mockSetData, mockPost, mockReset;
 
     beforeAll(() => {
-        
+
         HTMLDialogElement.prototype.showModal = vi.fn();
         HTMLDialogElement.prototype.close = vi.fn();
     });
 
     beforeEach(() => {
         vi.clearAllMocks();
-        
+
         mockData = {
             email: "",
             password: "",
@@ -56,7 +56,7 @@ describe('Frontend Login Tests', () => {
             if (options && options.onStart) options.onStart();
             // No llamamos onSuccess/onError automáticamente para que cada prueba decida
         });
-        
+
         mockReset = vi.fn();
 
         useForm.mockReturnValue({
@@ -71,16 +71,16 @@ describe('Frontend Login Tests', () => {
 
     it('renders all initial login form fields and buttons', () => {
         render(<Login status="" canResetPassword={true} />);
-        
-        expect(screen.getByLabelText(/^Email/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/^Contraseña/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Iniciar Sesion/i })).toBeInTheDocument();
-        expect(screen.getByText('¿Olvidaste tu contraseña?')).toBeInTheDocument();
+
+        expect(screen.getByLabelText(/Correo electronico|Correo electrónico/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/Contrasena|Contraseña/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Iniciar sesion|Iniciar Sesion/i })).toBeInTheDocument();
+        expect(screen.getByText(/Olvidaste tu contrasena|Olvidaste tu contraseña/i)).toBeInTheDocument();
     });
 
     it('throws frontend validation toast when submitted with empty fields', () => {
         render(<Login status="" canResetPassword={true} />);
-        
+
         const btn = screen.getByRole('button', { name: /Iniciar Sesion/i });
         fireEvent.click(btn);
 
@@ -90,7 +90,7 @@ describe('Frontend Login Tests', () => {
     });
 
     it('displays backend errors when passed through useForm errors', () => {
-        
+
         useForm.mockReturnValue({
             data: { email: "usuario@test.com", password: "password", remember: false },
             setData: mockSetData,
@@ -103,8 +103,8 @@ describe('Frontend Login Tests', () => {
         });
 
         render(<Login status="" canResetPassword={true} />);
-        
-        // Verifica que el error se imprima en el formulario (InputError). 
+
+        // Verifica que el error se imprima en el formulario (InputError).
         // Usamos getAllByText porque el mock globally shared lo renderiza tanto en Login como en PasswordResetModal.
         expect(screen.getAllByText("Estas credenciales no coinciden con nuestros registros.")[0]).toBeInTheDocument();
     });
@@ -121,7 +121,7 @@ describe('Frontend Login Tests', () => {
         });
 
         render(<Login status="" canResetPassword={true} />);
-        
+
         const btn = screen.getByRole('button', { name: /Iniciar Sesion/i });
         fireEvent.click(btn);
 
@@ -132,14 +132,15 @@ describe('Frontend Login Tests', () => {
     it('triggers the password recovery function and calls password.email', () => {
 
         render(<Login status="" canResetPassword={true} />);
-        
+
         // Abrir el modal
-        const recoveryLink = screen.getByText('¿Olvidaste tu contraseña?');
+        const recoveryLink = screen.getByText(/Olvidaste tu contrasena|Olvidaste tu contraseña/i);
         fireEvent.click(recoveryLink);
         expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
 
         // Buscar el input de correo dentro del modal
-        const emailInput = screen.getByPlaceholderText('Ingresa tu correo');
+        const emailInputs = screen.getAllByPlaceholderText('correo@ejemplo.com');
+        const emailInput = emailInputs[emailInputs.length - 1];
         fireEvent.change(emailInput, { target: { value: 'apprentice@test.com' } });
 
         // Simular que mockData se actualizó (ya que usamos el mismo mockData)
@@ -149,7 +150,7 @@ describe('Frontend Login Tests', () => {
         const modalForm = emailInput.closest('form');
         fireEvent.submit(modalForm);
 
-        expect(mockPost).toHaveBeenCalledWith('/password.email', expect.any(Object));
+        expect(mockPost).toHaveBeenCalledWith(route('password.email'), expect.any(Object));
     });
 
     it('shows info toast when apprentice is not yet approved by instructor', () => {
@@ -161,7 +162,7 @@ describe('Frontend Login Tests', () => {
     });
 
     it('successfully posts to the login route and expects redirect to dashboard (/)', async () => {
-            
+
             mockData.email = "apprentice@test.com";
             mockData.password = "password123";
 
@@ -170,9 +171,9 @@ describe('Frontend Login Tests', () => {
                 if (options && options.onSuccess) options.onSuccess();
                 if (options && options.onFinish) options.onFinish();
             });
-    
+
             render(<Login status="" canResetPassword={true} />);
-            
+
             const btn = screen.getByRole('button', { name: /Iniciar Sesion/i });
             fireEvent.click(btn);
 

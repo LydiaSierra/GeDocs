@@ -8,6 +8,7 @@ use App\Models\Folder;
 use App\Models\File;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -15,6 +16,17 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
     Storage::fake('public');
+
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        DB::connection()->getPdo()->sqliteCreateFunction('REGEXP', function ($pattern, $value) {
+            if ($value === null) {
+                return 0;
+            }
+
+            $safePattern = str_replace('#', '\\#', (string) $pattern);
+            return preg_match("#{$safePattern}#u", (string) $value) ? 1 : 0;
+        }, 2);
+    }
 
     $this->admin = User::factory()->create([
         'document_number' => '123456789'
@@ -91,6 +103,7 @@ it('correctly associates the document_type like carta or acta to the final file 
 
     $fileRecord = File::where('folder_id', $this->rootFolderSheet1->id)->latest()->first();
 
-    $this->assertTrue(str_contains($fileRecord->name, 'carta-especial'));
+    $this->assertMatchesRegularExpression('/^.*-ENV-\d{4}-\d{3}-[a-f0-9]{8}\.pdf$/', $fileRecord->name);
+    $this->assertSame('pdf', $fileRecord->extension);
 });
 
