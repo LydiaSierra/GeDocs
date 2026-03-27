@@ -101,7 +101,7 @@ export default function InboxSidebar() {
                     >
                         {currentMonthYear}
                     </h5>
-                    
+
                     <div className="flex flex-1 justify-end min-w-[150px]">
                         <SelectDependecyOrNumberSheet />
                     </div>
