@@ -862,6 +862,29 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         ];
     }
 
+    protected function resolveFolderCodeByNoRadicado(?string $noRadicado): ?string
+    {
+        try {
+            if (!$noRadicado || $noRadicado === 'N/A') {
+                return null;
+            }
+            if (isset($this->radicadoFolderCache[$noRadicado])) {
+                return $this->radicadoFolderCache[$noRadicado];
+            }
+            $file = File::with('folder')
+                ->where('file_code', $noRadicado)
+                ->first();
+            $code = $file?->folder?->folder_code;
+            // Cache even nulls to minimize repeated misses
+            $this->radicadoFolderCache[$noRadicado] = $code;
+            return $code;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+
+
     protected function resolveFolderCode(PQR $p): ?string
     {
         try {
