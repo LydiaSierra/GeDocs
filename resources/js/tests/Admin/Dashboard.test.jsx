@@ -43,9 +43,9 @@ const mockMailCards = [
         user_id: 10,
         dependency_id: 1,
         sheet_number_id: 1,
-        
+
         created_at: new Date(Date.now() - 86400000).toISOString(),
-        
+
         response_time: new Date(Date.now() + 10 * 86400000).toISOString(),
     },
     {
@@ -56,7 +56,7 @@ const mockMailCards = [
         request_type: "Queja",
         user_id: 12,
         created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-        
+
         response_time: new Date(Date.now() + 3 * 86400000).toISOString(),
     },
     {
@@ -67,7 +67,7 @@ const mockMailCards = [
         request_type: "Reclamo",
         user_id: 5,
         created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
-        
+
         response_time: new Date(Date.now() - 2 * 86400000).toISOString(),
     }
 ];
@@ -99,7 +99,7 @@ const renderWithMailContext = (ui, contextOverrides = {}) => {
 };
 
 describe('Dashboard Inbox Tests (Frontend)', () => {
-    
+
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -115,9 +115,9 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
         expect(screen.getByText('Bandeja de Entrada')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Buscar por asunto, id o descripción...')).toBeInTheDocument();
 
-        expect(screen.getByLabelText('Peticiones')).toBeInTheDocument();
-        expect(screen.getByLabelText('Quejas')).toBeInTheDocument();
-        expect(screen.getByLabelText('Reclamos')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Peticiones' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Quejas' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Reclamos' })).toBeInTheDocument();
 
         expect(screen.getByText('Petición a tiempo')).toBeInTheDocument();
         expect(screen.getByText('Queja proxima a vencer')).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
     it(' Filtering and Searching: Input text updates and toggle filters', () => {
         const setSearchTermMock = vi.fn();
         const toggleFilterMock = vi.fn();
-        
+
         renderWithMailContext(<InboxSidebar />, {
             setSearchTerm: setSearchTermMock,
             toggleFilter: toggleFilterMock
@@ -140,7 +140,7 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
         fireEvent.change(searchInput, { target: { value: 'prueba' } });
         expect(setSearchTermMock).toHaveBeenCalledWith('prueba');
 
-        const peticionChip = screen.getByLabelText('Peticiones');
+        const peticionChip = screen.getByRole('button', { name: 'Peticiones' });
         fireEvent.click(peticionChip);
         expect(toggleFilterMock).toHaveBeenCalledWith('Peticion');
     });
@@ -155,7 +155,7 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
             </>,
             {
                 setSelectedMail: setSelectedMailMock,
-                
+
                 selectedMail: 101
             }
         );
@@ -177,7 +177,7 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
                 <InboxSidebar />
                 <MailReader />
             </>,
-            { selectedMail: 103 } 
+            { selectedMail: 103 }
         );
 
         const vencidaElements = screen.getAllByText('Vencida');
@@ -186,10 +186,10 @@ describe('Dashboard Inbox Tests (Frontend)', () => {
         const quejaCardDateContainer = screen.getByText('Queja proxima a vencer').parentNode.parentNode.querySelector('.text-\\[\\#F0DA30\\]');
 
         const warnText = document.querySelector('.text-\\[\\#F0DA30\\]');
-        expect(warnText).not.toBeNull(); 
+        expect(warnText).not.toBeNull();
 
         const primaryText = document.querySelector('.text-primary.font-medium');
-        expect(primaryText).not.toBeNull(); 
+        expect(primaryText).not.toBeNull();
     });
 
 });
