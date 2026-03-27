@@ -8,9 +8,9 @@ import * as InertiaReact from '@inertiajs/react';
 vi.mock('@/lib/axios', () => ({
     default: {
         get: vi.fn().mockImplementation((url) => {
-            if (url === '/api/sheetsNumber' || url === '/api/sheets') {
+            if (url === '/api/sheetsNumber' || String(url).startsWith('/api/sheets')) {
                 return Promise.resolve({
-                    data: { 
+                    data: {
                         fichas: [
                             { id: 1, number: '100100' },
                             { id: 2, number: '200200' },
@@ -21,7 +21,7 @@ vi.mock('@/lib/axios', () => ({
                             { id: 2, number: '200200' },
                             { id: 3, number: '300300' }
                         ]
-                    } 
+                    }
                 });
             }
             return Promise.resolve({ data: {} });
@@ -69,7 +69,7 @@ describe('InstructorDetailsPanel Component Tests', () => {
 
         InertiaReact.usePage.mockReturnValue({
             url: "/users/instructor",
-            props: { 
+            props: {
                 auth: { user: { roles: [{ name: "Admin" }] } },
                 dependencies: []
             }
@@ -105,7 +105,7 @@ describe('InstructorDetailsPanel Component Tests', () => {
     });
 
     it('switches to Edit view and replaces Dependency select with multiple Sheet UI', async () => {
-        
+
         renderWithContext({
             idSelected: mockInstructor,
             edit: true,
@@ -117,7 +117,7 @@ describe('InstructorDetailsPanel Component Tests', () => {
         expect(screen.queryByText('Asignar Dependencia')).not.toBeInTheDocument();
 
         await waitFor(() => {
-            
+
             expect(screen.getAllByText('300300').length).toBeGreaterThan(0);
         });
     });
@@ -134,10 +134,10 @@ describe('InstructorDetailsPanel Component Tests', () => {
             expect(screen.getAllByText('100100').length).toBeGreaterThan(0);
         });
 
-        const addSheetDiv = screen.getAllByText('300300')[0]; 
+        const addSheetDiv = screen.getAllByText('300300')[0];
         fireEvent.click(addSheetDiv);
 
-        const removeSheetDiv = screen.getAllByText('200200')[screen.getAllByText('200200').length - 1]; 
+        const removeSheetDiv = screen.getAllByText('200200')[screen.getAllByText('200200').length - 1];
         fireEvent.click(removeSheetDiv);
 
         const saveButton = screen.getByText('Guardar Cambios');
@@ -151,7 +151,7 @@ describe('InstructorDetailsPanel Component Tests', () => {
                 'ana@sena.edu.co',
                 'active',
                 5,
-                [1, 3] 
+                [1, 3]
             );
             expect(toast.success).toHaveBeenCalledWith('Información actualizada');
         });
