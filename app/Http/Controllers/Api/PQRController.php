@@ -694,7 +694,7 @@ class PQRController extends Controller
     }
 
     /**
-     * Crea una página con el QR e información de radicado
+     * Sobrepone el QR e información de radicado en la primera página del PDF
      */
     private function mergeCoverPageWithQr(string $path, PQR $pqr)
     {
@@ -707,114 +707,105 @@ class PQRController extends Controller
             $requestType = strtoupper($pqr->request_type);
             $loadDate = now()->format('d/m/Y H:i:s');
 
-            // 1. Generar la página de radicado con DomPDF (formato SVG)
+            // 1. Generar un "sello" PDF miniatura usando DomPDF
+            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(100)->margin(0)->generate($qrUrl));
             
-            $qrCodeDataUri = 'data:image/svg+xml;base64,' . base64_encode(QrCode::format('svg')->size(150)->margin(0)->generate($qrUrl));
-
-            $html = "
+            $stampHtml = "
             <html>
             <head>
                 <style>
                     @page { margin: 0; }
-                    body { font-family: 'Helvetica', 'Arial', sans-serif; margin: 0; padding: 0px; color: #1a1a1a; }
-                    .header-box { 
-                        width: 100%; 
-                        padding: 20px; 
-                        box-sizing: border-box; 
+                    body { 
+                        font-family: 'Helvetica', 'Arial', sans-serif; 
+                        margin: 0; padding: 0; 
+                        background-color: transparent; 
                     }
-                    .qr-container { 
-                        display: inline-block; 
-                        width: 100px; 
+                    .main-container { 
+                        border: none; 
+                        border-radius: 4px; 
+                        background-color: white;
+                        padding: 7px;
+                        display: table;
+                        width: 215px;
+                        border-spacing: 0;
+                        border-collapse: collapse;
+                    }
+                    .content-row { display: table-row; }
+                    .qr-cell { 
+                        display: table-cell; 
+                        width: 70px; 
                         vertical-align: middle; 
+                        text-align: center;
                     }
-                    .details-container { 
-                        display: inline-block; 
+                    .info-cell { 
+                        display: table-cell; 
                         vertical-align: middle; 
-                        margin-left: 15px;
-                        font-size: 8pt;
+                        text-align: left;
+                        padding-left: 8px;
                     }
-                    .detail-item { margin: 2px 0; }
-                    .bold { font-weight: bold; }
-                    .image-qr { width: 90px; height: 90px; }
+                    .text { font-size: 8.5pt; color: #1a1a1a; line-height: 1.35; }
+                    .bold { font-weight: bold; font-size: 9.5pt; }
                 </style>
             </head>
             <body>
-                <div class='header-box'>
-                    <div class='qr-container'>
-                        <img src='$qrCodeDataUri' class='image-qr'>
-                    </div>
-                    <div class='details-container'>
-                        <div class='detail-item'><span class='bold'>Radicado No.</span> $pqrNumber</div>
-                        <div class='detail-item'><span class='bold'>Tipo de Solicitud:</span> $requestType</div>
-                        <div class='detail-item'><span class='bold'>Fecha y Hora de Carga:</span> $loadDate</div>
+                <div class='main-container'>
+                    <div class='content-row'>
+                        <div class='qr-cell'>
+                            <img src='$qrCodeDataUri' style='width: 62px; height: 62px;'>
+                        </div>
+                        <div class='info-cell'>
+                            <div class='text'><span class='bold'>Radicado No. $pqrNumber</span></div>
+                            <div class='text'><b>Tipo:</b> $requestType</div>
+                            <div class='text'><b>Fecha:</b> " . explode(' ', $loadDate)[0] . "</div>
+                            <div class='text'><b>Hora:</b> " . explode(' ', $loadDate)[1] . "</div>
+                        </div>
                     </div>
                 </div>
             </body>
-            </html>
-            ";
+            </html>";
 
-            $pdfCover = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('letter', 'portrait');
-            $coverContent = $pdfCover->output();
-            
-            $tempCoverPath = storage_path('app/temp_cover_' . uniqid() . '.pdf');
-            file_put_contents($tempCoverPath, $coverContent);
+            // Medidas en puntos (pt)
+            $stampPdfCreator = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($stampHtml)->setPaper([0, 0, 230, 90]);
+            $stampPath = storage_path('app/temp_stamp_' . uniqid() . '.pdf');
+            file_put_contents($stampPath, $stampPdfCreator->output());
 
-            // 2. Fusionar Original + qr
-            $oMerger = \Webklex\PDFMerger\Facades\PDFMergerFacade::init();
-            $oMerger->addPDF($absolutePath, 'all');
-            $oMerger->addPDF($tempCoverPath, 'all');
-            $oMerger->merge();
+            // 2. Usar FPDI para sobreponer el sello en la primera página
+            $pdf = new \setasign\Fpdi\Fpdi();
             
-            // Sobrescribir el original
-            $oMerger->save($absolutePath);
+            // IMPORTAR SELLO UNA SOLA VEZ AL INICIO (EVITA DOBLE CUADRO/GHOSTING)
+            $pdf->setSourceFile($stampPath);
+            $stampTemplateId = $pdf->importPage(1);
+            $stampSize = $pdf->getTemplateSize($stampTemplateId);
 
-            // Limpiar temporal
-            if (file_exists($tempCoverPath)) unlink($tempCoverPath);
-
-        } catch (\Exception $e) {
-            Log::error('Error al generar carátula minimalista con QR: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Genera un QR en formato PNG 
-     */
-    private function generateQrPngUsingGd($url)
-    {
-        try {
-            // Generamos SVG base 1:1 para obtener la matriz de puntos
-            $svg = QrCode::format('svg')->size(1)->margin(0)->generate($url);
+            // VOLVER AL ARCHIVO ORIGINAL
+            $pageCount = $pdf->setSourceFile($absolutePath);
             
-            if (!preg_match('/viewBox="0 0 (\d+) \d+"/', $svg, $vb)) return null;
-            $res = (int)$vb[1]; // Resolución del QR (ej: 21 para version 1)
-            
-            // Crear imagen GD
-            $imgSize = $res * 10; // Escalamos a 10px por módulo para calidad
-            $img = imagecreatetruecolor($imgSize, $imgSize);
-            $white = imagecolorallocate($img, 255, 255, 255);
-            $black = imagecolorallocate($img, 0, 0, 0);
-            imagefilledrectangle($img, 0, 0, $imgSize, $imgSize, $white);
-            
-            if (preg_match('/d="([^"]+)"/', $svg, $matches)) {
-                // Parsear comandos del path (M x y ...)
-                $parts = explode('M', $matches[1]);
-                foreach ($parts as $part) {
-                    if (preg_match('/^([\d.]+)\s+([\d.]+)/', $part, $c)) {
-                        $qx = (int)$c[1];
-                        $qy = (int)$c[2];
-                        imagefilledrectangle($img, $qx * 10, $qy * 10, ($qx * 10) + 9, ($qy * 10) + 9, $black);
-                    }
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+                
+                $pdf->AddPage($size['orientation'], ($size['orientation'] === 'P' ? [$size['width'], $size['height']] : [$size['height'], $size['width']]));
+                $pdf->useTemplate($templateId);
+                
+                if ($pageNo === 1) {
+                    // Posición pegada a la Derecha
+                    $marginRight = 3; 
+                    $marginTop = 5;
+                    $x = max(0, $size['width'] - $stampSize['width'] - $marginRight);
+                    $y = $marginTop;
+                    
+                    $pdf->useTemplate($stampTemplateId, $x, $y, $stampSize['width'], $stampSize['height']);
                 }
             }
-            
-            $tmpPath = storage_path('app/temp_qr_' . uniqid() . '.png');
-            imagepng($img, $tmpPath);
-            imagedestroy($img);
-            
-            return $tmpPath;
+
+            // Guardar el PDF modificado sobrescribiendo el original
+            $pdf->Output($absolutePath, 'F');
+
+            // Limpieza
+            if (file_exists($stampPath)) unlink($stampPath);
+
         } catch (\Exception $e) {
-            Log::error('Error generando PNG QR via GD: ' . $e->getMessage());
-            return null;
+            Log::error('Error al estampar QR en la primera página: ' . $e->getMessage());
         }
     }
 
