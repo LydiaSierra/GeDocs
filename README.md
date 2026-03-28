@@ -1,81 +1,75 @@
-# Sistema de Gestión Documental con PQRS
+# Document Management System with PQRS
 
-Proyecto backend y frontend para la gestión documental y manejo de PQRS, desarrollado con Laravel, Inertia.js, React.
+Backend and frontend project for document management and handling PQRS, developed with Laravel, Inertia.js, and React.
 
-
-## Índice de contenido
-- [Descripción del proyecto](#descripción-del-proyecto)
-- [Características principales](#características-principales)
-- [Arquitectura y tecnologías](#arquitectura-y-tecnologías)
-- [Requisitos previos](#requisitos-previos)
-- [Instalación](#instalación)
-- [Configuración del entorno](#configuración-del-entorno)
-- [Ejecución del proyecto](#ejecución-del-proyecto)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Comandos útiles](#comandos-útiles)
-- [Problemas comunes](#problemas-comunes)
-- [Tecnologías utilizadas](#tecnologías-utilizadas)
-- [Herramientas de desarrollo (DevDependencies)](#herramientas-de-desarrollo)
--[Scripts principales](#scripts-principales)
-
-
+## Table of Contents
+- [Project Description](#project-description)
+- [Main Features](#main-features)
+- [Architecture and Technologies](#architecture-and-technologies)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Configuration](#environment-configuration)
+- [Project Execution](#project-execution)
+- [Project Structure](#project-structure)
+- [Useful Commands](#useful-commands)
+- [Common Issues](#common-issues)
+- [Technologies Used](#technologies-used)
+- [Development Tools (DevDependencies)](#development-tools)
+- [Main Scripts](#main-scripts)
 
 - [ROLES](#roles)
-  - [Crear Rol](#crear-rol)
-  - [Asignar un rol](#asignar-un-rol)
-  - [Asignar varios roles](#asignar-varios-roles)
-  - [Remover un rol](#remover-un-rol)
-  - [Reemplazar todos los roles](#reemplazar-todos-los-roles)
-  - [Obtener roles del usuario](#obtener-roles-del-usuario)
-  - [Verificar si el usuario tiene un rol](#verificar-si-el-usuario-tiene-un-rol)
-  - [Verificar si tiene cualquiera de varios roles](#verificar-si-tiene-cualquiera-de-varios-roles)
-  - [Verificar si tiene todos los roles](#verificar-si-tiene-todos-los-roles)
-  - [Asignar permiso](#asignar-permiso)
-  - [Verificar permiso](#verificar-permiso)
-- [Middleware para proteger rutas](#middleware-para-proteger-rutas)
-  - [Restringir por rol](#restringir-por-rol)
-  - [Permitir varios roles](#permitir-varios-roles)
-  - [Restringir por permiso](#restringir-por-permiso)
-  - [Obtener rol del usuario autenticado](#obtener-rol-del-usuario-autenticado)
-- [NOTIFICACIONES](#notificaciones)
-  - [Crear una notificación](#crear-una-notificación)
-  - [Ejemplo básico](#ejemplo-básico)
-  - [Ver notificaciones de un usuario](#ver-notificaciones-de-un-usuario)
-  - [Solo las no leídas](#solo-las-no-leídas)
-  - [Marcar una específica](#marcar-una-específica)
-  - [Marcar todas](#marcar-todas)
-  - [Eliminar una notificación](#eliminar-una-notificación)
-  - [Enviar notificaciones a varios usuarios](#enviar-notificaciones-a-varios-usuarios)
-  - [Enviar a una colección](#enviar-a-una-colección)
+  - [Create Role](#create-role)
+  - [Assign a Role](#assign-a-role)
+  - [Assign Multiple Roles](#assign-multiple-roles)
+  - [Remove a Role](#remove-a-role)
+  - [Replace All Roles](#replace-all-roles)
+  - [Get User Roles](#get-user-roles)
+  - [Check if User Has a Role](#check-if-user-has-a-role)
+  - [Check if User Has Any of Multiple Roles](#check-if-user-has-any-of-multiple-roles)
+  - [Check if User Has All Roles](#check-if-user-has-all-roles)
+  - [Assign Permission](#assign-permission)
+  - [Check Permission](#check-permission)
+- [Middleware to Protect Routes](#middleware-to-protect-routes)
+  - [Restrict by Role](#restrict-by-role)
+  - [Allow Multiple Roles](#allow-multiple-roles)
+  - [Restrict by Permission](#restrict-by-permission)
+  - [Get Authenticated User Role](#get-authenticated-user-role)
+- [NOTIFICATIONS](#notifications)
+  - [Create a Notification](#create-a-notification)
+  - [Basic Example](#basic-example)
+  - [View User Notifications](#view-user-notifications)
+  - [Only Unread](#only-unread)
+  - [Mark a Specific Notification](#mark-a-specific-notification)
+  - [Mark All](#mark-all)
+  - [Delete a Notification](#delete-a-notification)
+  - [Send Notifications to Multiple Users](#send-notifications-to-multiple-users)
+  - [Send to a Collection](#send-to-a-collection)
 - [API ENDPOINTS](#api-endpoints)
-  - [API DE USUARIOS](#api-de-usuarios)
-  - [API DE ARCHIVOS Y CARPETAS (GeDocs)](#api-de-archivos-y-carpetas-gedocs)
-  - [API DE FICHAS](#api-de-fichas)
-  - [API DE PQRs](#api-de-pqrs)
-  - [COMUNICACIONES](#comunicaciones)
-  - [GENERACIÓN DE PDF](#generación-de-pdf)
-  - [GENERACIÓN DE QR](#generación-de-qr)
-  - [API DE NOTIFICACIONES](#api-de-notificaciones)
-  - [Reglas importantes de notificaciones](#reglas-importantes-de-notificaciones)
-  - [Mensajes de Error Comunes](#mensajes-de-error-comunes)
+  - [USERS API](#users-api)
+  - [FILES AND FOLDERS API (GeDocs)](#files-and-folders-api-gedocs)
+  - [FICHAS API](#fichas-api)
+  - [PQRs API](#pqrs-api)
+  - [COMMUNICATIONS](#communications)
+  - [PDF GENERATION](#pdf-generation)
+  - [QR GENERATION](#qr-generation)
+  - [NOTIFICATIONS API](#notifications-api)
+  - [Important Notification Rules](#important-notification-rules)
+  - [Common Error Messages](#common-error-messages)
 ---
 
+# Project Description
 
-# Descripción del proyecto
+The Document Management System with PQRS is a web platform designed to manage institutional documents and handle Petitions, Complaints, Claims, and Suggestions (PQRS) in a centralized, secure, and traceable manner.
 
-El Sistema de Gestión Documental con PQRS es una plataforma web diseñada para
-administrar documentos institucionales y gestionar Peticiones, Quejas, Reclamos y
-Sugerencias (PQRS) de manera centralizada, segura y trazable.
+# Main Features
 
-# Características principales
+• Management of digital documents.  
+• Registration and tracking of PQRS.  
+• Internal notifications.  
+• Role and permission-based access control.  
+• Modern interface with React.
 
-• Gestión de documentos digitales.
-• Registro y seguimiento de PQRS.
-• Notificaciones internas.
-• Control de acceso por roles y  permisos.
-• Interfaz moderna con React.
-
-# Arquitectura y tecnologías
+# Architecture and Technologies
 
 ## Backend
 • Laravel (PHP >= 8.1)
@@ -85,12 +79,12 @@ Sugerencias (PQRS) de manera centralizada, segura y trazable.
 • React
 • Vite
 
-## Otros
+## Others
 • MySQL
 
-# Requisitos previos
+# Prerequisites
 
-Asegúrese de tener instalado lo siguiente:
+Make sure the following are installed:
 • PHP >= 8.1
 • Composer >= 2.x
 • Node.js >= 18.x
@@ -98,22 +92,17 @@ Asegúrese de tener instalado lo siguiente:
 • Git
 • MySQL >= 8.x 
 
-# Instalación
+# Installation
 
-## 1. Clonar el repositorio
-```
-git clone https://github.com/LydiaSierra/GeDocs.git
-cd GecDosc
-```
-## 2. Instalar dependencias backend
+## 1. Clone the repository
 
 composer install
 
-## 3. Instalar dependencias frontend
+## 3. Install frontend dependencies
 
 npm install
 
-## 4. Instalar paquetes backend
+## 4. Install backend packages
 ```
 composer require spatie/laravel-permission
 ```
@@ -128,21 +117,21 @@ composer require barryvdh/laravel-dompdf
 php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
 ```
 
-# Configuración del entorno
+# Environment Configuration
 
-## 1. Variables de entorno
+## 1. Environment Variables
 
 cp .env.example .env
 
-Cree el archivo .env en la raiz del proyecto.
+Create the .env file in the root of the project.
 
-Copie todo del .env.example y peguelo en el .env creado
+Copy everything from .env.example and paste it into the newly created .env file.
 
-## 2. Generar clave de la aplicación
+## 2. Generate Application Key
 
 php artisan key:generate
 
-## 3. Migraciones y seeders
+## 3. Migrations and Seeders
 ```
 php artisan migrate
 ```
@@ -150,95 +139,95 @@ php artisan migrate
 php artisan db:seed
 ```
 
-## 4. Enlace de almacenamiento
+## 4. Storage Link
 ```
 php artisan storage:link
 ```
 
-# Ejecución del proyecto
+# Project Execution
 
 ```
 composer run dev
 ```
-Aplicación disponible en:
+Application available at:  
 http://localhost:8000
 
-# Estructura del proyecto
+# Project Structure
 ```
 
 app/
-├── Http/                                # Capa de entrada HTTP
-│ ├── Controllers/                       # Controladores de la aplicación
-│ │ ├── Api/                             # Controladores API (JSON)
-│ │ │ └── AuthController.php             # Autenticación vía API
+├── Http/                                # HTTP layer
+│ ├── Controllers/                       # Application controllers
+│ │ ├── Api/                             # API controllers (JSON)
+│ │ │ └── AuthController.php             # API authentication
 │ │ │
-│ │ ├── Controller.php                   # Controlador base
-│ │ ├── DependencyController.php         # Gestión de dependencias
-│ │ ├── ExplorerController.php           # Render de vista Explorer
-│ │ ├── FolderController.php             # Gestión de carpetas documentales
-│ │ ├── NotificationController.php       # Notificaciones del sistema
-│ │ ├── PdfController.php                # Generación de documentos PDF
-│ │ ├── ProfileController.php            # Perfil de usuario
-│ │ ├── SheetController.php              # Gestión de fichas
-│ │ └── UserController.php               # Gestión de usuarios
+│ │ ├── Controller.php                   # Base controller
+│ │ ├── DependencyController.php         # Dependency management
+│ │ ├── ExplorerController.php           # Explorer view rendering
+│ │ ├── FolderController.php             # Document folder management
+│ │ ├── NotificationController.php       # System notifications
+│ │ ├── PdfController.php                # PDF document generation
+│ │ ├── ProfileController.php            # User profile
+│ │ ├── SheetController.php              # Sheet management
+│ │ └── UserController.php               # User management
 │ │
-│ ├── Middleware/                        # Middlewares HTTP
-│ │ └── HandleInertiaRequests.php        # Middleware Inertia
+│ ├── Middleware/                        # HTTP middlewares
+│ │ └── HandleInertiaRequests.php        # Inertia middleware
 │ │
-│ ├── Requests/                          # Form Requests (validaciones)
-│ └── Resources/                         # API Resources (transformación de datos)
+│ ├── Requests/                          # Form Requests (validations)
+│ └── Resources/                         # API Resources (data transformation)
 │
-├── Models/                              # Modelos Eloquent
-│ ├── User.php # Modelo de usuario
-│ └── ...                                # Otros modelos del dominio
+├── Models/                              # Eloquent models
+│ ├── User.php                           # User model
+│ └── ...                                # Other domain models
 │
-├── Notifications/                       # Notificaciones (mail, database, etc.)
+├── Notifications/                       # Notifications (mail, database, etc.)
 ├── Providers/                           # Service Providers
-│ └── AppServiceProvider.php             # Configuración global
+│ └── AppServiceProvider.php             # Global configuration
 │
-├── Policies/                            # Políticas de autorización
+├── Policies/                            # Authorization policies
 │
-config/                                  # Archivos de configuración
+config/                                  # Configuration files
 ├── auth.php
 ├── database.php
 ├── services.php
 └── ...
 │
-database/                               # Persistencia
-├── factories/                          # Factories para testing
-├── migrations/                         # Migraciones de base de datos
-└── seeders/                            # Seeders
+database/                               # Persistence
+├── factories/                           # Testing factories
+├── migrations/                          # Database migrations
+└── seeders/                             # Seeders
 │
-lang/                                   # Traducciones
+lang/                                   # Translations
 ├── es/
 └── en/
 │
-public/                                # Archivos públicos
+public/                                 # Public files
 │
-resources/                             # Frontend (Inertia + React)
+resources/                              # Frontend (Inertia + React)
 ├── js/
-│ ├── Components/                      # Componentes reutilizables
-│ ├── Context/                         # Contextos globales
-│ ├── Layouts/                         # Layouts de la aplicación
-│ ├── Pages/                           # Páginas Inertia
+│ ├── Components/                        # Reusable components
+│ ├── Context/                           # Global contexts
+│ ├── Layouts/                           # Application layouts
+│ ├── Pages/                             # Inertia pages
 │ ├── lib/
-│ │ └── axios.js                       # Configuración global de Axios
-│ ├── app.jsx                          # Punto de entrada React
-│ └── bootstrap.js                     # Inicialización frontend
+│ │ └── axios.js                         # Global Axios configuration
+│ ├── app.jsx                             # React entry point
+│ └── bootstrap.js                        # Frontend initialization
 │
 ├── views/
-│ └── app.blade.php                    # Vista base Inertia
+│ └── app.blade.php                       # Base Inertia view
 │
-routes/                                # Definición de rutas
-├── web.php                            # Rutas web (Inertia)
-└── api.php                            # Rutas API
+routes/                                  # Route definitions
+├── web.php                              # Web routes (Inertia)
+└── api.php                              # API routes
 │
-tests/                                 # Pruebas automatizadas
+tests/                                   # Automated tests
 │
-vendor/                                # Dependencias PHP (Composer)
+vendor/                                  # PHP dependencies (Composer)
 ```
 
-# Comandos útiles
+# Useful Commands
 
 ```
 php artisan optimize:clear
@@ -246,68 +235,64 @@ php artisan migrate:fresh --seed
 npm run build
 ```
 
-# Problemas comunes
+# Common Issues
 
-• Pantalla en blanco: verificar que npm run dev esté activo
-• Error de permisos: revisar carpetas storage y bootstrap/cache
-• Error de Vite: limpiar cache y reinstalar dependencias.
+• Blank screen: check that `npm run dev` is running  
+• Permission error: check `storage` and `bootstrap/cache` folders  
+• Vite error: clear cache and reinstall dependencies  
 
-# Tecnologías utilizadas
-
-## BACKEND
-- PHP 8.2 Lenguaje backend
-- Laravel 12.x Framework backend
-- Inertia Laravel 2.0 Integración SPA sin API REST
-- Laravel Sanctum * Autenticación
-- Spatie Laravel Permission 6.23 Roles y permisos
-- Laravel DOMPDF 3.1 Generación de documentos PDF
-- Tighten Ziggy 2.0 Rutas de Laravel en frontend
-- Laravel Spanish 1.5 Traducciones al español
-
-## FRONTEND
-
-- React 18.2 Librería UI
-- React DOM 18.2 Renderizado en navegador
-- Inertia.js 0.11.1 Navegación SPA
-- Vite 7.0.7 Bundler y servidor de desarrollo
-- Tailwind CSS 4.1.16 Estilos utilitarios
-- DaisyUI 5.3.10 Componentes UI
-- Headless UI 2.0 Componentes accesibles
-- Heroicons 2.2 Íconos SVG
-- Axios 1.13.2 Cliente HTTP
-- Sonner 2.0.7 Notificaciones (toasts)
-
-# Herramientas de desarrollo
-
-## FRONTEND
-
-- Laravel Vite Plugin 2.0 Integración Vite con Laravel
-- Vite React Plugin 4.2 Soporte React en Vite
-- PostCSS 8.4 Procesamiento CSS
-- Tailwind Forms 0.5 Estilos para formularios
-- Concurrently 9.0 Ejecutar procesos en paralelo
+# Technologies Used
 
 ## BACKEND
+- PHP 8.2 Backend language
+- Laravel 12.x Backend framework
+- Inertia Laravel 2.0 SPA integration without separate REST API
+- Laravel Sanctum * Authentication
+- Spatie Laravel Permission 6.23 Roles and permissions
+- Laravel DOMPDF 3.1 PDF document generation
+- Tighten Ziggy 2.0 Laravel routes in frontend
+- Laravel Spanish 1.5 Spanish translations
 
-- Laravel Breeze 2.3 Autenticación base
-- Laravel Sail 1.41 Entorno Docker
-- Laravel Pint 1.24 Formateador de código
+## FRONTEND
+- React 18.2 UI library
+- React DOM 18.2 Browser rendering
+- Inertia.js 0.11.1 SPA navigation
+- Vite 7.0.7 Bundler and development server
+- Tailwind CSS 4.1.16 Utility-first styling
+- DaisyUI 5.3.10 UI components
+- Headless UI 2.0 Accessible components
+- Heroicons 2.2 SVG icons
+- Axios 1.13.2 HTTP client
+- Sonner 2.0.7 Notifications (toasts)
+
+# Development Tools
+
+## FRONTEND
+- Laravel Vite Plugin 2.0 Vite integration with Laravel
+- Vite React Plugin 4.2 React support in Vite
+- PostCSS 8.4 CSS processing
+- Tailwind Forms 0.5 Form styling
+- Concurrently 9.0 Run parallel processes
+
+## BACKEND
+- Laravel Breeze 2.3 Base authentication
+- Laravel Sail 1.41 Docker environment
+- Laravel Pint 1.24 Code formatter
 - Pest PHP 3.8 Testing
-- Faker PHP 1.23 Datos de prueba
-- Collision 8.6 Manejo de errores en consola
+- Faker PHP 1.23 Test data generation
+- Collision 8.6 Console error handling
 
-# Scripts principales
+# Main Scripts
 
-- npm run dev (Ejecuta Vite en modo desarrollo)
-- npm run build (Compila assets para producción)
-- composer setup (Instalación completa del proyecto)
-- composer dev (Backend + colas + frontend en paralelo)
-- composer test (Ejecuta pruebas automatizadas)
-
+- `npm run dev` (Runs Vite in development mode)  
+- `npm run build` (Compiles assets for production)  
+- `composer setup` (Full project installation)  
+- `composer dev` (Backend + queues + frontend in parallel)  
+- `composer test` (Runs automated tests)
 
 # ROLES
 
-## Crear Rol
+## Create Role
 ```bash
 composer require spatie/laravel-permission
 ```
@@ -322,62 +307,63 @@ Role::create(['name' => 'instructor']);
 Role::create(['name' => 'aprendiz']);
 ```
 
-## Asignar un rol
+## Assign a Role
 ```php
 $user = User::find(1);
 $user->assignRole('Administrador');
 ```
 
-## Asignar varios roles
+## Assign Multiple Roles
 ```php
 $user->assignRole(['Admin', 'Instructor']);
 ```
 
-## Remover un rol
+## Remove a Role
 ```php
 $user->removeRole('Instructor');
 ```
 
-## Reemplazar todos los roles
+## Get User Roles
 ```php
 $user->syncRoles(['Instructor']);
 ```
 
-## Obtener roles del usuario
+## Check if User Has a Role
 ```php
 $user->getRoleNames(); // devuelve una colección
 ```
 
-## Verificar si el usuario tiene un rol
+## Check if User Has a Role
 ```php
 $user->hasRole('Admin'); // true o false
 ```
 
-## Verificar si tiene cualquiera de varios roles
+## Check if User Has Any of Multiple Roles
 ```php
 $user->hasAnyRole(['Admin', 'Instructor']);
 ```
 
-## Verificar si tiene todos los roles
+## Check if User Has All Roles
 ```php
 $user->hasAllRoles(['Admin', 'Instructor']);
 ```
 
-## Asignar permiso
+## Assign Permission
 ```php
 $user->givePermissionTo('crear usuarios');
 ```
 
-## Verificar permiso
+## Check Permission
 ```php
 $user->can('crear usuarios');
 ```
 
 ---
 
-# Middleware para proteger rutas
 
-## Restringir por rol
+## Middleware to Protect Routes
+
+# Restrict by Role
 ```php
 Route::get('/admin', function () {
     // ...
@@ -390,31 +376,31 @@ Route::middleware('role:Admin')->group(function () {
 });
 ```
 
-## Permitir varios roles
+## Allow Multiple Roles
 ```php
 ->middleware('role:Admin|Instructor');
 ```
 
-## Restringir por permiso
+## Restrict by Permission
 ```php
 ->middleware('permission:crear usuarios');
 ```
 
-## Obtener rol del usuario autenticado
+## Get Authenticated User's Roles
 ```php
 auth()->user()->getRoleNames();
 ```
 
 ---
 
-# NOTIFICACIONES
+# NOTIFICATIONS
 
-## Crear una notificación
+## Create a Notification
 ```bash
 php artisan make:notification WelcomeNotification
 ```
 
-## Ejemplo básico
+## Basic Example
 ```php
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -442,38 +428,38 @@ class WelcomeNotification extends Notification
 }
 ```
 
-## Ver notificaciones de un usuario
+## View User Notifications
 ```php
 $user->notifications;
 ```
 
-## Solo las no leídas
+## Only Unread
 ```php
 $user->unreadNotifications;
 ```
 
-## Marcar una específica
+## Mark a Specific Notification
 ```php
 $notification->markAsRead();
 ```
 
-## Marcar todas
+## Mark All
 ```php
 $user->unreadNotifications->markAsRead();
 ```
 
-## Eliminar una notificación
+## Delete a Notification
 ```php
 $notification = auth()->user()->notifications()->find($id);
 $notification->delete();
 ```
 
-## Enviar notificaciones a varios usuarios
+## Send Notifications to Multiple Users
 ```php
 Notification::send(User::role('administrador')->get(), new SystemAlertNotification());
 ```
 
-## Enviar a una colección
+## Send to a Collection
 ```php
 Notification::send($usuarios, new AlertNotification());
 ```
@@ -484,28 +470,28 @@ Notification::send($usuarios, new AlertNotification());
 
 ---
 
-## API DE USUARIOS
+## USERS API
 
-### Visualizar todos los usuarios
-> Si el usuario es de rol "Admin" ve todos los usuarios, si es de rol Instructor ve solo los "Aprendices"
+### View All Users
+> If the user has the "Admin" role, they see all users; if they have the Instructor role, they only see the "Learners"
 
 **METHOD:** `GET`
 ```
 /api/users
 ```
 
-### Visualizar un usuario
+### View a User
 **METHOD:** `GET`
 ```
 /api/users/{id del usuario}
 ```
 
-### Crear Usuario
+### Create User
 **METHOD:** `POST`
 ```
 /api/users/
 ```
-> El rol se asigna automáticamente como Aprendiz. Solo el administrador puede crear usuarios.
+> > The role is automatically assigned as Learner. Only the administrator can create users.
 ```json
 {
     "type_document": "CC",
@@ -516,131 +502,131 @@ Notification::send($usuarios, new AlertNotification());
 }
 ```
 
-### Actualizar usuario
+### Update User
 **METHOD:** `PUT`
 ```
 /api/users/{id del usuario}
 ```
 
-### Cambiar el estado del usuario (active o pending)
+### Change User Status (active or pending)
 **METHOD:** `PUT`
 ```
 /api/users/status/{id del usuario}/{estado}
 ```
 
-### Eliminar usuario
+### Delete User
 **METHOD:** `DELETE`
 ```
 /api/users/{id del usuario}
 ```
 
-### Filtrar Usuarios
-> Se puede filtrar solo por `name`, `email`, `document_number`, `technical_sheet`
+### Filter Users
+> You can filter only by `name`, `email`, `document_number`, `technical_sheet`
 
 **METHOD:** `GET`
 ```
 /api/users/filter?{nombre del filtro}={valor del filtro}
 ```
 
-**Ejemplo:**
+**Example:**
 ```
 /api/users/filter?document_number=102030
 ```
 
-**Buscar por varios filtros:**
+**Search by multiple filters:**
 ```
 /api/users/filter?document_number=102030&email=andres@gmail.com&name=andres
 ```
 
 ---
 
-## API DE ARCHIVOS Y CARPETAS (GeDocs)
+## FILES AND FOLDERS API (GeDocs)
 
-### 1. Explorador y Navegación
+### 1. Explorer and Navigation
 
 #### `GET /explorer`
-Endpoint principal para cargar la estructura de archivos y carpetas.
+Main endpoint to load the file and folder structure.
 
 **Query Params:**
-- `sheet_id` (Opcional): ID de la ficha técnica.
-- `folder_id` (Opcional): ID de la carpeta actual. Si es nulo, muestra las carpetas raíz (años).
-- `buscador` (Opcional): Término de búsqueda para filtrado global.
+- `sheet_id` (Optional): Technical sheet ID.
+- `folder_id` (Optional): Current folder ID. If null, shows root folders (years).
+- `buscador` (Optional): Search term for global filtering.
 
-**Respuesta:** Renderiza la vista `Explorer` vía Inertia con los objetos `folders` y `files`.
+**Response:** Renders the `Explorer` view via Inertia with `folders` and `files` objects.
 
 ---
 
-### 2. Gestión de Carpetas
+### 2. Folder Management
 
 #### `POST /folders`
-Crea una nueva carpeta.
-- **Cuerpo (JSON):** `name`, `parent_id`, `sheet_number_id`, `folder_code`.
+Creates a new folder.
+- **Body (JSON):** `name`, `parent_id`, `sheet_number_id`, `folder_code`.
 
 #### `PUT /folders/{folderId}`
-Actualiza o renombra una carpeta existente.
-- **Cuerpo (JSON):** `name`, `folder_code`.
+Updates or renames an existing folder.
+- **Body (JSON):** `name`, `folder_code`.
 
 #### `POST /folders/move-mixed`
-Mueve una selección de carpetas y archivos a una nueva ubicación.
-- **Cuerpo (JSON):** `target_folder_id`, `folders` (array de IDs), `files` (array de IDs).
+Moves a selection of folders and files to a new location.
+- **Body (JSON):** `target_folder_id`, `folders` (array of IDs), `files` (array of IDs).
 
 ---
 
-### 3. Gestión de Archivos
+### 3. File Management
 
 #### `POST /folders/{id}/upload`
-Sube uno o más archivos a una carpeta específica.
-- **Cuerpo (Multipart/Form-Data):** `files[]` (array de archivos).
-- **Lógica especial:**
-  - Genera un código secuencial (`file_code`) basado en el máximo global.
-  - Genera un hash SHA256 del contenido.
-  - Renombra el archivo en disco: `AÑO-Ex-COD-SEQ-HASH-NombreOriginal.pdf`.
+Uploads one or more files to a specific folder.
+- **Body (Multipart/Form-Data):** `files[]` (array of files).
+- **Special logic:**
+  - Generates a sequential code (`file_code`) based on the global maximum.
+  - Generates a SHA256 hash of the content.
+  - Renames the file on disk: `YEAR-Ex-COD-SEQ-HASH-OriginalName.pdf`.
 
 #### `GET /folders/file/download/{id}`
-Descarga un archivo específico.
+Downloads a specific file.
 
 #### `POST /folders/download-mixed-zip`
-Comprime y descarga una selección mixta de carpetas y archivos en un archivo ZIP.
+Compresses and downloads a mixed selection of folders and files as a ZIP file.
 
 ---
 
-### 4. Sistema de Papelera (Trash)
+### 4. Trash System
 
 #### `POST /folders/delete-mixed`
-Realiza un "borrado lógico" (mueve a la papelera) desactivando el flag `active`.
-- **Cuerpo (JSON):** `folders` (array de IDs), `files` (array de IDs).
+Performs a "soft delete" (moves to trash) by disabling the `active` flag.
+- **Body (JSON):** `folders` (array of IDs), `files` (array of IDs).
 
 #### `POST /folders/restore-mixed`
-Restaura elementos de la papelera volviendo a activar el flag `active`.
+Restores items from trash by reactivating the `active` flag.
 
 #### `GET /folders/archived`
-Lista todos los elementos que están actualmente en la papelera (`active = false`).
+Lists all items currently in trash (`active = false`).
 
 ---
 
-### Estructura de Datos (Modelo File)
+### Data Structure (File Model)
 
-| Campo | Descripción |
+| Field | Description |
 |---|---|
-| `name` | Nombre estandarizado visible |
-| `file_code` | Código consecutivo (ej: `008`) |
-| `hash` | Hash SHA256 para verificar integridad |
-| `path` | Ruta física en el storage |
-| `folder_id` | Referencia a la carpeta contenedora |
+| `name` | Standardized visible name |
+| `file_code` | Consecutive code (e.g., `008`) |
+| `hash` | SHA256 hash to verify integrity |
+| `path` | Physical path in storage |
+| `folder_id` | Reference to the containing folder |
 
 ---
 
-## API DE FICHAS
+## SHEETS API
 
-### Listar todas las fichas
-> Obtiene las fichas asociadas al usuario autenticado según su rol (Instructor / Aprendices).
+### List all sheets
+> Retrieves the sheets associated with the authenticated user according to their role (Instructor / Learners).
 
 **METHOD:** `GET`
 ```
 /sheetsNumber
 ```
 
-**Respuesta exitosa (200 OK):**
+**Successful response (200 OK):**
 ```json
 {
   "message": "Fichas encontradas",
@@ -664,18 +650,18 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-### Buscar ficha por número
+### Search sheet by number
 **METHOD:** `GET`
 ```
 /api/sheets/{numero_de_la_ficha}
 ```
 
-**Ejemplo:**
+**Example:**
 ```
 /api/sheets/2578
 ```
 
-**Respuesta:**
+**Response:**  
 ```json
 {
   "success": true,
@@ -684,7 +670,7 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-### Crear una nueva ficha (Solo Admin)
+### Create a new sheet (Admin Only)
 **METHOD:** `POST`
 ```
 /sheets
@@ -697,7 +683,7 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-**Respuesta (200 OK):**
+**Response (200 OK):**
 ```json
 {
   "number": "3002085",
@@ -708,7 +694,7 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-### Actualizar una ficha (Solo Admin)
+### Eliminar una ficha (Solo Admin)
 **METHOD:** `PUT`
 ```
 /sheets/{id}
@@ -723,7 +709,7 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-**Respuesta (200 OK):**
+**Response (200 OK):**
 ```json
 {
   "success": true,
@@ -739,13 +725,13 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-### Eliminar una ficha (Solo Admin)
+### Delete a sheet (Admin Only)
 **METHOD:** `DELETE`
 ```
 /api/sheets/{id_de_la_ficha}
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "success": true,
@@ -765,12 +751,12 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 /api/sheets/add/user/{numero_ficha}/{id_usuario}
 ```
 
-**Ejemplo:**
+**Example:**
 ```
 /api/sheets/add/user/2578923/15
 ```
 
-**Respuesta exitosa:**
+**Successful response:**
 ```json
 {
   "success": true,
@@ -778,25 +764,25 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-**Errores comunes:**
-1. Ficha no encontrada → 404
-2. Usuario no encontrado → 404
-3. Usuario ya está en la ficha → 409
-4. Instructor sin permiso sobre esta ficha → 403
-5. No puedes agregar un Admin → 500
+**Common errors:**
+1. Sheet not found → 404
+2. User not found → 404
+3. User already in the sheet → 409
+4. Instructor without permission on this sheet → 403
+5. Cannot add an Admin → 500
 
-### Eliminar un usuario de una ficha (Solo Admin)
+### Remove a user from a sheet (Admin Only)
 **METHOD:** `DELETE`
 ```
 /api/sheets/delete/user/{numero_ficha}/{id_usuario}
 ```
 
-**Ejemplo:**
+**Example:**
 ```
 /api/sheets/delete/user/2578923/15
 ```
 
-**Respuesta exitosa:**
+**Successful response:**
 ```json
 {
   "success": true,
@@ -804,23 +790,23 @@ Lista todos los elementos que están actualmente en la papelera (`active = false
 }
 ```
 
-**Errores:**
-1. Ficha no encontrada → 404
-2. Usuario no pertenece a la ficha → 404
+**Errors:**
+1. Sheet not found → 404
+2. User does not belong to the sheet → 404
 
 ---
 
-## API DE PQRs
+## API OF PQRS
 
-### 1.1 Listar PQRs
-**METHOD:** `GET /api/pqrs` *(Requiere Autenticación)*
+### 1.1 List PQRS
+**METHOD:** `GET /api/pqrs` *(Authentication Required)*
 
-Obtiene el listado de PQRs filtradas según el rol del usuario.
+Retrieves the list of PQRS filtered according to the user's role.
 
 **Query Params:**
-- `archived` (boolean, opcional): `true` para ver archivadas, `false` para bandeja de entrada.
+- `archived` (boolean, optional): `true` to view archived, `false` for inbox.
 
-**Respuesta (200 OK):**
+**Response (200 OK):**
 ```json
 {
   "data": [
@@ -838,22 +824,22 @@ Obtiene el listado de PQRs filtradas según el rol del usuario.
 }
 ```
 
-### 1.2 Crear una PQR
-**METHOD:** `POST /api/pqrs` *(Acceso Público)*
+### 1.2 Create a PQR
+**METHOD:** `POST /api/pqrs` *(Public Access)*
 
 **Body (Multipart/Form-Data):**
-- `sender_name` (string, requerido): Nombre del remitente.
-- `affair` (string, requerido): Asunto.
-- `description` (string, requerido): Detalle de la solicitud.
-- `request_type` (string, requerido): `Peticion`, `Queja`, `Reclamo`, `Sugerencia`, `Otro`.
-- `number` (string, requerido): Número de ficha técnica relacionada.
-- `document_type` (string, requerido): `CC`, `TI`, `CE`.
-- `document` (string): Número de identificación.
-- `email` (string): Correo para notificaciones.
-- `attachments[]` (files): Archivos adjuntos (pdf, docx, jpg, png). Máx 5MB c/u.
-- `dependency_id` (int, opcional): ID de la dependencia destino.
+- `sender_name` (string, required): Sender's name.
+- `affair` (string, required): Subject.
+- `description` (string, required): Request details.
+- `request_type` (string, required): `Peticion`, `Queja`, `Reclamo`, `Sugerencia`, `Otro`.
+- `number` (string, required): Related technical sheet number.
+- `document_type` (string, required): `CC`, `TI`, `CE`.
+- `document` (string): Identification number.
+- `email` (string): Email for notifications.
+- `attachments[]` (files): Attached files (pdf, docx, jpg, png). Max 5MB each.
+- `dependency_id` (int, optional): Destination dependency ID.
 
-**Respuesta (201 Created):**
+**Response (201 Created):**
 ```json
 {
   "data": { "id": 45, "sender_name": "Juan Perez" },
@@ -861,14 +847,14 @@ Obtiene el listado de PQRs filtradas según el rol del usuario.
 }
 ```
 
-### 1.3 Finalizar y Cerrar PQR
-**METHOD:** `POST /api/pqr/{id}/finalize` *(Requiere Autenticación)*
+### 1.3 Finalize and Close PQR
+**METHOD:** `POST /api/pqr/{id}/finalize` *(Requires Authentication)*
 
 **Body (Multipart/Form-Data):**
-- `response_message` (string, requerido): Mensaje de cierre (mín 10 caracteres).
-- `attachments[]` (files): Documentos finales de soporte.
+- `response_message` (string, required): Closing message (min 10 characters).
+- `attachments[]` (files): Final supporting documents.
 
-**Respuesta (200 OK):**
+**Response (200 OK):**
 ```json
 {
   "data": { "id": 1, "response_status": "closed", "state": true },
@@ -878,17 +864,17 @@ Obtiene el listado de PQRs filtradas según el rol del usuario.
 
 ---
 
-## COMUNICACIONES
+## COMMUNICATIONS
 
-### 2.1 Crear Comunicación (Respuesta Admin)
-**METHOD:** `POST /api/pqr/{id}/comunicaciones` *(Requiere Autenticación)*
+### 2.1 Create Communication (Admin Response)
+**METHOD:** `POST /api/pqr/{id}/comunicaciones` *(Requires Authentication)*
 
 **Body:**
-- `message` (string, requerido): Contenido del mensaje.
-- `requires_response` (boolean): Si es `true`, genera un link de respuesta para el usuario.
-- `attachments[]` (files): Archivos adjuntos.
+- `message` (string, required): Message content.
+- `requires_response` (boolean): If `true`, generates a response link for the user.
+- `attachments[]` (files): Attached files.
 
-**Respuesta (201 Created):**
+**Response (201 Created):**
 ```json
 {
   "data": { "id": 10, "message": "...", "attached_supports": [] },
@@ -897,14 +883,14 @@ Obtiene el listado de PQRs filtradas según el rol del usuario.
 }
 ```
 
-### 2.2 Procesar Respuesta de Usuario
-**METHOD:** `POST /api/pqr/responder/{uuid}` *(Acceso Público vía UUID)*
+### 2.2 Process User Response
+**METHOD:** `POST /api/pqr/responder/{uuid}` *(Public Access via UUID)*
 
 **Body:**
-- `message` (string, requerido): Texto de la respuesta.
-- `attachments[]` (files): Archivos de soporte.
+- `message` (string, required): Response text.
+- `attachments[]` (files): Supporting files.
 
-**Respuesta (201 Created):**
+**Response (201 Created):**
 ```json
 {
   "message": "Respuesta enviada exitosamente"
@@ -913,39 +899,39 @@ Obtiene el listado de PQRs filtradas según el rol del usuario.
 
 ---
 
-## GENERACIÓN DE PDF
+## PDF GENERATION
 
-### `POST /api/pdf/generate-response` *(Requiere Autenticación)*
+### `POST /api/pdf/generate-response` *(Requires Authentication)*
 
-Genera una Carta Oficial en PDF con QR de validación y fusiona archivos de soporte.
+Generates an Official Letter in PDF with a validation QR and merges supporting files.
 
-**Librerías utilizadas:**
-- **DomPDF** (`barryvdh/laravel-dompdf`): Renderiza la plantilla Blade a PDF.
-- **PDFMerger** (`webklex/laravel-pdfmerger`): Fusiona el PDF principal con los `support_files`.
+**Libraries used:**
+- **DomPDF** (`barryvdh/laravel-dompdf`): Renders the Blade template to PDF.
+- **PDFMerger** (`webklex/laravel-pdfmerger`): Merges the main PDF with `support_files`.
 
 **Body (Multipart/Form-Data):**
 
-| Campo | Descripción |
+| Field | Description |
 |---|---|
-| `pqr_id` | Requerido |
-| `folder_id` | Para guardar en el explorador |
-| `codigo`, `fecha`, `lugar` | Encabezado |
-| `tratamiento`, `nombres`, `cargo`, `empresa`, `direccion`, `ciudad` | Destinatario |
-| `asunto`, `saludo`, `texto` | Contenido |
-| `despedida1` a `despedida3`, `firma_nombres`, `firma_cargo`, `footer_text` | Firma y cierre |
-| `logo_file` | Imagen del logo (PNG/JPG) |
-| `signature_file` | Imagen de la firma |
-| `support_files[]` | PDFs adicionales a anexar |
+| `pqr_id` | Required |
+| `folder_id` | To store in the explorer |
+| `codigo`, `fecha`, `lugar` | Header |
+| `tratamiento`, `nombres`, `cargo`, `empresa`, `direccion`, `ciudad` | Recipient |
+| `asunto`, `saludo`, `texto` | Content |
+| `despedida1` to `despedida3`, `firma_nombres`, `firma_cargo`, `footer_text` | Signature and closing |
+| `logo_file` | Logo image (PNG/JPG) |
+| `signature_file` | Signature image |
+| `support_files[]` | Additional PDFs to append |
 
-**Flujo de proceso:**
-1. Genera el PDF base (Carta).
-2. Genera un Código QR apuntando a la URL de descarga.
-3. Fusiona el PDF base con los `support_files`.
-4. Almacena el resultado en `storage/app/public/pdf_responses/`.
-5. Registra el archivo como soporte de tipo `ENV` (Enviado) en la base de datos.
-6. Notifica por correo al usuario con el documento adjunto.
+**Process flow:**
+1. Generates the base PDF (Letter).
+2. Generates a QR code pointing to the download URL.
+3. Merges the base PDF with `support_files`.
+4. Stores the result in `storage/app/public/pdf_responses/`.
+5. Registers the file as support of type `ENV` (Sent) in the database.
+6. Sends email notification to the user with the attached document.
 
-**Respuesta (200 OK):**
+**Response (200 OK):**
 ```json
 {
   "message": "Respuesta enviada y PDFs fusionados exitosamente.",
@@ -956,11 +942,11 @@ Genera una Carta Oficial en PDF con QR de validación y fusiona archivos de sopo
 
 ---
 
-## GENERACIÓN DE QR
+## QR GENERATION
 
 ### `GET /qrcode`
 
-Crea una imagen PNG del QR que apunta a la URL indicada. La imagen se guarda en `storage/qrcodes`.
+Creates a PNG image of the QR code pointing to the specified URL. The image is saved in `storage/qrcodes`.
 
 **Body:**
 ```json
@@ -972,17 +958,17 @@ Crea una imagen PNG del QR que apunta a la URL indicada. La imagen se guarda en 
 
 ---
 
-## API DE NOTIFICACIONES
+## NOTIFICATIONS API
 
-> Todas las notificaciones están asociadas al usuario autenticado. Todos los endpoints requieren `auth:sanctum`.
+> All notifications are associated with the authenticated user. All endpoints require `auth:sanctum`.
 
-### Obtener todas las notificaciones
+### Get all notifications
 **METHOD:** `GET`
 ```
 /api/notifications
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "success": true,
@@ -990,34 +976,34 @@ Crea una imagen PNG del QR que apunta a la URL indicada. La imagen se guarda en 
 }
 ```
 
-### Obtener solo notificaciones no leídas
+### Get only unread notifications
 **METHOD:** `GET`
 ```
 /api/notifications/filter/unread
 ```
 
-### Obtener solo notificaciones leídas
+### Get only read notifications
 **METHOD:** `GET`
 ```
 /api/notifications/filter/read
 ```
 
-### Ver una notificación específica
+### View a specific notification
 **METHOD:** `GET`
 ```
 /api/notifications/{id}
 ```
 
-**Errores:**
-1. 404: Notificación no encontrada para este usuario.
+**Errors:**
+1. 404: Notification not found for this user.
 
-### Marcar una notificación como leída
+### Mark a notification as read
 **METHOD:** `POST`
 ```
 /api/notifications/{id}/mark-as-read
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "success": true,
@@ -1025,25 +1011,25 @@ Crea una imagen PNG del QR que apunta a la URL indicada. La imagen se guarda en 
 }
 ```
 
-**Errores:**
-1. 404: La notificación no pertenece al usuario o no existe.
+**Errors:**
+1. 404: Notification does not belong to the user or does not exist.
 
 ---
 
-## Reglas importantes de notificaciones
+## Important Notification Rules
 
-- Solo se pueden ver notificaciones del usuario autenticado.
-- No es posible acceder a notificaciones de otros usuarios.
-- Las notificaciones se devuelven en orden descendente por fecha.
-- Una notificación ya leída no se vuelve a marcar como no leída.
+- Only notifications of the authenticated user can be viewed.
+- It is not possible to access notifications of other users.
+- Notifications are returned in descending order by date.
+- A notification that has already been read will not be marked as unread again.
 
 ---
 
-## Mensajes de Error Comunes
+## Common Error Messages
 
-| Código | Mensaje | Causa |
+| Code | Message | Cause |
 |---|---|---|
-| **404** | PQR no encontrada | El ID proporcionado no existe en la base de datos. |
-| **422** | Esta PQR ya ha sido respondida | Se intenta responder una PQR cerrada o ya atendida. |
-| **410** | Este enlace ha expirado | El UUID de respuesta superó el tiempo límite (7 días). |
-| **500** | Error al generar la respuesta | Fallo interno en DomPDF o permisos de escritura en disco. |
+| **404** | PQR not found | The provided ID does not exist in the database. |
+| **422** | This PQR has already been responded to | Attempting to respond to a closed or already addressed PQR. |
+| **410** | This link has expired | The response UUID exceeded the time limit (7 days). |
+| **500** | Error generating the response | Internal failure in DomPDF or write permission issues on disk. |
