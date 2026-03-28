@@ -193,11 +193,13 @@ class PQRController extends Controller
                 $hash = hash('adler32', time());
 
                 $pqrID = $pqr->id;
-                if ($pqrID < 99) {
-                    if ($pqrID < 9) {
-                        $pqrID = "00$pqrID";
+                if ($pqrID <= 99) {
+                    if($pqrID <=9){
+                    $pqrID = "00$pqrID";
                     }
-                    $pqrID = "0$pqrID";
+                    else{
+                        $pqrID = "0$pqrID";
+                    }
                 }
 
                 $pqr->attachedSupports()->create([
