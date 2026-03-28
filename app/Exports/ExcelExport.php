@@ -124,14 +124,14 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
             ->joinSub(
                 \DB::table('attached_supports')
                     ->selectRaw('MIN(id) as id, pqr_id')
-                    ->where('origin', 'RECIBO')
+                    ->whereIn('origin', ['REC', 'RECIBO'])
                     ->groupBy('pqr_id'),
                 'ats_sel',
                 function ($join) use ($table) {
                     $join->on('ats_sel.pqr_id', '=', $table . '.id');
                 }
             )
-            ->join('attached_supports as ats', 'ats.id', '=', 'ats_sel.id')
+            ->join('attached_supportgis as ats', 'ats.id', '=', 'ats_sel.id')
 
 
             ->leftJoinSub(
@@ -155,7 +155,11 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
                 function ($join) {
                     $join->on('f.file_code', '=', 'ats.no_radicado');
                 }
+
             )
+
+
+
 
 
             ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
@@ -226,6 +230,7 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
         if (!empty($this->filters['response_status'])) {
             $q->where('response_status', $this->filters['response_status']);
         }
+
 
 
 
