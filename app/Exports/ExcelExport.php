@@ -122,16 +122,25 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
 
             ->joinSub(
-                \DB::table('attached_supports')
-                    ->selectRaw('MIN(id) as id, pqr_id')
-                    ->whereIn('origin', ['REC', 'RECIBO'])
-                    ->groupBy('pqr_id'),
+                \DB::table('attached_supports as ats1')
+                    ->select('ats1.id', 'ats1.pqr_id')
+                    ->whereIn('ats1.origin', ['REC', 'RECIBO'])
+                    ->whereRaw('ats1.id = (
+            SELECT ats2.id
+            FROM attached_supports ats2
+            LEFT JOIN files f2 ON f2.file_code = ats2.no_radicado
+            WHERE ats2.pqr_id = ats1.pqr_id
+            AND ats2.origin IN ("REC", "RECIBO")
+            AND f2.folder_id IS NOT NULL
+            ORDER BY ats2.id ASC
+            LIMIT 1
+        )'),
                 'ats_sel',
                 function ($join) use ($table) {
                     $join->on('ats_sel.pqr_id', '=', $table . '.id');
                 }
             )
-            ->join('attached_supportgis as ats', 'ats.id', '=', 'ats_sel.id')
+            ->join('attached_supports as ats', 'ats.id', '=', 'ats_sel.id')
 
 
             ->leftJoinSub(
@@ -164,6 +173,16 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
             ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
 
+            ->leftJoin('dependencies as d', 'd.id', '=', $table . '.dependency_id')
+
+            ->leftJoin('folders as fo_dep', function ($join) {
+                $join->on(
+                    \DB::raw('TRIM(LOWER(fo_dep.name))'),
+                    '=',
+                    \DB::raw('TRIM(LOWER(d.name))')
+                );
+            })
+
             ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
 
             ->select(
@@ -171,7 +190,8 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
                 'ats.no_radicado as no_radicado_from_join',
                 'fo.folder_code as folder_code_from_join',
                 'ats.hash as hash_from_join',
-                'ats_env.no_radicado as env_no_radicado_from_join'
+                'ats_env.no_radicado as env_no_radicado_from_join',
+                'fo_dep.folder_code as folder_code_from_dependency'
             )
 
             ->orderByDesc($table . '.created_at');
@@ -362,7 +382,8 @@ class Received implements FromQuery, WithHeadings, WithMapping, WithColumnFormat
 
         $noRadicado = $p->no_radicado_from_join ?? 'N/A';
 
-        $folderCode = $p->folder_code_from_join
+        $folderCode = $p->folder_code_from_dependency
+            ?? $p->folder_code_from_join
             ?? $this->resolveFolderCodeByNoRadicado($noRadicado)
             ?? 'N/A';
 
