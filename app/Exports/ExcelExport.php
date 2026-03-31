@@ -632,7 +632,6 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
 
         $q = PQR::query()
 
-
             ->joinSub(
                 \DB::table('attached_supports')
                     ->selectRaw('MIN(id) as id, pqr_id')
@@ -647,16 +646,11 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
             ->join('attached_supports as ats_env', 'ats_env.id', '=', 'ats_env_sel.id')
 
 
-            ->leftJoin('files as f', function ($join) {
-                $join->on('f.file_code', '=', 'ats_env.no_radicado')
-                    ->whereRaw('f.id = (
-                    SELECT MIN(id)
-                    FROM files
-                    WHERE file_code = ats_env.no_radicado
-                )');
+            ->leftJoin('dependencies as d', 'd.id', '=', $table . '.dependency_id')
+            ->leftJoin('folders as fo', function ($join) use ($table) {
+                $join->on('fo.name', '=', 'd.name')
+                    ->whereColumn('fo.sheet_number_id', $table . '.sheet_number_id');
             })
-
-            ->leftJoin('folders as fo', 'fo.id', '=', 'f.folder_id')
 
             ->with(['creator', 'responsible', 'dependency', 'sheetNumber'])
 
@@ -917,7 +911,6 @@ class Sended  implements FromQuery, WithHeadings, WithMapping, WithColumnFormatt
         $hash = $p->env_hash ?? $PH;
 
         $folderCode = $p->folder_code_from_join
-            ?? $this->resolveFolderCodeByNoRadicado($noRadicado)
             ?? $this->resolveFolderCode($p)
             ?? $PH;
 
