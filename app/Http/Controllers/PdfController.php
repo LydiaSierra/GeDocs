@@ -100,6 +100,7 @@ class PdfController extends Controller
             $nextEnvNumber = $this->getNextEnvConsecutive();
             $pqrNumber = str_pad((string) $nextEnvNumber, 3, '0', STR_PAD_LEFT);
             $data['no_radicado'] = $pqrNumber;
+            $data['is_env'] = true;
 
             $pdf = Pdf::loadView('pdf.template', [
                 'data' => $data,
@@ -450,8 +451,8 @@ class PdfController extends Controller
             // 2. Preparar datos para el template forzando CARTA
             $data['document_type'] = 'carta';
             // Agregar datos para el QR
-            $attachedSupport = $pqr->attachedSupports()->where('origin', 'ENV')->latest()->first();
             $data['no_radicado'] = $pqrNumber;
+            $data['is_env'] = true;
             $data['atendido'] = $pqr->responsible ? $pqr->responsible->name : ($request->user() ? $request->user()->name : '');
             $data['hora'] = now()->format('H:i:s');
 
