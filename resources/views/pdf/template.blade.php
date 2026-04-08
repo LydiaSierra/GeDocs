@@ -88,13 +88,17 @@
             position: absolute;
             top: 10px;
             right: 0px;
-            width: 150px;
+            width: 170px;
+            background-color: white;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
             text-align: center;
         }
 
         .qr-code {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             display: block;
             margin: 0 auto;
         }
@@ -134,23 +138,35 @@
     $footerText = $data['footer_text'] ?? ("SENA - Centro de comercio y servicios - Area de gestion documental\n© Gedocs " . date('Y') . " Todos los derechos reservados.");
 @endphp
 
+@if(empty($data['is_env']))
 <div class="qr-wrapper">
     @if(!empty($qrCodeDataUri))
         <img src="{{ $qrCodeDataUri }}" alt="QR Code" class="qr-code">
     @endif
-    <div style="font-size: 8pt; margin-top: 5px; text-align: left;">
-        <div><b>Radicado No.:</b> {{ $data['no_radicado'] ?? '' }}</div>
-        @if(!empty($qrCodeDataUri))
-            <div><b>Atendido:</b> {{ $data['atendido'] ?? '' }}</div>
-            <div><b>Hora:</b> {{ $data['hora'] ?? '' }}</div>
-            <div><b>Ubicación:</b> {{ $data['archivado_en'] ?? '' }}</div>
+    <div style="font-size: 7.5pt; margin-top: 5px; text-align: left; line-height: 1.2;">
+        <div><b>Radicado No.:</b> {{ $data['no_radicado'] ?? 'N/A' }}</div>
+        @if(!empty($data['atendido']))
+            <div><b>Atendido:</b> {{ $data['atendido'] }}</div>
+        @endif
+        @if(!empty($data['hora']))
+            <div><b>Hora:</b> {{ $data['hora'] }}</div>
+        @endif
+        @if(!empty($data['archivado_en']))
+            <div style="font-size: 6.5pt;"><b>Ubicación:</b> {{ $data['archivado_en'] }}</div>
         @endif
     </div>
 </div>
+@endif
 
 @if(!empty($logoDataUri))
     <div class="logo-wrapper">
         <img src="{{ $logoDataUri }}" alt="Logo institucional" class="document-logo">
+    </div>
+@endif
+
+@if(!empty($data['is_env']))
+    <div style="margin-bottom: 15px; font-size: 11pt;">
+        <b>Radicado No:</b> {{ $data['no_radicado'] ?? '' }}
     </div>
 @endif
 
